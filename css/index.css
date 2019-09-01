@@ -1,0 +1,8 @@
+span { 
+	display: inline-block; 
+	position: absolute;
+}
+body {
+	background-image: url('../img/bg.gif');
+	background-size: cover;
+}
