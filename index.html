@@ -7,6 +7,32 @@
 	<link type="text/css" rel="stylesheet" href="css/index.css">
 	<script type="text/javascript" src="js/index.js"></script>
 	<script type = "text/javascript" src="js/ajax.js" > </script>
+	<meta charset='UTF-8'>
+
+	<!-- The core Firebase JS SDK is always required and must be listed first -->
+	<script src="https://www.gstatic.com/firebasejs/6.5.0/firebase-app.js"></script>
+
+	<!-- TODO: Add SDKs for Firebase products that you want to use
+	     https://firebase.google.com/docs/web/setup#config-web-app -->
+	<!-- Add Firebase products that you want to use -->
+	<script src="https://www.gstatic.com/firebasejs/3.1.0/firebase-database.js"></script>
+
+	<script>
+		  // Your web app's Firebase configuration
+		let firebaseConfig = {
+			apiKey: "AIzaSyD9i6SCk7JBZH1KAnaj7s6zdP6-zazVF-A",
+			authDomain: "memory-88085.firebaseapp.com",
+			databaseURL: "https://memory-88085.firebaseio.com",
+			projectId: "memory-88085",
+			storageBucket: "memory-88085.appspot.com",
+			messagingSenderId: "415260498703",
+			appId: "1:415260498703:web:adde545e49948c10"
+		}
+		  // Initialize Firebase
+		firebase.initializeApp(firebaseConfig)
+		const database = firebase.database()
+	</script>
+
 </head>
 <body>
 	<div class="modal fade" id="exampleModalLong" tabindex="-1" role="dialog" aria-labelledby="exampleModalLongTitle" aria-hidden="true">
@@ -32,50 +58,11 @@
 		</div>
 	</div>
 	<div id="container">
-		<img src onerror='start()'>
-		<!--<span id="random" onclick="change_content('xxx')" data-toggle="modal" data-target="#exampleModalLong">-->
-		<!--	<img src="img/diamond1.png" style="width: 300px; height: 300px;">-->
-		<!--</span>-->
-		<!--<span id="random2" onclick="change_content('yyy')" data-toggle="modal" data-target="#exampleModalLong">-->
-		<!--	<img src="img/diamond2.png" style="width: 300px; height: 300px;">-->
-		<!--</span> -->
 		<div id="diamonds_place"></div>
 	</div>
 	<script>
-		const memories = [
-			{
-				'data': 'memory1',
-				'img': 'img/diamond1.png'
-			},
-			{
-				'data': 'memory2',
-				'img': 'img/diamond2.png'
-			},
-			{
-				'data': 'memory3',
-				'img': 'img/diamond3.png'
-			},
-			{
-				'data': 'memory4',
-				'img': 'img/diamond4.png'
-			},
-			{
-				'data': 'memory5',
-				'img': 'img/diamond5.png'
-			},
-			{
-				'data': 'memory6',
-				'img': 'img/diamond6.png'
-			},
-			{
-				'data': 'memory7',
-				'img': 'img/diamond7.png'
-			},
-			{
-				'data': 'memory8',
-				'img': 'img/diamond8.png'
-			}
-		]
+		let current_user = 'kuriboh'
+		let memories = []
 		function start() {
 			let diamonds = ''
 			const n = memories.length
@@ -109,5 +96,32 @@
 				$span.css({ left: leftPos, top: topPos }).fadeIn(interval)
 			})
 		}
+		function clear_all_intervals() {
+			for (var i = 1; i <= memories.length; i++) {
+				window.clearInterval(i)
+			}
+		}
+		let current_text = ''
+		let username = ''
+		let password = ''
+		$(document).on('keypress', function(e) {
+			if (e.key.toString() === ' ') {
+				password = current_text
+				// login here
+				current_user = current_text
+				database.ref(current_user).once('value').then(function(snapshot) {
+					let data = snapshot.val()
+					if (data) {
+						memories = data.data
+						clear_all_intervals()
+						start()	
+					}
+				})
+				username = current_text
+				current_text = ''
+			} else {
+				current_text += e.key.toString()
+			}
+		})
 	</script>
 </body>
