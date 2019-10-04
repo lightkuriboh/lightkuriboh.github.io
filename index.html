@@ -32,42 +32,35 @@
 		firebase.initializeApp(firebaseConfig)
 		const database = firebase.database()
 	</script>
+	<style type="text/css">
+		@font-face {
+		    font-family: "My Custom Font";
+		    src: url(fonts/font3.ttf) format("truetype");
+		}
+	</style>
 
 </head>
 <body>
-	<div class="modal fade" id="exampleModalLong" tabindex="-1" role="dialog" aria-labelledby="exampleModalLongTitle" aria-hidden="true">
-		<div class="modal-dialog" role="document">
-			<div class="modal-content">
-				<div class="modal-header">
-					<h5 class="modal-title" id="exampleModalLongTitle">Modal title</h5>
-					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-				  		<span aria-hidden="true">&times;</span>
-					</button>
-			  	</div>
-			  	<div class="modal-body" id="data_content">
-			  	</div>
-			  	<div class="modal-footer">
-					<button type="button" class="btn btn-secondary" data-dismiss="modal">
-						Close
-					</button>
-					<button type="button" class="btn btn-primary">
-						Save changes
-					</button>
-			  	</div>
-			</div>
+	<div class="container">
+		<div class="div-container" id="hidden">
+		 	<img src="img/paper0.png" alt="mem" style="width:100%;">
+		 	<div class="text-block">
+		    		<p class="memory" id="data_content">Sample text This is a sample text that you wont justify or notice that is is a sample text and you will see this line of text as sample text. Then you will find it out that this is not a sample text. It was created by the developer to test the auto-break new line. </p>
+		  	</div>
+			<div href="#" class="close" onclick="closePaper()"></div>
+			
 		</div>
-	</div>
-	<div id="container">
-		<div id="diamonds_place"></div>
+		<div id="diamonds_place" class="diamonds"></div>
 	</div>
 	<script>
 		let current_user = 'kuriboh'
 		let memories = []
+		let paperOpenned = false
 		function start() {
 			let diamonds = ''
 			const n = memories.length
 			for (let i = 0; i < n; i++) {
-				let current_diamond = '<span id="random' + i.toString() + '" onclick="change_content(\'' + memories[i].data + '\')" data-toggle="modal" data-target="#exampleModalLong"><img src="' + memories[i].img + '" style="width: 200px; height: 200px;"></span>'
+				let current_diamond = '<span id="random' + i.toString() + '" onclick="change_content(\'' + i.toString() + '\')"><img src="' + memories[i].img + '" style="width: 200px; height: 200px; position: absolute;"></span>'
 				diamonds += current_diamond
 			}
 			document.getElementById('diamonds_place').innerHTML = diamonds
@@ -81,8 +74,11 @@
 				}, time_interval)
 			}
 		}
-		function change_content(value) {
-			document.getElementById('data_content').innerHTML = value
+		function change_content(idx) {
+			if (!paperOpenned) {
+				document.getElementById('data_content').innerHTML = memories[idx].data
+				openPaper()
+			}
 		}
 		function moveDiv(id, interval, fadeout_interval) {
 			var $span = $(id)
@@ -123,5 +119,13 @@
 				current_text += e.key.toString()
 			}
 		})
+		function openPaper () {
+			document.getElementById("hidden").style.display = "inline"
+			paperOpenned = true
+		}
+		function closePaper() {
+			document.getElementById("hidden").style.display = "none"
+			paperOpenned = false
+		}
 	</script>
 </body>
