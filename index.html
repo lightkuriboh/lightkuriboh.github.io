@@ -43,12 +43,11 @@
 <body>
 	<div class="container">
 		<div class="div-container" id="hidden">
-		 	<img src="img/paper0.png" alt="mem" style="width:100%;">
+		 	<img class = "paper-for-text" src="img/paper0.png" alt="mem">
 		 	<div class="text-block">
 		    		<p class="memory" id="data_content">Sample text This is a sample text that you wont justify or notice that is is a sample text and you will see this line of text as sample text. Then you will find it out that this is not a sample text. It was created by the developer to test the auto-break new line. </p>
 		  	</div>
-			<div href="#" class="close" onclick="closePaper()"></div>
-			
+			<span href="#" class="close" onclick="closePaper()"></span>
 		</div>
 		<div id="diamonds_place" class="diamonds"></div>
 	</div>
@@ -120,7 +119,7 @@
 			}
 		})
 		function openPaper () {
-			document.getElementById("hidden").style.display = "inline"
+			document.getElementById("hidden").style.display = "block"
 			paperOpenned = true
 		}
 		function closePaper() {

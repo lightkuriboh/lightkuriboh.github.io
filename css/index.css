@@ -9,9 +9,13 @@ body {
 
 .container {
 	position: relative;
+	text-align: center;
 }
 .div-container {
-	display: none;
+	display: block;
+	text-align: center;
+	margin: 0 auto;
+	width: 80%;
 }
 .text-block {
 	position: absolute;
@@ -20,7 +24,7 @@ body {
 	transform: translate(-50%, -50%);
 	width: 65%;
 	text-align: center;
-	
+	overflow: scroll;
 }
 .diamonds {
 	position: fixed;
@@ -30,12 +34,13 @@ body {
 }
 p.memory {
 	font-family: "My Custom Font", Verdana, Tahoma;
-	font-size: 200%;
+	font-size: 1.75vw;
+	font-weight: 500;
 }
 .close {
 	position: absolute;
-	right: 32px;
-	top: 32px;
+	right: 13%;
+	top: 4%;
 	width: 32px;
 	height: 32px;
 	opacity: 0.3;
@@ -56,4 +61,7 @@ p.memory {
 }
 .close:after {
 	transform: rotate(-45deg);
+}
+.paper-for-text {
+	width: 100%;
 }
