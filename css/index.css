@@ -12,7 +12,7 @@ body {
 	text-align: center;
 }
 .div-container {
-	display: block;
+	display: none;
 	text-align: center;
 	margin: 0 auto;
 	width: 80%;
@@ -24,7 +24,6 @@ body {
 	transform: translate(-50%, -50%);
 	width: 65%;
 	text-align: center;
-	overflow: scroll;
 }
 .diamonds {
 	position: fixed;
@@ -64,4 +63,13 @@ p.memory {
 }
 .paper-for-text {
 	width: 100%;
+}
+::-webkit-scrollbar {
+    -webkit-appearance: none;
+    width: 7px;
+}
+::-webkit-scrollbar-thumb {
+    border-radius: 4px;
+    background-color: rgba(0,0,0,.5);
+    -webkit-box-shadow: 0 0 1px rgba(255,255,255,.5);
 }
