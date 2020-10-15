@@ -1,130 +1,283 @@
-<!DOCTYPE HTML>
-<head>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-	<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
-	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
-	<link type="text/css" rel="stylesheet" href="css/index.css">
-	<script type="text/javascript" src="js/index.js"></script>
-	<script type = "text/javascript" src="js/ajax.js" > </script>
-	<meta charset='UTF-8'>
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-	<!-- The core Firebase JS SDK is always required and must be listed first -->
-	<script src="https://www.gstatic.com/firebasejs/6.5.0/firebase-app.js"></script>
+		<title>Kuriboh Portfolio</title>
 
-	<!-- TODO: Add SDKs for Firebase products that you want to use
-	     https://firebase.google.com/docs/web/setup#config-web-app -->
-	<!-- Add Firebase products that you want to use -->
-	<script src="https://www.gstatic.com/firebasejs/3.1.0/firebase-database.js"></script>
+		<link rel="stylesheet" href="css/reset.css">
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/black.css">
+		<link rel="stylesheet" href="css/custom.css">
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="lib/css/monokai.css">
 
-	<script>
-		  // Your web app's Firebase configuration
-		let firebaseConfig = {
-			apiKey: "AIzaSyD9i6SCk7JBZH1KAnaj7s6zdP6-zazVF-A",
-			authDomain: "memory-88085.firebaseapp.com",
-			databaseURL: "https://memory-88085.firebaseio.com",
-			projectId: "memory-88085",
-			storageBucket: "memory-88085.appspot.com",
-			messagingSenderId: "415260498703",
-			appId: "1:415260498703:web:adde545e49948c10"
-		}
-		  // Initialize Firebase
-		firebase.initializeApp(firebaseConfig)
-		const database = firebase.database()
-	</script>
-	<style type="text/css">
-		@font-face {
-		    font-family: "My Custom Font";
-		    src: url(fonts/font3.ttf) format("truetype");
-		}
-	</style>
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides" style="color: #ff99aa">
+				<section>
+					<div>
+						<h3 style="color: #ff99aa"> Pham Ngoc Hieu </h3>
+						<p style="color: #ff99aa; font-size:20px"> Pursuing Bachelor of Computer Science</p>
+						<p style="color: #ffa31a; font-size:20px"> Anticipate: June 2021</p>
+						<img src="assets/ava.jpg" width=35%></img>
+					</div>
+					<div style="color: #ff99aa;font-size:25px">
+						<a href='https://www.linkedin.com/in/hieu-pham-202165186/' target="_blank">LinkedIn</a>
+						|
+						<a href='https://github.com/lightkuriboh/' target="_blank">Github</a>
+						|
+						<a href='files/resume.pdf' target="_blank">Resume</a>
+						</br>
+						Email: <a href="mailto:phamngochieu210199@gmail.com" target="_blank">phamngochieu210199@gmail.com</a>
+						</br>
+						Phone: <a href="tel:84971044654" target="_blank">(+84) 97 10 44 654</a>
+						</br>
+						<a href='memories/index.html' style="font-size: 10px">Precious Memories</a>
+					</div>
+				</section>
+				<section>
+					<section data-background-transition="zoom" data-background="assets/education.jpg">
+						<h1 style="color: #e06500">Education</h1>
+					</section>
+					<section>
+						<div>
+							<p style="color: white">Vietnam National University, University of Engineering and Technology</p>
+							<a href="https://e.uet.vnu.edu.vn/" target="_blank">
+								<img src="assets/uet.png" width=10%></img>
+							</a>
+						</div>
+						<p class="fragment fade-in-then-semi-out">
+							Bachelor of Computer Science
+						</p>
+						<p class="fragment fade-in-then-semi-out">
+							CPA: 3.74 / 4.00
+						</p>
+						<h4 class="fragment fade-up">
+							Relevant courses
+						</h4>
+						<p class="fragment fade-in-then-semi-out" style="font-size: 20px;">
+							Data Structures and Algorithms, Object-Oriented Programming, Operating System Principles, Computer Networking, Database, Software Engineering, ... 
+						</p>
+					</section>
+					<section>
+						<h3> Honors </h3>
+						<div style="font-size: 75%">
+							<div class="fragment fade-in-then-semi-out">
+								<p>
+									Scholarships for Top 10% students with the best academic results for 5/6 semesters
+								</p>
+								<img alt="Excellent student title" src="assets/excellent-student.png" width=40%></img>
+							</div>
+							<p class="fragment fade-in-then-semi-out">
+								Scholarships from Vingroup for 10 students in my university with the best academic results and outstanding
+achievement in research or olympiads
+							</p>
+						</div>
+					</section>
+<section>
+						<h3> Other Honors </h3>
+						<div style="font-size: 75%">
+							<div class="fragment fade-in-then-semi-out">
+								<p>
+									One of the 19 most outstanding students in the university to award the title of "Student with 5 merits" (Morality, Knowledge, Physical Health, Social Skills, Integration Competence) in the 2018-2019 academic year
+								</p>
+								<img src="assets/so5m.jpg" width=40%></img>
+							</div>
+						</div>
+					</section>
+				</section>
+				<section>
+					<section data-background="assets/awards.jpeg">
+						<h1 style="color: #e06500;">
+							Awards
+						</h1>
+					</section>
+					<section>
+						<h4>
+							<a href="https://icpc.global/" target="_blank">
+								ICPC
+							</a>
+							Asia Danang Regional 2019
+						</h4>
+						<p class="fragment fade-in-then-semi-out" style="font-size: 80%">
+							Competed in a team of three to solve 10 to 13 algorithmic problems in 5 hours using C++
+						</p>
+						<p class="fragment fade-in-then-semi-out" style="font-size: 80%">
+							Silver medal in , 9<small>th</small> place over 112 International university teams (also won against over 200 national teams in the previous round)
+						</p>
+						<div class="fragment fade-in-then-semi-out">
+							<img src="assets/cert-icpc2019.jpg" width=45%></img>
+							<img src="assets/icpc-2019.jpg" width=45%></img>
+						</div>
+					</section>
+					<section>
+						<h4 class="fragment slide-in-then-fade-out">Septech Code War 2019</h4>
+						<p class="fragment fade-in-then-semi-out" style="font-size:60%">A Collegiate Programming contest hosted by <a href="http://www.septeni-technology.jp/" target="_blank">Septeni Technology</a></p>
+						<p class="fragment fade-in-then-semi-out" style="font-size:60%">1<small>st</small> place among 30 participants</p>
+						<img src="assets/sept_code_war.jpg" class="fragment fade-in-then-semi-out" width=50%></img>
+					</section>
+					<section>
+						<h4>UET Code War</h4>
+						<p class="fragment fade-in-then-semi-out" style="font-size:60%">Programming contest hosted by my university</p>
+						<p class="fragment fade-in-then-semi-out" style="font-size:60%">16<small>th</small> place among over 500 participants</p>
+						<img src="assets/uet-code-war.png" class="fragment fade-in-then-semi-out" width=50%></img>
+					</section>
+					<section>
+						<h4 style="color: #fc7703">Older Contests</h4>
+						<h4 class="fragment fade-in-then-semi-out" style="font-size:60%"> <a target="_blank" href="https://www.gameloft.com/en/">Gameloft Da Nang</a> AI Contest 2018</h4>
+						<p class="fragment fade-in-then-semi-out" style="font-size:50%">Wrote an AI BOT competing with other participants’ in a <a target="_blank" href="https://github.com/lightkuriboh">designed game</a></p>
+						<p class="fragment fade-in-then-semi-out" style="font-size:50%">8<small>th</small> place among over 100 participants</p>
 
-</head>
-<body>
-	<div class="container">
-		<div class="div-container" id="hidden">
-		 	<img class = "paper-for-text" src="img/paper0.png" alt="mem">
-		 	<div class="text-block">
-		    		<p class="memory" id="data_content">Sample text This is a sample text that you wont justify or notice that is is a sample text and you will see this line of text as sample text. Then you will find it out that this is not a sample text. It was created by the developer to test the auto-break new line. </p>
-		  	</div>
-			<span href="#" class="close" onclick="closePaper()"></span>
+						<h4 class="fragment fade-in-then-semi-out" style="font-size:60%">FPT Code War 2017</h4>
+						<p class="fragment fade-in-then-semi-out" style="font-size:50%">A Collegiate Programming contest hosted <a target="_blank" href="https://www.fpt-software.com/">FPT Software</a></p>
+						<p class="fragment fade-in-then-semi-out" style="font-size:50%">5<small>th</small> place among over 100 participants</p>
+						<img src="assets/fpt-code-war.jpg" class="fragment fade-in-then-semi-out" width=35%></img>
+					</section>
+				</section>
+				<section>
+					<section data-background="assets/project.jpg">
+						<h1 style="color: #e06500">Projects</h1>
+					</section>
+					<section>
+						<h4 style="color: #f5f5f5">CSP Online Practice Environment (<a href="http://139.59.245.106:8000/" target="_blank">COPE</a>)</h4>
+						<p class="fragment fade-in-then-semi-out" style="font-size:50%">An educational project, acts as an online untrusted source code judging system</p>
+						<p class="fragment fade-in-then-semi-out" style="font-size:50%">Is being used by teachers and 1000+ students in my high school</p>
+						<p class="fragment fade-in-then-semi-out" style="font-size:50%">Founder of the project, team lead from 2017-2018</p>
+						<p class="fragment fade-in-then-semi-out" style="font-size:50%">Technologies that changed over versions: PHP, Mysql, C# (Version 1); ReactJS, NodeJS, RethinkDB (Version 2); Laravel (PHP), Mysql, Docker (Version 3)</p>
+						<div class="fragment fade-in-then-semi-out">
+							<img src="assets/cope1.png" width=45%></img>
+							<img src="assets/cope2.png" width=45%></img>
+						</div>
+					</section>
+					<section>
+						<h4 style="color: #f5f5f5"><a href="https://github.com/lightkuriboh/SimpleHTTPServerCPP" target="_blank">Simple C++ HTTP Server</a></h4>
+						<p class="fragment fade-in-then-semi-out" style="font-size:50%">A simple HTTP server that is written in C++. It only uses Linux-provides API and standard C++ libraries</p>
+						<p class="fragment fade-in-then-semi-out" style="font-size:50%">Supports 10000+ concurrent connections, 100000+ simple requests per second on a persional computer</p>
+						<div class="fragment fade-in">
+							<img src="assets/scs1.png" width=25%></img>
+							<img src="assets/scs2.png" width=25%></img>
+						</div>
+						<p class="fragment fade-in-then-semi-out" style="font-size:50%">The number of connections in these images is 1000, just need to increase Linux Open file limit</p>
+						<p class="fragment fade-in-then-semi-out" style="font-size:50%">The left image show performace on returning single HTML</p>
+						<p class="fragment fade-in-then-semi-out" style="font-size:50%">The right image show performace on returning HTML with one file.css, one file.js and one image</p>
+					</section>
+					<section>
+						<h4 style="color: #f5f5f5">Data Science related things</h4>
+						<p class="fragment fade-in-then-semi-out" style="font-size:50%">An analysis on NOAA Storm Database Analysis</p>
+						<p class="fragment fade-in-then-semi-out" style="font-size:50%"><a href="https://rpubs.com/lightkuriboh/noaa_storm_database_analysis" target="_blank">https://rpubs.com/lightkuriboh/noaa_storm_database_analysis</a></p>
+						<p class="fragment fade-in-then-semi-out" style="font-size:50%">A small visualization on stimulating the Central limit theorem</p>
+						<p class="fragment fade-in-then-semi-out" style="font-size:50%"><a href="https://lightkuriboh.shinyapps.io/Central-Limit-Theorem-Visualization/" target="_blank">https://lightkuriboh.shinyapps.io/Central-Limit-Theorem-Visualization/</a></p>
+						<div class="fragment fade-in">
+							<img src="assets/analysis.png" width=45%></img>
+							<img src="assets/clt.png" width=45%></img>
+						</div>
+					</section>
+					<section>
+						<h4 style="color: #f5f5f5">University lesson projects</h4>
+						<h3 class="fragment fade-in-then-semi-out" style="font-size:50%"><a href="https://github.com/lightkuriboh/assignment-1-dictionary-kawaiii" target="_blank">English - Vietnamese dictionary</a></h3>
+						<p class="fragment fade-in-then-semi-out" style="font-size:50%">A dictionary built with JavaFX for desktop GUI (in JavaFX branch). I personally made a mobile version with ReactNative (in develop branch).</p>
+						<h3 class="fragment fade-in-then-semi-out" style="font-size:50%"><a target="_blank" href="https://github.com/lightkuriboh/Bomberman">Bomberman game</a></h3>
+						<p class="fragment fade-in-then-semi-out" style="font-size:50%">This game was made above starter project. I created a very smart AI bot for monsters in the game. Set the game difficulty to harder versions, I want to see if you - the player can win the game.</p>
+						<h3 class="fragment fade-in-then-semi-out" style="font-size:50%"><a target="_blank" href="https://github.com/lightkuriboh/IQ">IQ game</a></h3>
+						<p class="fragment fade-in-then-semi-out" style="font-size:50%">Your mission is to bring balls to given positions on a square board with many obstacles. You only have two action, rotate it to the left, and rotate it to the right. How many level can you pass?</p>
+					</section>
+				</section>
+				<section>
+					<section data-background="assets/technical.jpg">
+						<h1 style="color: #e06500;">
+							Technical Skills
+						</h1>
+					</section>
+					<section>
+						<h4>
+							Academic and Industrial Experience
+						</h4>
+						<div class="fragment fade-in">
+							<img width=10% src="assets/python.png"></img>
+							<img width=10% src="assets/django.png"></img>
+							<img width=10% src="assets/c++.png"></img>
+							<img width=10% src="assets/cocos2dx.png"></img>
+							<img width=10% src="assets/reactjs.jpg"></img>
+							<img width=10% src="assets/java.png"></img>
+							<img width=10% src="assets/mysql.png"></img>
+							<img width=10% src="assets/git.png"></img>
+						</div>
+						<p class="fragment fade-in-then-semi-out">
+							Python, Django
+						</p>
+						<p class="fragment fade-in-then-semi-out">
+							C++ (C++ 98, C++ 14), Cocos2d-x
+						</p>
+						<p class="fragment fade-in-then-semi-out">
+							Javascript, ReactJS
+						</p>
+						<p class="fragment fade-in-then-semi-out">
+							Java, JavaFX
+						</p>
+						<p class="fragment fade-in-then-semi-out">
+							Mysql, Git, Linux
+						</p>
+					</section>
+					<section>
+						<h4>
+							Other learned skills
+						</h4>
+						<div class="fragment fade-in">
+							<img width=10% src="assets/r.png"></img>
+							<img width=10% src="assets/reactnative.png"></img>
+							<img width=10% src="assets/vuejs.png"></img>
+							<img width=10% src="assets/nodejs.png"></img>
+							<img width=10% src="assets/flask.png"></img>
+						</div>
+						<p class="fragment fade-in-then-semi-out">
+							R for Data Science
+						</p>
+						<p class="fragment fade-in-then-semi-out">
+							React Native, VueJS, Nodejs (Javascript)
+						</p>
+						<p class="fragment fade-in-then-semi-out">
+							Flask (Python)
+						</p>
+					</section>
+				</section>
+			</div>
 		</div>
-		<div id="diamonds_place" class="diamonds"></div>
-	</div>
-	<script>
-		let current_user = 'kuriboh'
-		let memories = []
-		let paperOpenned = false
-		function start() {
-			let diamonds = ''
-			const n = memories.length
-			for (let i = 0; i < n; i++) {
-				let current_diamond = '<span id="random' + i.toString() + '" onclick="change_content(\'' + i.toString() + '\')"><img src="' + memories[i].img + '" style="width: 200px; height: 200px; position: absolute;"></span>'
-				diamonds += current_diamond
-			}
-			document.getElementById('diamonds_place').innerHTML = diamonds
-			for (let i = 0; i < n; i++) {
-				let div_id = '#random' + i.toString()
-				let time_interval = Math.min(Math.max(0.25, Math.random()), 0.6) * 1000
-				let fade_interval = Math.min(Math.max(0.25, Math.random()), 0.6) * 1000
-				let fadeout_interval = Math.min(Math.max(0.8, Math.random() * 1.5), 1.5) * 1000
-				setInterval(function () {
-					moveDiv(div_id, fade_interval, fadeout_interval)
-				}, time_interval)
-			}
-		}
-		function change_content(idx) {
-			if (!paperOpenned) {
-				document.getElementById('data_content').innerHTML = memories[idx].data
-				openPaper()
-			}
-		}
-		function moveDiv(id, interval, fadeout_interval) {
-			var $span = $(id)
+		<script src="js/reveal.js"></script>
 
-			$span.fadeOut(fadeout_interval, function() {
-				var maxLeft = $(window).width() - $span.width()
-				var maxTop = $(window).height() - $span.height()
-				var leftPos = Math.floor(Math.random() * (maxLeft + 1))
-				var topPos = Math.floor(Math.random() * (maxTop + 1))
-
-				$span.css({ left: leftPos, top: topPos }).fadeIn(interval)
-			})
-		}
-		function clear_all_intervals() {
-			for (var i = 1; i <= memories.length; i++) {
-				window.clearInterval(i)
-			}
-		}
-		let current_text = ''
-		let username = ''
-		let password = ''
-		$(document).on('keypress', function(e) {
-			if (e.key.toString() === ' ') {
-				password = current_text
-				// login here
-				current_user = current_text
-				database.ref(current_user).once('value').then(function(snapshot) {
-					let data = snapshot.val()
-					if (data) {
-						memories = data.data
-						clear_all_intervals()
-						start()	
-					}
-				})
-				username = current_text
-				current_text = ''
-			} else {
-				current_text += e.key.toString()
-			}
-		})
-		function openPaper () {
-			document.getElementById("hidden").style.display = "block"
-			paperOpenned = true
-		}
-		function closePaper() {
-			document.getElementById("hidden").style.display = "none"
-			paperOpenned = false
-		}
-	</script>
-</body>
+		<script>
+			// More info about config & dependencies:
+			// - https://github.com/hakimel/reveal.js#configuration
+			// - https://github.com/hakimel/reveal.js#dependencies
+			Reveal.initialize({
+				dependencies: [
+					{ src: 'plugin/markdown/marked.js' },
+					{ src: 'plugin/markdown/markdown.js' },
+					{ src: 'plugin/notes/notes.js', async: true },
+					{ src: 'plugin/highlight/highlight.js', async: true }
+				],
+				markdown: {
+					smartypants: true
+				},
+				parallaxBackgroundImage: 'assets/background.jpg',
+				parallaxBackgroundSize: '4200px 1500px',
+				parallaxBackgroundHorizontal: 200,
+				parallaxBackgroundVertical: 50,
+				slideNumber: true
+			});
+			Reveal.configure({
+				backgroundTransition: 'fade'
+			});
+		</script>
+	</body>
+</html>
