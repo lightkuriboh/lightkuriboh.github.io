@@ -7,22 +7,9 @@
 		<title>Kuriboh Portfolio</title>
 		<link rel="icon" href="assets/kuriboh.jpg" type="image/x-icon"/>
 
-		<link rel="stylesheet" href="css/reset.css">
-		<link rel="stylesheet" href="css/reveal.css">
-		<link rel="stylesheet" href="css/theme/black.css">
-		<link rel="stylesheet" href="css/custom.css">
-		<link rel="stylesheet" href="lib/css/monokai.css">
-
-		<link rel="stylesheet" href="css/before-effect-slider.css">
-		<script type="text/javascript" src="js/before-effect-slider.js"></script>
-
-		<script>
-			var link = document.createElement( 'link' );
-			link.rel = 'stylesheet';
-			link.type = 'text/css';
-			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
-			document.getElementsByTagName( 'head' )[0].appendChild( link );
-		</script>
+		<link rel="stylesheet" href="css/reveal.css" id="theme">
+		<link rel="stylesheet" href="css/theme/black.css" id="theme">
+		<link rel="stylesheet" href="css/custom.css" id="theme">
 	</head>
 	<body>
 		<div class="reveal">
@@ -58,30 +45,32 @@
 							<a href="https://e.uet.vnu.edu.vn/" target="_blank">
 								<img src="assets/uet.png" width=10%></img>
 							</a>
+							<p>
+								Bachelor of Computer Science
+							</p>
+							<p>
+								CPA: 3.74 / 4.00
+							</p>
 						</div>
-						<p class="fragment fade-in-then-semi-out">
-							Bachelor of Computer Science
-						</p>
-						<p class="fragment fade-in-then-semi-out">
-							CPA: 3.74 / 4.00
-						</p>
-						<h4 class="fragment fade-up">
-							Relevant courses
-						</h4>
-						<p class="fragment fade-in-then-semi-out" style="font-size: 20px;">
-							Data Structures and Algorithms, Object-Oriented Programming, Operating System Principles, Computer Networking, Database, Software Engineering, ... 
-						</p>
+						<div class="fragment fade-in">
+							<h4>
+								Relevant courses
+							</h4>
+							<p style="font-size: 20px;">
+								Data Structures and Algorithms, Object-Oriented Programming, Operating System Principles, Computer Networking, Database, Software Engineering, ... 
+							</p>
+						</div>
 					</section>
 					<section>
 						<h3> Honors </h3>
-						<div style="font-size: 75%">
-							<div class="fragment fade-in-then-semi-out">
+						<div class="fragment fade-in" style="font-size: 75%">
+							<div>
 								<p>
 									Scholarships for Top 10% students with the best academic results for 5/6 semesters
 								</p>
 								<img alt="Excellent student title" src="assets/excellent-student.png" width=40%></img>
 							</div>
-							<p class="fragment fade-in-then-semi-out">
+							<p>
 								Scholarships from Vingroup for 10 students in my university with the best academic results and outstanding
 achievement in research or olympiads
 							</p>
@@ -90,7 +79,7 @@ achievement in research or olympiads
 <section>
 						<h3> Other Honors </h3>
 						<div style="font-size: 75%">
-							<div class="fragment fade-in-then-semi-out">
+							<div class="fragment fade-in">
 								<p>
 									One of the 19 most outstanding students in the university to award the title of "Student with 5 merits" (Morality, Knowledge, Physical Health, Social Skills, Integration Competence) in the 2018-2019 academic year
 								</p>
@@ -276,7 +265,7 @@ achievement in research or olympiads
 			</div>
 		</div>
 		<script src="js/reveal.js"></script>
-
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 		<script>
 			// More info about config & dependencies:
 			// - https://github.com/hakimel/reveal.js#configuration
@@ -298,8 +287,11 @@ achievement in research or olympiads
 				slideNumber: true
 			});
 			Reveal.configure({
-				backgroundTransition: 'fade'
+				backgroundTransition: 'zoom'
 			});
+			Reveal.addEventListener( 'ready', function( event ) {
+				Reveal.slide(2, 1);
+			} );
 		</script>
 	</body>
 </html>

@@ -438,7 +438,6 @@
 
 		// Loads dependencies and continues to #start() once done
 		load();
-
 	}
 
 	/**
@@ -693,7 +692,7 @@
 				window.addEventListener( 'load', setupPDF );
 			}
 		}
-
+		toggleOverview();
 	}
 
 	/**
