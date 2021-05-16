@@ -4,7 +4,7 @@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-		<title>Hiếu Phạm Ngọc Portfolio</title>
+		<title>Kuriboh Portfolio</title>
 		<link rel="icon" href="assets/kuriboh.jpg" type="image/x-icon"/>
 
 		<link rel="stylesheet" href="css/reveal.css" id="theme">
@@ -49,7 +49,7 @@
 								Bachelor of Computer Science
 							</p>
 							<p>
-								CPA: 3.75 / 4.00
+								CPA: 3.74 / 4.00
 							</p>
 						</div>
 						<div class="fragment fade-in">
@@ -71,7 +71,8 @@
 								<img alt="Excellent student title" src="assets/excellent-student.png" width=40%></img>
 							</div>
 							<p>
-								3 Scholarships from Vingroup for 10 students in my university with the best academic results and outstanding achievement in research or olympiads
+								Scholarships from Vingroup for 10 students in my university with the best academic results and outstanding
+achievement in research or olympiads
 							</p>
 						</div>
 					</section>
@@ -80,7 +81,7 @@
 						<div style="font-size: 75%">
 							<div class="fragment fade-in">
 								<p>
-									One of the 19 most outstanding students in the university to award the title of "Student with 5 merits" (Morality, Knowledge, Physical Health, Social Skills, Integration Competence) in the 2018-2019 and 2020-2021 academic year
+									One of the 19 most outstanding students in the university to award the title of "Student with 5 merits" (Morality, Knowledge, Physical Health, Social Skills, Integration Competence) in the 2018-2019 academic year
 								</p>
 								<img src="assets/so5m.jpg" width=40%></img>
 							</div>
@@ -114,28 +115,9 @@
 						</div>
 					</section>
 					<section>
-						<h4>MB IT CUP 2021</h4>
-						<div class="fragment fade-in">
-							<p style="font-size:60%">Programming contest hosted by <a href="https://www.mbbank.com.vn/">MB Bank</a></p>
-							<p style="font-size:60%">1<small>st</small> place among over 200 participants</p>
-						</div>
-						<img src="assets/mbitcup.jpg" class="fragment fade-in" width=27.5%></img>
-					</section>
-					<section>
-						<h4>Sun Asterisk - Awaken your innter fire Contest 2020</h4>
-						<div class="fragment fade-in">
-							<p style="font-size:60%">Programming and Debating Contest hosted by <a href="https://sun-asterisk.vn/">Sun Asterisk</a></p>
-							<p style="font-size:60%"><a>Final Winner</a> among over 150 participants</p>
-							<p style="font-size:60%">Participants have to show off their technical and debating skills in this contest.</p>
-						</div>
-						<img src="assets/sun_awyif.jpg" class="fragment fade-in" width=50%></img>
-					</section>
-					<section>
 						<h4 class="fragment slide-in-then-fade-out">Septech Code War 2019</h4>
-						<div class="fragment fade-in-then-semi-out">
-							<p style="font-size:60%">A Collegiate Programming contest hosted by <a href="https://yourskilltest.com/code-war" target="_blank">Septeni Technology</a></p>
-							<p style="font-size:60%">1<small>st</small> place out of 62 participants</p>
-						</div>
+						<p class="fragment fade-in-then-semi-out" style="font-size:60%">A Collegiate Programming contest hosted by <a href="https://yourskilltest.com/code-war" target="_blank">Septeni Technology</a></p>
+						<p class="fragment fade-in-then-semi-out" style="font-size:60%">1<small>st</small> place out of 62 participants</p>
 						<img src="assets/sept_code_war.jpg" class="fragment fade-in-then-semi-out" width=50%></img>
 					</section>
 					<section>
@@ -247,6 +229,70 @@
 						</div>
 					</section>
 				</section>
+<!--
+				<section>
+					<section data-background="assets/technical.jpg">
+						<h1 style="color: #e06500;">
+							Technical Skills
+						</h1>
+					</section>
+					<section>
+						<h4>
+							Academic and Industrial Experience
+						</h4>
+						<div class="fragment fade-in">
+							<img width=10% src="assets/python.png"></img>
+							<img width=10% src="assets/django.png"></img>
+							<img width=10% src="assets/c++.png"></img>
+							<img width=10% src="assets/cocos2dx.png"></img>
+							<img width=10% src="assets/reactjs.jpg"></img>
+							<img width=10% src="assets/java.png"></img>
+							<img width=10% src="assets/mysql.png"></img>
+							<img width=10% src="assets/git.png"></img>
+						</div>
+						<div class="fragment fade-in">
+							<p>
+								Python, Django
+							</p>
+							<p>
+								C++ (C++ 98, C++ 14), Cocos2d-x
+							</p>
+							<p>
+								Javascript, ReactJS
+							</p>
+							<p>
+								Java, JavaFX
+							</p>
+							<p>
+								Mysql, Git, Linux
+							</p>
+						</div>
+					</section>
+					<section>
+						<h4>
+							Other learned skills
+						</h4>
+						<div class="fragment fade-in">
+							<img width=10% src="assets/r.png"></img>
+							<img width=10% src="assets/reactnative.png"></img>
+							<img width=10% src="assets/vuejs.png"></img>
+							<img width=10% src="assets/nodejs.png"></img>
+							<img width=10% src="assets/flask.png"></img>
+						</div>
+						<div class="fragment fade-in">
+							<p>
+								R for Data Science
+							</p>
+							<p>
+								React Native, VueJS, Nodejs (Javascript)
+							</p>
+							<p>
+								Flask (Python)
+							</p>
+						</div>
+					</section>
+				</section>
+-->
 			</div>
 		</div>
 		<script src="js/reveal.js"></script>
