@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Film Magic - Analog Film Simulation</title>
+  <meta name="description" content="Authentic analog film simulation and popular creative effects powered by multithreaded WebAssembly engine">
+  
+  <!-- PWA & Web App Manifest -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#141414">
+  <meta name="mobile-web-app-capable" content="yes">
+  
+  <!-- Apple iOS PWA Support -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Film Magic">
+  <link rel="apple-touch-icon" href="icon-192.png">
+
+  <!-- Windows / Edge Support -->
+  <meta name="msapplication-TileColor" content="#141414">
+  <meta name="msapplication-TileImage" content="icon-192.png">
+
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect>
+            <line x1="7" y1="2" x2="7" y2="22"></line>
+            <line x1="17" y1="2" x2="17" y2="22"></line>
+            <line x1="2" y1="12" x2="22" y2="12"></line>
+            <line x1="2" y1="7" x2="7" y2="7"></line>
+            <line x1="2" y1="17" x2="7" y2="17"></line>
+            <line x1="17" y1="17" x2="22" y2="17"></line>
+            <line x1="17" y1="7" x2="22" y2="7"></line>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1>FILM MAGIC</h1>
+          <span class="subtext">WebAssembly C++ Engine</span>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button id="btnSample" class="btn btn-secondary" title="Load sample test photo">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+            <polyline points="21 15 16 10 5 21"></polyline>
+          </svg>
+          <span>Sample</span>
+        </button>
+        <button id="btnUpload" class="btn btn-secondary" title="Import custom photo">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="17 8 12 3 7 8"></polyline>
+            <line x1="12" y1="3" x2="12" y2="15"></line>
+          </svg>
+          <span>Open</span>
+        </button>
+        <input type="file" id="fileInput" accept="image/png, image/jpeg, image/webp, image/bmp" style="display: none;">
+
+        <button id="btnTune" class="btn btn-secondary" title="Fine-tune parameters">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="4" y1="21" x2="4" y2="14"></line>
+            <line x1="4" y1="10" x2="4" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12" y2="3"></line>
+            <line x1="20" y1="21" x2="20" y2="16"></line>
+            <line x1="20" y1="12" x2="20" y2="3"></line>
+            <line x1="1" y1="14" x2="7" y2="14"></line>
+            <line x1="9" y1="8" x2="15" y2="8"></line>
+            <line x1="17" y1="16" x2="23" y2="16"></line>
+          </svg>
+          <span>Tune</span>
+        </button>
+ 
+        <button id="btnInstall" class="btn btn-secondary" style="display: none;" title="Install Film Magic App">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+            <line x1="12" y1="18" x2="12.01" y2="18"></line>
+          </svg>
+          <span>Install</span>
+        </button>
+
+        <button id="btnDownload" class="btn btn-primary" title="Save image to local device">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          <span>Save to Device</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Info Banner -->
+    <div class="active-filter-bar">
+      <div class="filter-indicator">
+        <span class="color-dot" id="filterDot"></span>
+        <span class="filter-name" id="filterName">Kodak Portra 400</span>
+        <span class="filter-category" id="filterCategory">(Film)</span>
+        <button id="btnFavorite" class="btn-fav" title="Toggle Favorite" aria-label="Toggle Favorite">
+          <svg class="star-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+          </svg>
+        </button>
+      </div>
+      <div class="filter-desc" id="filterDesc">Warm pastel skin tones, soft contrast, gentle highlight roll-off</div>
+      <div class="status-indicator">
+        <span id="engineBadge" class="badge">WASM Ready</span>
+        <span id="latencyBadge" class="badge latency">-- ms</span>
+      </div>
+    </div>
+
+    <!-- Main Viewport: Interactive Split Slider -->
+    <main class="viewport">
+      <div id="dropZone" class="split-slider-container">
+        <canvas id="canvasAfter"></canvas>
+        <canvas id="canvasBefore"></canvas>
+
+        <div class="split-divider" id="splitDivider">
+          <div class="divider-line"></div>
+          <div class="divider-handle">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </div>
+        </div>
+
+        <div class="slider-tag tag-before">ORIGINAL</div>
+        <div class="slider-tag tag-after">FILTERED</div>
+
+        <div class="drop-overlay" id="dropOverlay">
+          <div class="drop-box">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+              <circle cx="8.5" cy="8.5" r="1.5"></circle>
+              <polyline points="21 15 16 10 5 21"></polyline>
+            </svg>
+            <p>Drop image file here to import</p>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Fine-Tuning Drawer -->
+    <aside id="tuneDrawer" class="tune-drawer">
+      <div class="tune-header">
+        <h3>Fine-Tune Recipe</h3>
+        <button id="btnResetTune" class="btn-text">Reset</button>
+      </div>
+      <div class="tune-grid">
+        <div class="control-group">
+          <div class="control-label">
+            <span>Filter Strength</span>
+            <span id="valIntensity" class="control-val">100%</span>
+          </div>
+          <input type="range" id="sliderIntensity" min="0" max="100" value="100">
+        </div>
+
+        <div class="control-group">
+          <div class="control-label">
+            <span>Film Grain</span>
+            <span id="valGrain" class="control-val">100%</span>
+          </div>
+          <input type="range" id="sliderGrain" min="0" max="200" value="100">
+        </div>
+
+        <div class="control-group">
+          <div class="control-label">
+            <span>Vignette</span>
+            <span id="valVignette" class="control-val">100%</span>
+          </div>
+          <input type="range" id="sliderVignette" min="0" max="200" value="100">
+        </div>
+
+        <div class="control-group">
+          <div class="control-label">
+            <span>Exposure (EV)</span>
+            <span id="valExposure" class="control-val">+0.0</span>
+          </div>
+          <input type="range" id="sliderExposure" min="-10" max="10" value="0">
+        </div>
+
+        <div class="control-group">
+          <div class="control-label">
+            <span>Warmth (Temp)</span>
+            <span id="valWarmth" class="control-val">+0.0</span>
+          </div>
+          <input type="range" id="sliderWarmth" min="-10" max="10" value="0">
+        </div>
+      </div>
+    </aside>
+
+    <!-- Filter Carousel Footer -->
+    <footer class="carousel-section">
+      <div class="category-tabs">
+        <button class="tab-btn active" data-category="all">All Presets (48)</button>
+        <button class="tab-btn" data-category="Favorites" id="tabFavorites">Favorites (<span id="favCount">0</span>)</button>
+        <button class="tab-btn" data-category="Film">Historic Films (39)</button>
+        <button class="tab-btn" data-category="Effect">Creative Effects (8)</button>
+      </div>
+
+      <div class="carousel-track-wrapper">
+        <div class="carousel-track" id="carouselTrack">
+          <!-- Populated dynamically via JS -->
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script src="js/filter_worker.js"></script>
+  <script src="js/split_slider.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
