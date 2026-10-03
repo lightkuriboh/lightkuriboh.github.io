@@ -114,7 +114,22 @@ class FilmApp {
 
         // Update latency display
         const latencyBadge = document.getElementById('latencyBadge');
-        latencyBadge.textContent = `⚡ ${data.latencyMs.toFixed(1)} ms (${data.engineType})`;
+        if (latencyBadge) {
+          latencyBadge.textContent = `⚡ ${data.latencyMs.toFixed(1)} ms (${data.engineType})`;
+        }
+
+        const statusIndicator = document.querySelector('.status-indicator');
+        if (statusIndicator) {
+          statusIndicator.classList.remove('is-processing');
+        }
+      }
+    };
+
+    this.worker.onerror = (err) => {
+      console.error('Filter worker error:', err);
+      const statusIndicator = document.querySelector('.status-indicator');
+      if (statusIndicator) {
+        statusIndicator.classList.remove('is-processing');
       }
     };
   }
@@ -461,13 +476,22 @@ class FilmApp {
     }
   }
 
+  getPreset(id) {
+    const catalog = this.presets || PRESETS;
+    return catalog.find(p => p.id === id) || catalog[0] || PRESETS[0];
+  }
+
   selectFilter(id) {
     this.selectedFilterId = id;
-    const p = PRESETS[id];
-    document.getElementById('filterName').textContent = p.name;
-    document.getElementById('filterCategory').textContent = `(${p.category})`;
-    document.getElementById('filterDesc').textContent = p.desc;
-    document.getElementById('filterDot').style.backgroundColor = p.color;
+    const p = this.getPreset(id);
+    const filterNameEl = document.getElementById('filterName');
+    if (filterNameEl) filterNameEl.textContent = p.name;
+    const filterCatEl = document.getElementById('filterCategory');
+    if (filterCatEl) filterCatEl.textContent = `(${p.category})`;
+    const filterDescEl = document.getElementById('filterDesc');
+    if (filterDescEl) filterDescEl.textContent = p.desc;
+    const filterDotEl = document.getElementById('filterDot');
+    if (filterDotEl) filterDotEl.style.backgroundColor = p.color;
 
     this.updateFavoriteButton();
     this.triggerProcessing();
@@ -496,7 +520,7 @@ class FilmApp {
   }
 
   toggleFavorite(id = this.selectedFilterId) {
-    const p = PRESETS[id];
+    const p = this.getPreset(id);
     let isFav;
     if (this.favorites.has(id)) {
       this.favorites.delete(id);
@@ -665,6 +689,11 @@ class FilmApp {
     this.jobCounter++;
     this.pendingJobId = this.jobCounter;
 
+    const statusIndicator = document.querySelector('.status-indicator');
+    if (statusIndicator) {
+      statusIndicator.classList.add('is-processing');
+    }
+
     // Clone pixel buffer to send to worker
     const bufferCopy = this.originalImageData.data.slice().buffer;
 
@@ -704,7 +733,8 @@ class FilmApp {
     const ctx = canvas.getContext('2d');
     ctx.putImageData(this.filteredImageData, 0, 0);
 
-    const filterName = PRESETS[this.selectedFilterId].name.replace(/\s+/g, '_');
+    const preset = this.getPreset(this.selectedFilterId);
+    const filterName = (preset ? preset.name : 'preset').replace(/\s+/g, '_');
     const fileName = `film_magic_${filterName}.png`;
 
     try {

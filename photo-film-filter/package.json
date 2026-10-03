@@ -1,0 +1,11 @@
+{
+  "name": "film-filter-web",
+  "version": "1.0.0",
+  "description": "Browser client and test suite for film filter app",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "test:functional": "node tests/functional_test.mjs"
+  },
+  "keywords": ["film", "filter", "image-processing"],
+  "license": "MIT"
+}
