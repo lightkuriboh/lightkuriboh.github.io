@@ -45,31 +45,39 @@
           </svg>
         </div>
         <div class="brand-text">
-          <h1>FILM MAGIC</h1>
-          <span class="subtext">WebAssembly C++ Engine</span>
+          <h1 data-i18n="appTitle">FILM MAGIC</h1>
+          <span class="subtext" data-i18n="appSubtitle">WebAssembly C++ Engine</span>
         </div>
       </div>
 
       <div class="header-actions">
-        <button id="btnSample" class="btn btn-secondary" title="Load sample test photo">
+        <select id="langSelect" class="lang-select" aria-label="Select Language" title="Language">
+          <option value="en">EN</option>
+          <option value="zh-Hans">简</option>
+          <option value="zh-Hant">繁</option>
+          <option value="vi">VI</option>
+          <option value="ja">日本語</option>
+        </select>
+
+        <button id="btnSample" class="btn btn-secondary" title="Load sample test photo" data-i18n-title="loadSamplePhoto">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
             <circle cx="8.5" cy="8.5" r="1.5"></circle>
             <polyline points="21 15 16 10 5 21"></polyline>
           </svg>
-          <span>Sample</span>
+          <span data-i18n="sample">Sample</span>
         </button>
-        <button id="btnUpload" class="btn btn-secondary" title="Import custom photo">
+        <button id="btnUpload" class="btn btn-secondary" title="Import custom photo" data-i18n-title="importCustomPhoto">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
             <polyline points="17 8 12 3 7 8"></polyline>
             <line x1="12" y1="3" x2="12" y2="15"></line>
           </svg>
-          <span>Open</span>
+          <span data-i18n="open">Open</span>
         </button>
         <input type="file" id="fileInput" accept="image/png, image/jpeg, image/webp, image/bmp" style="display: none;">
 
-        <button id="btnTune" class="btn btn-secondary" title="Fine-tune parameters">
+        <button id="btnTune" class="btn btn-secondary" title="Fine-tune parameters" data-i18n-title="fineTuneParameters">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="4" y1="21" x2="4" y2="14"></line>
             <line x1="4" y1="10" x2="4" y2="3"></line>
@@ -81,24 +89,33 @@
             <line x1="9" y1="8" x2="15" y2="8"></line>
             <line x1="17" y1="16" x2="23" y2="16"></line>
           </svg>
-          <span>Tune</span>
+          <span data-i18n="tune">Tune</span>
+        </button>
+
+        <button id="btnLibrary" class="btn btn-secondary" title="Saved Photo Library" data-i18n-title="libraryTitle">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+            <polyline points="21 15 16 10 5 21"></polyline>
+          </svg>
+          <span data-i18n="library">Library</span>
         </button>
  
-        <button id="btnInstall" class="btn btn-secondary" style="display: none;" title="Install Film Magic App">
+        <button id="btnInstall" class="btn btn-secondary" style="display: none;" title="Install Film Magic App" data-i18n-title="installApp">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
             <line x1="12" y1="18" x2="12.01" y2="18"></line>
           </svg>
-          <span>Install</span>
+          <span data-i18n="install">Install</span>
         </button>
 
-        <button id="btnDownload" class="btn btn-primary" title="Save image to local device">
+        <button id="btnDownload" class="btn btn-primary" title="Save image to local device" data-i18n-title="saveImageTitle">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
             <polyline points="7 10 12 15 17 10"></polyline>
             <line x1="12" y1="15" x2="12" y2="3"></line>
           </svg>
-          <span>Save to Device</span>
+          <span data-i18n="saveToDevice">Save to Device</span>
         </button>
       </div>
     </header>
@@ -223,8 +240,54 @@
     </footer>
   </div>
 
+  <!-- Library Modal -->
+  <div id="libraryModal" class="library-modal" style="display: none;">
+    <div class="library-modal-content">
+      <div class="library-modal-header">
+        <h2 data-i18n="photoLibrary">Photo Library</h2>
+        <button id="btnCloseLibrary" class="close-btn" aria-label="Close">&times;</button>
+      </div>
+      <div class="library-toolbar">
+        <div class="library-filter-chips">
+          <button class="lib-chip active" data-category="All">All</button>
+          <button class="lib-chip" data-category="Film">Film</button>
+          <button class="lib-chip" data-category="Effect">Effect</button>
+        </div>
+        <select id="libSortSelect" class="lib-sort-select">
+          <option value="createdAt">Recent</option>
+          <option value="filterName">Filter Name</option>
+          <option value="fileSizeBytes">Size</option>
+        </select>
+      </div>
+      <div id="libraryGrid" class="library-grid">
+        <!-- Dynamically populated -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Save Photo Modal (Fallback for iOS or direct tap-and-hold saving) -->
+  <div id="savePhotoModal" class="library-modal" style="display: none;">
+    <div class="library-modal-content" style="max-width: 440px;">
+      <div class="library-modal-header">
+        <h2 data-i18n="saveToPhotos">Save to Photos</h2>
+        <button id="btnCloseSavePhotoModal" class="close-btn" aria-label="Close">&times;</button>
+      </div>
+      <div style="padding: 20px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 14px;">
+        <p style="margin: 0; color: #bbb; font-size: 14px; line-height: 1.5;" data-i18n="tapAndHoldToSave">
+          Tap and hold the image below, then choose <strong>Save to Photos</strong>.
+        </p>
+        <div style="width: 100%; max-height: 52vh; overflow: auto; display: flex; justify-content: center; align-items: center; background: #000; border-radius: 8px; padding: 6px; box-sizing: border-box;">
+          <img id="savePhotoModalImg" alt="Film Photo" style="max-width: 100%; max-height: 48vh; object-fit: contain; border-radius: 4px; display: block;" />
+        </div>
+        <button id="btnDoneSavePhotoModal" class="btn btn-primary" style="min-width: 120px;" data-i18n="done">Done</button>
+      </div>
+    </div>
+  </div>
+
   <script src="js/filter_worker.js"></script>
   <script src="js/split_slider.js"></script>
+  <script src="js/i18n.js"></script>
+  <script src="js/library.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

@@ -82,6 +82,9 @@ class FilmApp {
       this.favorites = new Set([1, 3]);
     }
 
+    this.i18n = typeof I18n !== 'undefined' ? new I18n() : null;
+    this.libraryDb = typeof LibraryDB !== 'undefined' ? new LibraryDB() : null;
+
     this.initWorker();
     this.initSlider();
     this.initUI();
@@ -143,19 +146,36 @@ class FilmApp {
     );
   }
 
-  initUI() {
-    // Dynamic tab counts based on PRESETS catalog
-    const filmCount = PRESETS.filter(p => p.category === 'Film').length;
-    const effectCount = PRESETS.filter(p => p.category === 'Effect').length;
-    const allCount = PRESETS.length;
+  updateTabLabels() {
+    const catalog = this.presets || PRESETS;
+    const filmCount = catalog.filter(p => p.category === 'Film').length;
+    const effectCount = catalog.filter(p => p.category === 'Effect').length;
+    const allCount = catalog.length;
     const btnAll = document.querySelector('.tab-btn[data-category="all"]');
-    if (btnAll) btnAll.textContent = `All Presets (${allCount})`;
+    if (btnAll) btnAll.textContent = this.i18n ? this.i18n.t('allPresets', { count: allCount }) : `All Presets (${allCount})`;
     const btnFilm = document.querySelector('.tab-btn[data-category="Film"]');
-    if (btnFilm) btnFilm.textContent = `Historic Films (${filmCount})`;
+    if (btnFilm) btnFilm.textContent = this.i18n ? this.i18n.t('historicFilms', { count: filmCount }) : `Historic Films (${filmCount})`;
     const btnEffect = document.querySelector('.tab-btn[data-category="Effect"]');
-    if (btnEffect) btnEffect.textContent = `Creative Effects (${effectCount})`;
+    if (btnEffect) btnEffect.textContent = this.i18n ? this.i18n.t('creativeEffects', { count: effectCount }) : `Creative Effects (${effectCount})`;
     const favCountEl = document.getElementById('favCount');
     if (favCountEl) favCountEl.textContent = this.favorites.size;
+  }
+
+  initUI() {
+    if (this.i18n) {
+      this.i18n.applyToDOM();
+      const langSelect = document.getElementById('langSelect');
+      if (langSelect) {
+        langSelect.value = this.i18n.locale;
+        langSelect.addEventListener('change', async (e) => {
+          await this.i18n.setLocale(e.target.value);
+          this.updateTabLabels();
+          this.selectFilter(this.selectedFilterId);
+        });
+      }
+    }
+
+    this.updateTabLabels();
 
     // Populate carousel
     this.renderCarousel();
@@ -183,6 +203,43 @@ class FilmApp {
     document.getElementById('btnUpload').addEventListener('click', () => document.getElementById('fileInput').click());
     document.getElementById('fileInput').addEventListener('change', (e) => this.handleFileSelect(e));
     document.getElementById('btnDownload').addEventListener('click', () => this.exportImage());
+
+    // Library Modal Toggle
+    const btnLib = document.getElementById('btnLibrary');
+    if (btnLib) {
+      btnLib.addEventListener('click', () => this.openLibraryModal());
+    }
+    const btnCloseLib = document.getElementById('btnCloseLibrary');
+    if (btnCloseLib) {
+      btnCloseLib.addEventListener('click', () => this.closeLibraryModal());
+    }
+    const libSort = document.getElementById('libSortSelect');
+    if (libSort) {
+      libSort.addEventListener('change', () => this.renderLibraryGrid());
+    }
+    document.querySelectorAll('.lib-chip').forEach(chip => {
+      chip.addEventListener('click', (e) => {
+        document.querySelectorAll('.lib-chip').forEach(c => c.classList.remove('active'));
+        e.target.classList.add('active');
+        this.renderLibraryGrid();
+      });
+    });
+
+    // Save Photo Modal Toggle
+    const btnCloseSave = document.getElementById('btnCloseSavePhotoModal');
+    if (btnCloseSave) {
+      btnCloseSave.addEventListener('click', () => this.closeSavePhotoModal());
+    }
+    const btnDoneSave = document.getElementById('btnDoneSavePhotoModal');
+    if (btnDoneSave) {
+      btnDoneSave.addEventListener('click', () => this.closeSavePhotoModal());
+    }
+    const savePhotoModal = document.getElementById('savePhotoModal');
+    if (savePhotoModal) {
+      savePhotoModal.addEventListener('click', (e) => {
+        if (e.target === savePhotoModal) this.closeSavePhotoModal();
+      });
+    }
 
     // PWA Install Prompt Handling
     const btnInstall = document.getElementById('btnInstall');
@@ -525,11 +582,11 @@ class FilmApp {
     if (this.favorites.has(id)) {
       this.favorites.delete(id);
       isFav = false;
-      this.showToast(`Removed "${p.name}" from Favorites`);
+      this.showToast(this.i18n ? this.i18n.t('removedFromFavorites', { name: p.name }) : `Removed "${p.name}" from Favorites`);
     } else {
       this.favorites.add(id);
       isFav = true;
-      this.showToast(`Added "${p.name}" to Favorites`);
+      this.showToast(this.i18n ? this.i18n.t('addedToFavorites', { name: p.name }) : `Added "${p.name}" to Favorites`);
     }
 
     try {
@@ -737,8 +794,51 @@ class FilmApp {
     const filterName = (preset ? preset.name : 'preset').replace(/\s+/g, '_');
     const fileName = `film_magic_${filterName}.png`;
 
-    try {
-      if (typeof window !== 'undefined' && 'showSaveFilePicker' in window) {
+    const blob = await new Promise((res) => {
+      if (canvas.toBlob) {
+        canvas.toBlob(res, 'image/png');
+      } else {
+        res(null);
+      }
+    });
+
+    const isIOS = typeof navigator !== 'undefined' && (
+      /iPad|iPhone|iPod/.test(navigator.userAgent || '') ||
+      (navigator.platform === 'MacIntel' && (navigator.maxTouchPoints || 0) > 1)
+    );
+
+    let exportCompleted = false;
+    let userCancelled = false;
+
+    // 1. Web Share API with Files (Primary method for iOS PWA / Safari and Mobile browsers)
+    // On iOS, this opens the native iOS Share Sheet with "Save Image" (writes directly to Photos app!)
+    if (blob && typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
+      try {
+        const file = (typeof File !== 'undefined')
+          ? new File([blob], fileName, { type: 'image/png' })
+          : null;
+        const canShare = file && (typeof navigator.canShare === 'function' ? navigator.canShare({ files: [file] }) : true);
+
+        if (canShare) {
+          await navigator.share({
+            files: [file],
+            title: fileName,
+          });
+          exportCompleted = true;
+          this.showToast(this.i18n ? this.i18n.t('savedToDevice', { fileName }) : `Saved to device: ${fileName}`);
+        }
+      } catch (err) {
+        if (err && err.name === 'AbortError') {
+          userCancelled = true;
+        } else {
+          console.warn('navigator.share failed, checking fallbacks:', err);
+        }
+      }
+    }
+
+    // 2. Desktop Chromium: File System Access API
+    if (!exportCompleted && !userCancelled && typeof window !== 'undefined' && 'showSaveFilePicker' in window && blob) {
+      try {
         const handle = await window.showSaveFilePicker({
           suggestedName: fileName,
           types: [{
@@ -746,23 +846,171 @@ class FilmApp {
             accept: { 'image/png': ['.png'] }
           }]
         });
-        const blob = await new Promise(res => canvas.toBlob(res, 'image/png'));
         const writable = await handle.createWritable();
         await writable.write(blob);
         await writable.close();
-        this.showToast(`Saved to device: ${fileName}`);
-        return;
+        exportCompleted = true;
+        this.showToast(this.i18n ? this.i18n.t('savedToDevice', { fileName }) : `Saved to device: ${fileName}`);
+      } catch (e) {
+        if (e && e.name === 'AbortError') {
+          userCancelled = true;
+        }
       }
-    } catch (e) {
-      if (e.name === 'AbortError') return;
     }
 
-    if (typeof document !== 'undefined') {
+    // 3. iOS Fallback: Show "Save to Photos" preview modal with instructions
+    // (Because programmatic <a download> is silently ignored by WebKit in standalone iOS PWA)
+    if (!exportCompleted && !userCancelled && isIOS && typeof document !== 'undefined') {
+      const fullResDataUrl = canvas.toDataURL('image/png');
+      this.openSavePhotoModal(fullResDataUrl);
+      exportCompleted = true;
+    }
+
+    // 4. Standard Browser <a download> fallback for Android, Desktop Firefox, Safari Desktop
+    if (!exportCompleted && !userCancelled && typeof document !== 'undefined') {
       const link = document.createElement('a');
       link.download = fileName;
-      link.href = canvas.toDataURL('image/png');
-      link.click();
-      this.showToast(`Saved to local device: ${fileName}`);
+      if (blob && typeof URL !== 'undefined' && typeof URL.createObjectURL === 'function') {
+        const objectUrl = URL.createObjectURL(blob);
+        link.href = objectUrl;
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(objectUrl), 2000);
+      } else {
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      }
+      this.showToast(this.i18n ? this.i18n.t('savedToDevice', { fileName }) : `Saved to device: ${fileName}`);
+    }
+
+    // 5. Always persist to internal LibraryDB
+    if (this.libraryDb && typeof document !== 'undefined') {
+      try {
+        const fullResDataUrl = canvas.toDataURL('image/png');
+        const thumbCanvas = document.createElement('canvas');
+        const maxDim = 200;
+        const scale = Math.min(maxDim / canvas.width, maxDim / canvas.height, 1);
+        thumbCanvas.width = Math.max(1, Math.round(canvas.width * scale));
+        thumbCanvas.height = Math.max(1, Math.round(canvas.height * scale));
+        const thumbCtx = thumbCanvas.getContext('2d');
+        thumbCtx.drawImage(canvas, 0, 0, thumbCanvas.width, thumbCanvas.height);
+        const thumbDataUrl = thumbCanvas.toDataURL('image/jpeg', 0.8);
+
+        await this.libraryDb.saveEntry({
+          filterId: this.selectedFilterId,
+          filterName: preset ? preset.name : 'Unknown Filter',
+          filterCategory: preset ? preset.category : 'Film',
+          adjustments: { ...this.params },
+          width: this.currentImgWidth,
+          height: this.currentImgHeight,
+          thumbnailDataUrl: thumbDataUrl,
+          fullResDataUrl: fullResDataUrl,
+        });
+      } catch (err) {
+        console.warn('Failed to save to LibraryDB:', err);
+      }
+    }
+  }
+
+  openSavePhotoModal(imageUrl) {
+    const modal = document.getElementById('savePhotoModal');
+    const img = document.getElementById('savePhotoModalImg');
+    if (!modal || !img) return;
+    img.src = imageUrl;
+    modal.style.display = 'flex';
+  }
+
+  closeSavePhotoModal() {
+    const modal = document.getElementById('savePhotoModal');
+    if (modal) modal.style.display = 'none';
+  }
+
+  async openLibraryModal() {
+    const modal = document.getElementById('libraryModal');
+    if (!modal) return;
+    modal.style.display = 'flex';
+    await this.renderLibraryGrid();
+  }
+
+  closeLibraryModal() {
+    const modal = document.getElementById('libraryModal');
+    if (modal) modal.style.display = 'none';
+  }
+
+  async renderLibraryGrid() {
+    const grid = document.getElementById('libraryGrid');
+    if (!grid || !this.libraryDb) return;
+
+    const activeChip = document.querySelector('.lib-chip.active');
+    const category = activeChip ? activeChip.dataset.category : 'All';
+    const sortSelect = document.getElementById('libSortSelect');
+    const sortBy = sortSelect ? sortSelect.value : 'createdAt';
+
+    grid.innerHTML = '<div style="color: #888; padding: 24px; text-align: center;">Loading...</div>';
+
+    const entries = await this.libraryDb.getEntries({ sortBy, category });
+    grid.innerHTML = '';
+
+    if (!entries || entries.length === 0) {
+      const emptyMsg = this.i18n ? this.i18n.t('noSavedPhotos') : 'No saved photos yet. Export photos to save them here.';
+      grid.innerHTML = `<div class="library-empty">${emptyMsg}</div>`;
+      return;
+    }
+
+    for (const entry of entries) {
+      const card = document.createElement('div');
+      card.className = 'library-item';
+
+      const img = document.createElement('img');
+      img.className = 'library-thumb';
+      img.alt = entry.filterName;
+      this.libraryDb.getImage(entry.id).then((imgData) => {
+        if (imgData && (imgData.thumbnail || imgData.fullRes)) {
+          img.src = imgData.thumbnail || imgData.fullRes;
+        }
+      });
+
+      const info = document.createElement('div');
+      info.className = 'library-info';
+      const date = new Date(entry.createdAt);
+      const dateStr = `${date.getMonth() + 1}/${date.getDate()} ${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`;
+      info.innerHTML = `
+        <div class="library-name">${entry.filterName}</div>
+        <div class="library-meta">${entry.width}×${entry.height} • ${dateStr}</div>
+      `;
+
+      const actions = document.createElement('div');
+      actions.className = 'library-actions';
+      const delBtn = document.createElement('button');
+      delBtn.className = 'library-del-btn';
+      delBtn.textContent = 'Delete';
+      delBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        if (confirm('Delete this photo from library?')) {
+          await this.libraryDb.deleteEntry(entry.id);
+          this.renderLibraryGrid();
+        }
+      });
+      actions.appendChild(delBtn);
+
+      card.appendChild(img);
+      card.appendChild(info);
+      card.appendChild(actions);
+
+      card.addEventListener('click', async () => {
+        const imgData = await this.libraryDb.getImage(entry.id);
+        if (imgData && imgData.fullRes) {
+          const imageObj = new Image();
+          imageObj.onload = () => {
+            this.handleLoadedImage(imageObj);
+            this.selectFilter(entry.filterId);
+            this.closeLibraryModal();
+            this.showToast(`Loaded ${entry.filterName} from Library`);
+          };
+          imageObj.src = imgData.fullRes;
+        }
+      });
+
+      grid.appendChild(card);
     }
   }
 
