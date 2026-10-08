@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <radialGradient id="skyGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#0b1329"/>
+      <stop offset="100%" stop-color="#030712"/>
+    </radialGradient>
+    <linearGradient id="solarGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fffbeb"/>
+      <stop offset="40%" stop-color="#ffb703"/>
+      <stop offset="100%" stop-color="#fb8500"/>
+    </linearGradient>
+    <radialGradient id="solarCorona" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffb703" stop-opacity="0.8"/>
+      <stop offset="50%" stop-color="#fb8500" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#fb8500" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="lunarGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e0f2fe"/>
+      <stop offset="100%" stop-color="#38bdf8"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="512" height="512" rx="128" fill="url(#skyGrad)"/>
+
+  <!-- Celestial Trajectory Arc -->
+  <path d="M 64 360 C 140 140, 372 140, 448 360" fill="none" stroke="#ffb703" stroke-width="8" stroke-dasharray="14 10" opacity="0.6"/>
+  <path d="M 64 390 C 150 200, 362 200, 448 390" fill="none" stroke="#38bdf8" stroke-width="6" stroke-dasharray="10 8" opacity="0.5"/>
+
+  <!-- Sun -->
+  <circle cx="190" cy="180" r="80" fill="url(#solarCorona)"/>
+  <circle cx="190" cy="180" r="46" fill="url(#solarGrad)"/>
+
+  <!-- Crescent Moon -->
+  <path d="M 330 220 A 40 40 0 1 0 370 260 A 30 30 0 1 1 330 220 Z" fill="url(#lunarGrad)"/>
+
+  <!-- Mountain Silhouette Base -->
+  <polygon points="32,448 160,330 280,448 380,350 480,448 480,480 32,480" fill="#0f172a" opacity="0.95"/>
+  <polygon points="120,448 240,360 340,448 32,448" fill="#1e293b" opacity="0.6"/>
+</svg>

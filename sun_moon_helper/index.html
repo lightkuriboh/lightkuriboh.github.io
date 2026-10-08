@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>LandscapeHelper — Sun & Moon AR Ephemeris Tracker</title>
+    <meta name="description" content="Precision Sun & Moon ephemeris with live Augmented Reality (AR) camera view, golden hour calculator, moon phase tracking, and 24-hour celestial trajectory projection.">
+    <meta name="theme-color" content="#060913">
+    <meta name="color-scheme" content="dark">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+        <div class="brand">
+            <div class="brand-icon" aria-hidden="true">☀️</div>
+            <div>
+                <h1 class="brand-title">LandscapeHelper</h1>
+                <div class="brand-subtitle">Sun & Moon AR Ephemeris • Landscape Photography Companion</div>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs & Header Controls -->
+        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px;">
+            <nav class="nav-tabs" aria-label="Views">
+                <button class="nav-tab-btn active" data-tab="tab-ar" id="tab-btn-ar">
+                    <span>📷</span> <span data-i18n="navArSky">AR Sky View</span>
+                </button>
+                <button class="nav-tab-btn" data-tab="tab-ephem" id="tab-btn-ephem">
+                    <span>📊</span> <span data-i18n="navEphemeris">Ephemeris Times</span>
+                </button>
+                <button class="nav-tab-btn" data-tab="tab-dial" id="tab-btn-dial">
+                    <span>🧭</span> <span data-i18n="nav3dCompass">360° Solar Dial</span>
+                </button>
+                <button class="nav-tab-btn" data-tab="tab-fieldkit" id="tab-btn-fieldkit">
+                    <span>🧰</span> <span data-i18n="navFieldKit">Field Kit</span>
+                </button>
+            </nav>
+            <select id="language-select" class="btn-pill" aria-label="Language Selector" style="background: rgba(15, 23, 42, 0.85); font-size: 0.8rem; padding: 6px 10px;">
+                <option value="en">English (US)</option>
+                <option value="zh-TW">繁體中文</option>
+                <option value="zh-CN">简体中文</option>
+                <option value="vi">Tiếng Việt</option>
+                <option value="ja">日本語</option>
+            </select>
+        </div>
+    </header>
+
+    <!-- Top Control Bar (Date & Location) -->
+    <section class="control-bar" aria-label="Parameters">
+        <!-- Date Selector -->
+        <div class="control-panel">
+            <div>
+                <div class="control-label">Date Selection</div>
+                <div class="btn-icon-group">
+                    <button class="btn-pill" id="btn-prev-day" title="Previous Day">◀</button>
+                    <input type="date" id="date-picker-input" aria-label="Target Date">
+                    <button class="btn-pill" id="btn-next-day" title="Next Day">▶</button>
+                    <button class="btn-pill" id="btn-today">Today</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Location Selector -->
+        <div class="control-panel">
+            <div style="flex: 1;">
+                <div class="control-label">Observer Location</div>
+                <div id="current-location-text" style="font-size: 0.85rem; font-weight: 600; margin-bottom: 6px;">
+                    Hanoi, Vietnam (21.03°, 105.85°)
+                </div>
+                <div class="btn-icon-group">
+                    <button class="btn-pill primary" id="btn-use-gps" title="Auto-detect current GPS">
+                        <span>📍</span> GPS Auto
+                    </button>
+                    <select id="location-preset-select" aria-label="Select City Preset"></select>
+                    <button class="btn-pill" id="btn-custom-coords" title="Custom Coordinates">⚙️</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- MAIN VIEWPORT 1: AR View Tab -->
+    <main id="tab-ar" class="view-tab-content active">
+        <section class="ar-container" id="ar-viewport" aria-label="Augmented Reality Camera Sky Overlay">
+            <!-- Background Video Stream -->
+            <video id="camera-video" autoplay playsinline webkit-playsinline muted></video>
+            <!-- 3D Celestial Projection Canvas -->
+            <canvas id="ar-canvas"></canvas>
+
+            <!-- Floating AR HUD -->
+            <div class="ar-hud-overlay">
+                <!-- Top HUD Info -->
+                <div class="hud-top-bar">
+                    <div class="hud-badge" id="ar-badge">
+                        <span>AR Engine Active</span>
+                        <span style="opacity: 0.6;">(Drag or tilt phone to look around)</span>
+                    </div>
+
+                    <div class="hud-readouts">
+                        <div class="readout-card solar">
+                            <span class="control-label">☀️ Sun</span>
+                            <span class="readout-value">Az <span id="hud-sun-az">--°</span> • Alt <span id="hud-sun-alt">--°</span></span>
+                        </div>
+                        <div class="readout-card lunar">
+                            <span class="control-label">🌙 Moon</span>
+                            <span class="readout-value">Az <span id="hud-moon-az">--°</span> • Alt <span id="hud-moon-alt">--°</span></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bottom Floating Actions & Toggles -->
+                <div class="hud-bottom-bar">
+                    <div class="ar-quick-actions">
+                        <div class="btn-icon-group">
+                            <button class="btn-pill primary" id="btn-toggle-camera">
+                                <span>📷 Enable Live AR Camera</span>
+                            </button>
+                            <button class="btn-pill" id="btn-enable-sensors" style="display: none;">
+                                <span>🧭 Enable Gyroscope</span>
+                            </button>
+                        </div>
+
+                        <div class="hud-toggles">
+                            <div class="filter-chip-group" style="display: flex; gap: 4px; margin-right: 6px;">
+                                <button type="button" class="btn-chip active" id="chip-filter-both" title="Show both Sun and Moon paths">☀️🌙 Both</button>
+                                <button type="button" class="btn-chip" id="chip-filter-sun" title="Show Sun path only (avoids trajectory line overlap)">☀️ Sun Only</button>
+                                <button type="button" class="btn-chip" id="chip-filter-moon" title="Show Moon path only (avoids trajectory line overlap)">🌙 Moon Only</button>
+                            </div>
+                            <label><input type="checkbox" id="toggle-sun" checked> ☀️ Sun</label>
+                            <label><input type="checkbox" id="toggle-moon" checked> 🌙 Moon</label>
+                            <label><input type="checkbox" id="toggle-grid" checked> 📐 Grid</label>
+                            <label title="Manual Compass Calibration Offset">
+                                🧭 Calib: <input type="range" id="compass-calib-slider" min="-30" max="30" value="0" style="width: 60px;">
+                                <span id="calib-value" style="font-family: var(--font-mono); font-size: 0.75rem;">0°</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- MAIN VIEWPORT 2: Ephemeris Cards Tab -->
+    <section id="tab-ephem" class="view-tab-content">
+        <div class="ephemeris-grid">
+            <!-- Sun Ephemeris Card -->
+            <article class="ephem-card">
+                <div class="card-header">
+                    <h2 class="card-title solar">☀️ Solar Times & Trajectory</h2>
+                    <span class="brand-subtitle">Jean Meeus NOAA</span>
+                </div>
+                <div class="card-metrics">
+                    <div class="metric-item">
+                        <span class="metric-label">Sunrise (-0.833°)</span>
+                        <span class="metric-value" id="val-sunrise">--:--</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Sunset (-0.833°)</span>
+                        <span class="metric-value" id="val-sunset">--:--</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Solar Noon (Transit)</span>
+                        <span class="metric-value" id="val-solar-noon">--:--</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Day Length</span>
+                        <span class="metric-value" id="val-day-length">-- hrs</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Golden & Blue Hour Photography Card -->
+            <article class="ephem-card">
+                <div class="card-header">
+                    <h2 class="card-title golden">✨ Golden & Blue Hours</h2>
+                    <span class="brand-subtitle">Prime Photographic Light</span>
+                </div>
+                <div class="card-metrics">
+                    <div class="metric-item">
+                        <span class="metric-label">Morning Golden Hour (-4° to +6°)</span>
+                        <span class="metric-value" id="val-gh-morning">--:-- - --:--</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Evening Golden Hour (+6° to -4°)</span>
+                        <span class="metric-value" id="val-gh-evening">--:-- - --:--</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Morning Blue Hour (-6° to -4°)</span>
+                        <span class="metric-value" id="val-bh-morning">--:-- - --:--</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Evening Blue Hour (-4° to -6°)</span>
+                        <span class="metric-value" id="val-bh-evening">--:-- - --:--</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Moon Phase & Times Card -->
+            <article class="ephem-card">
+                <div class="card-header">
+                    <h2 class="card-title lunar">🌙 Moon Ephemeris & Phase</h2>
+                    <span class="brand-subtitle">Synodic Cycle</span>
+                </div>
+                <div class="moon-phase-content">
+                    <canvas id="moon-phase-canvas" width="110" height="110"></canvas>
+                    <div class="moon-details">
+                        <div class="moon-title" id="moon-phase-name">Full Moon</div>
+                        <div class="moon-sub" id="moon-illum-percent">100% Illuminated</div>
+                        <div class="moon-extra" id="moon-age-days">Age: -- days</div>
+                        <div class="moon-extra" id="moon-next-full">Next Full Moon in -- days</div>
+                        <div class="moon-extra" id="moon-next-new">Next New Moon in -- days</div>
+                    </div>
+                </div>
+                <div class="card-metrics" style="border-top: 1px solid var(--border-glass); padding-top: 10px;">
+                    <div class="metric-item">
+                        <span class="metric-label">Moonrise</span>
+                        <span class="metric-value" id="val-moonrise">--:--</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Moonset</span>
+                        <span class="metric-value" id="val-moonset">--:--</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Moon Meridian Transit</span>
+                        <span class="metric-value" id="val-moon-transit">--:--</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Twilight Card -->
+            <article class="ephem-card">
+                <div class="card-header">
+                    <h2 class="card-title">🌌 Astronomical Twilights</h2>
+                    <span class="brand-subtitle">Dark Sky Timing</span>
+                </div>
+                <div class="card-metrics">
+                    <div class="metric-item">
+                        <span class="metric-label">Civil Twilight (-6°)</span>
+                        <span class="metric-value" id="val-civil-twilight">--:-- / --:--</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Nautical Twilight (-12°)</span>
+                        <span class="metric-value" id="val-nautical-twilight">--:-- / --:--</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Astronomical Twilight (-18°)</span>
+                        <span class="metric-value" id="val-astro-twilight">--:-- / --:--</span>
+                    </div>
+                </div>
+            </article>
+        </div>
+    </section>
+
+    <!-- MAIN VIEWPORT 3: 2D Celestial Dial View -->
+    <section id="tab-dial" class="view-tab-content">
+        <div class="dial-view-container">
+            <h2 style="font-size: 1.1rem; font-weight: 700;">Overhead 360° Celestial Compass Dial</h2>
+            <div style="font-size: 0.85rem; color: var(--text-muted); text-align: center;">
+                Top view of the celestial dome: center is Zenith (90° overhead), outer perimeter is Horizon (0°).
+            </div>
+            <canvas id="solar-dial-canvas" width="320" height="320"></canvas>
+            <div class="dial-legend">
+                <div class="legend-item"><div class="legend-color" style="background: var(--solar-gold);"></div> Sun Arc (Daylight)</div>
+                <div class="legend-item"><div class="legend-color" style="background: var(--lunar-cyan);"></div> Moon Arc</div>
+                <div class="legend-item"><div class="legend-color" style="background: #f43f5e;"></div> North Reference</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- MAIN VIEWPORT 4: Field Kit & Photographer Tools Tab -->
+    <section id="tab-fieldkit" class="view-tab-content">
+        <div class="fieldkit-grid">
+            <!-- 1. Field of View (FOV) Calculator -->
+            <article class="ephem-card">
+                <div class="card-header">
+                    <h2 class="card-title golden" data-i18n="fovCalcTitle">📐 Field of View Calculator</h2>
+                    <span class="brand-subtitle">Sensor & Focal Length</span>
+                </div>
+                <div class="fk-form-row">
+                    <div class="fk-input-group">
+                        <label class="fk-label" for="fk-fov-sensor">Sensor Size</label>
+                        <select id="fk-fov-sensor" class="fk-select"></select>
+                    </div>
+                    <div class="fk-input-group">
+                        <label class="fk-label" for="fk-fov-fl">Focal Length (mm)</label>
+                        <input type="number" id="fk-fov-fl" class="fk-input" value="24" min="1" max="1200" step="1">
+                    </div>
+                </div>
+                <div class="card-metrics">
+                    <div class="metric-item">
+                        <span class="metric-label">Horizontal FOV</span>
+                        <span class="metric-value" id="val-fk-hfov">--°</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Vertical FOV</span>
+                        <span class="metric-value" id="val-fk-vfov">--°</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Diagonal FOV</span>
+                        <span class="metric-value" id="val-fk-dfov">--°</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 2. Focus Stacking & Hyperfocal Distance -->
+            <article class="ephem-card">
+                <div class="card-header">
+                    <h2 class="card-title solar" data-i18n="focusStackCalcTitle">🔍 Focus Stacking & Hyperfocal</h2>
+                    <span class="brand-subtitle">Depth of Field Range</span>
+                </div>
+                <div class="fk-form-row">
+                    <div class="fk-input-group">
+                        <label class="fk-label" for="fk-fs-fl">Focal Length (mm)</label>
+                        <input type="number" id="fk-fs-fl" class="fk-input" value="35" min="1" max="1200">
+                    </div>
+                    <div class="fk-input-group">
+                        <label class="fk-label" for="fk-fs-ap">Aperture f/</label>
+                        <input type="number" id="fk-fs-ap" class="fk-input" value="8" min="0.7" max="64" step="0.1">
+                    </div>
+                    <div class="fk-input-group">
+                        <label class="fk-label" for="fk-fs-near">Subject Near (m)</label>
+                        <input type="number" id="fk-fs-near" class="fk-input" value="1.5" min="0.1" step="0.1">
+                    </div>
+                </div>
+                <div class="card-metrics">
+                    <div class="metric-item">
+                        <span class="metric-label">Hyperfocal Distance</span>
+                        <span class="metric-value" id="val-fk-hfd">-- m</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Recommended Shots</span>
+                        <span class="metric-value" id="val-fk-fs-shots">-- shots</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Far Focus Limit</span>
+                        <span class="metric-value" id="val-fk-fs-far">-- m</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 3. Night Sky Exposure (NPF & 500 Rule) -->
+            <article class="ephem-card">
+                <div class="card-header">
+                    <h2 class="card-title lunar" data-i18n="nightExposureCalcTitle">🌌 Night Sky Exposure Calculator</h2>
+                    <span class="brand-subtitle">Pinpoint Star Sharpness</span>
+                </div>
+                <div class="fk-form-row">
+                    <div class="fk-input-group">
+                        <label class="fk-label" for="fk-ne-fl">Focal Length (mm)</label>
+                        <input type="number" id="fk-ne-fl" class="fk-input" value="14" min="1">
+                    </div>
+                    <div class="fk-input-group">
+                        <label class="fk-label" for="fk-ne-ap">Aperture f/</label>
+                        <input type="number" id="fk-ne-ap" class="fk-input" value="2.8" min="0.7" step="0.1">
+                    </div>
+                    <div class="fk-input-group">
+                        <label class="fk-label" for="fk-ne-pitch">Pixel Pitch (µm)</label>
+                        <input type="number" id="fk-ne-pitch" class="fk-input" value="4.2" min="1" step="0.1">
+                    </div>
+                </div>
+                <div class="card-metrics">
+                    <div class="metric-item">
+                        <span class="metric-label">NPF Rule Max Shutter</span>
+                        <span class="metric-value" id="val-fk-ne-npf" style="color: var(--lunar-cyan);">--s</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">500 Rule Classic</span>
+                        <span class="metric-value" id="val-fk-ne-500">--s</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Recommended ISO</span>
+                        <span class="metric-value" id="val-fk-ne-iso">--</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 4. ND Filter Calculator -->
+            <article class="ephem-card">
+                <div class="card-header">
+                    <h2 class="card-title" data-i18n="ndFilterCalcTitle">🔆 Neutral Density (ND) Filter</h2>
+                    <span class="brand-subtitle">Long Exposure Time</span>
+                </div>
+                <div class="fk-form-row">
+                    <div class="fk-input-group">
+                        <label class="fk-label" for="fk-nd-base">Base Shutter (seconds)</label>
+                        <input type="number" id="fk-nd-base" class="fk-input" value="0.008" min="0.0001" step="0.001">
+                    </div>
+                    <div class="fk-input-group">
+                        <label class="fk-label" for="fk-nd-stops">Filter Density</label>
+                        <select id="fk-nd-stops" class="fk-select">
+                            <option value="3">ND8 (3 stops)</option>
+                            <option value="6">ND64 (6 stops)</option>
+                            <option value="10" selected>ND1000 (10 stops - 1000x)</option>
+                            <option value="15">ND32000 (15 stops)</option>
+                            <option value="16">ND64000 (16 stops)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="card-metrics">
+                    <div class="metric-item">
+                        <span class="metric-label">Adjusted Shutter</span>
+                        <span class="metric-value" id="val-fk-nd-result" style="color: var(--solar-gold);">--</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Bulb Mode Required?</span>
+                        <span class="metric-value" id="val-fk-nd-bulb">No</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 5. Apparent Celestial Size Calculator -->
+            <article class="ephem-card">
+                <div class="card-header">
+                    <h2 class="card-title lunar" data-i18n="apparentSizeCalcTitle">🌙 Moon / Sun Apparent Size</h2>
+                    <span class="brand-subtitle">Sensor Frame Coverage</span>
+                </div>
+                <div class="fk-form-row">
+                    <div class="fk-input-group">
+                        <label class="fk-label" for="fk-moon-fl">Telephoto Focal Length (mm)</label>
+                        <input type="number" id="fk-moon-fl" class="fk-input" value="400" min="10" max="3000">
+                    </div>
+                </div>
+                <div class="card-metrics">
+                    <div class="metric-item">
+                        <span class="metric-label">Disk Diameter on Sensor</span>
+                        <span class="metric-value" id="val-fk-moon-size">-- mm</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Frame Vertical Coverage</span>
+                        <span class="metric-value" id="val-fk-moon-percent">--%</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Focal Length for 50% Frame</span>
+                        <span class="metric-value" id="val-fk-moon-req">-- mm</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 6. Distance & Compass Bearing (Haversine) -->
+            <article class="ephem-card">
+                <div class="card-header">
+                    <h2 class="card-title" data-i18n="distanceBearingCalcTitle">🧭 Distance & Bearing Calculator</h2>
+                    <span class="brand-subtitle">Geodesic Line of Sight</span>
+                </div>
+                <div class="fk-form-row">
+                    <div class="fk-input-group">
+                        <label class="fk-label" for="fk-db-lat2">Target Latitude (°)</label>
+                        <input type="number" id="fk-db-lat2" class="fk-input" value="21.033" step="0.001">
+                    </div>
+                    <div class="fk-input-group">
+                        <label class="fk-label" for="fk-db-lon2">Target Longitude (°)</label>
+                        <input type="number" id="fk-db-lon2" class="fk-input" value="105.845" step="0.001">
+                    </div>
+                </div>
+                <div class="card-metrics">
+                    <div class="metric-item">
+                        <span class="metric-label">Geodesic Distance</span>
+                        <span class="metric-value" id="val-fk-db-dist">-- km</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Compass Bearing</span>
+                        <span class="metric-value" id="val-fk-db-bearing">--°</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- 7. Active Meteor Showers Radar -->
+            <article class="ephem-card" style="grid-column: 1 / -1;">
+                <div class="card-header">
+                    <h2 class="card-title lunar">☄️ Annual Meteor Showers Status</h2>
+                    <span class="brand-subtitle">IMO Meteor Radar</span>
+                </div>
+                <div id="meteor-shower-list" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin-top: 6px;">
+                    <!-- Populated dynamically by app.js -->
+                </div>
+            </article>
+        </div>
+    </section>
+
+    <!-- Interactive 24-Hour Time Scrubber -->
+    <section class="scrubber-panel" aria-label="Time Scrubber Controller">
+        <div class="scrubber-header">
+            <div class="scrubber-readout">
+                <span>⏱️</span>
+                <span id="scrubber-time-readout">12:00</span>
+            </div>
+            <div class="btn-icon-group">
+                <div class="btn-icon-group" role="group" aria-label="Celestial Body Display Filter" style="margin-right: 4px;">
+                    <button class="btn-pill active" id="btn-filter-both" title="Show both Sun and Moon trajectories">☀️🌙 Both</button>
+                    <button class="btn-pill" id="btn-filter-sun" title="Show Sun trajectory only (avoids Moon line overlap)">☀️ Sun Only</button>
+                    <button class="btn-pill" id="btn-filter-moon" title="Show Moon trajectory only (avoids Sun line overlap)">🌙 Moon Only</button>
+                </div>
+                <button class="btn-pill" id="btn-timelapse">
+                    <span>▶️ Play 24h</span>
+                </button>
+                <button class="btn-pill" id="btn-reset-now">
+                    <span>Now</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="time-slider-container">
+            <input type="range" id="time-slider" min="0" max="1439" value="720" step="1" aria-label="Time of Day Scrubber (0h to 24h)">
+            <div class="slider-ticks">
+                <span>00:00</span>
+                <span>03:00</span>
+                <span>06:00 (Dawn)</span>
+                <span>09:00</span>
+                <span>12:00 (Noon)</span>
+                <span>15:00</span>
+                <span>18:00 (Dusk)</span>
+                <span>21:00</span>
+                <span>24:00</span>
+            </div>
+        </div>
+
+        <!-- Real-time Photography Tip -->
+        <div class="photo-guidance-card">
+            <div class="guidance-icon">💡</div>
+            <div>
+                <div class="guidance-title" id="photo-tip-title">✨ Prime Golden Hour</div>
+                <div class="guidance-desc" id="photo-tip-desc">
+                    Warm directional amber light with long cinematic shadows. Perfect for landscape panoramas and back-lit portraits.
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+        LandscapeHelper PWA • Zero-latency C++ & JS Astronomical Engine • Works Offline in Remote Landscapes
+    </footer>
+</div>
+
+<!-- Main Application Module -->
+<script type="module" src="js/ui/app.js"></script>
+
+</body>
+</html>

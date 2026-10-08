@@ -1,0 +1,18 @@
+{
+  "name": "LandscapeHelper — Sun & Moon AR Tracker",
+  "short_name": "LandscapeHelper",
+  "description": "Track Sun & Moon rising and setting with live Augmented Reality (AR) camera view, golden hour alerts, and offline ephemeris.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#060913",
+  "theme_color": "#060913",
+  "icons": [
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
