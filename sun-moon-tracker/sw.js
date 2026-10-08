@@ -1,11 +1,9 @@
-const CACHE_NAME = 'landscape-helper-v2';
+const CACHE_NAME = 'landscape-helper-v1';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './css/style.css',
   './js/engine/astronomy.js',
-  './js/ar/math3d.js',
-  './js/ar/sky_sphere.js',
   './js/ar/ar_view.js',
   './js/ui/app.js',
   './manifest.webmanifest',

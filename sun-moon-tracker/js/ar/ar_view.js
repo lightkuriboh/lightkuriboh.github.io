@@ -1,39 +1,20 @@
 /**
- * ARView - Augmented Reality Camera & Stable Sky Sphere Projection Engine
- * 
- * Features:
- * - Decoupled Architecture: Static 3D Sky Sphere (Slow Path) + Free Camera Observer (Fast Path, 60/120 Hz)
- * - Zero Zenith Gimbal Lock: Direct quaternion & 3x3 View Matrix pipeline without Euler singularity
- * - Platform Sensor Fusion: Android Generic Sensor API (AbsoluteOrientationSensor) & iOS WebKit CoreMotion
- * - Near-Plane Frustum Clipping: Eliminates edge wrapping, jagged artifacts, and divide-by-zero
+ * ARView - Augmented Reality Camera & Celestial Sky Projection Engine
+ * Projects Sun and Moon trajectories onto live video stream or 360° virtual dome
  */
-
-import { Vec3, Quat, Mat3, FrustumClipper } from './math3d.js';
-import { SkySphere } from './sky_sphere.js';
 
 export class ARView {
     constructor(canvasId, videoId) {
-        this.canvas = (typeof document !== 'undefined' && canvasId) ? document.getElementById(canvasId) : null;
-        this.ctx = this.canvas ? this.canvas.getContext('2d') : null;
-        this.video = (typeof document !== 'undefined' && videoId) ? document.getElementById(videoId) : null;
+        this.canvas = document.getElementById(canvasId);
+        this.ctx = this.canvas.getContext('2d');
+        this.video = document.getElementById(videoId);
 
         // State
         this.cameraActive = false;
         this.stream = null;
         this.facingMode = 'environment'; // Back camera
 
-        // Stable Sky Sphere Static Geometry & Cache
-        this.skySphere = new SkySphere();
-
-        // 3D Camera Orientation & Matrices
-        this.cameraQuat = Quat.create(0, 0, 0, 1);
-        this.targetQuat = Quat.create(0, 0, 0, 1);
-        this.viewMatrix = Mat3.create();
-        this._tempV = Vec3.create();
-        this._pCam1 = Vec3.create();
-        this._pCam2 = Vec3.create();
-
-        // Orientation angles (degrees) - preserved for UI readouts & manual drag
+        // Orientation angles (degrees)
         this.heading = 180; // Azimuth: 0 = N, 90 = E, 180 = S, 270 = W
         this.pitch = 10;    // Tilt: 0 = horizon, 90 = zenith (sky), -90 = nadir (ground)
         this.roll = 0;      // Bank rotation
@@ -43,14 +24,14 @@ export class ARView {
         this.targetPitch = 10;
         this.targetRoll = 0;
         this.smoothingFactor = 0.18;
-        this._compassInitialized = false;
+        this._compassInitialized = false; // snap on first valid compass reading
 
-        // Adaptive smoothing state
+        // 3-Stage Multi-Stage Adaptive Smoothing Filter (Section 1.2)
         this.deadbandMin = 0.08;
         this.deadbandMax = 0.30;
         this.spikeRejectThreshold = 30.0;
         this.alphaMin = 0.06;
-        this.alphaMax = 0.28;
+        this.alphaMax = 0.25;
         this.velocityLow = 2.0;
         this.velocityHigh = 15.0;
         this.overshootDamp = 0.5;
@@ -73,10 +54,10 @@ export class ARView {
         this._candidateSpikeR = 0;
         this.isUpsideDown = false;
         this._lastSmoothTime = (typeof performance !== 'undefined') ? performance.now() : Date.now();
-        this.compassUnavailable = false;
+        this.compassUnavailable = false; // Section 1.1-D1
 
         // Camera Field of View (horizontal degrees)
-        this.fovH = 65.0;
+        this.fovH = 65.0; // Typical mobile wide lens
         this.calibrationOffset = 0.0; // Manual compass offset adjustment
 
         // Manual drag fallback (when gyro or camera is inactive/desktop)
@@ -84,7 +65,6 @@ export class ARView {
         this.lastPointerX = 0;
         this.lastPointerY = 0;
         this.gyroAvailable = false;
-        this.usingAbsoluteSensor = false;
 
         // Overlays visibility
         this.showSunPath = true;
@@ -92,46 +72,23 @@ export class ARView {
         this.showGrid = true;
         this.showTimeLabels = true;
 
-        // Ephemeris data
+        // Ephemeris data to render
         this.sunPosition = null;
         this.moonPosition = null;
         this.moonPhase = null;
-        this._sunTrajectory = [];
-        this._moonTrajectory = [];
+        this.sunTrajectory = [];
+        this.moonTrajectory = [];
         this.currentTimeStr = "--:--";
 
-        // Initialize camera orientation from starting angles
-        this.syncQuatFromEuler();
-
-        if (this.canvas) {
-            this.initEvents();
-            this.resize();
-            window.addEventListener('resize', () => this.resize());
-        }
-    }
-
-    get sunTrajectory() { return this._sunTrajectory; }
-    set sunTrajectory(val) {
-        this._sunTrajectory = val || [];
-        this.skySphere.updateTrajectories(this._sunTrajectory, this._moonTrajectory);
-    }
-
-    get moonTrajectory() { return this._moonTrajectory; }
-    set moonTrajectory(val) {
-        this._moonTrajectory = val || [];
-        this.skySphere.updateTrajectories(this._sunTrajectory, this._moonTrajectory);
+        this.initEvents();
+        this.resize();
+        window.addEventListener('resize', () => this.resize());
     }
 
     get showSun() { return this.showSunPath; }
     set showSun(val) { this.showSunPath = val; }
     get showMoon() { return this.showMoonPath; }
     set showMoon(val) { this.showMoonPath = val; }
-
-    syncQuatFromEuler() {
-        Quat.fromHeadingPitchRoll(this.targetQuat, this.targetHeading, this.targetPitch, this.targetRoll);
-        Quat.copy(this.cameraQuat, this.targetQuat);
-        Mat3.fromHeadingPitchRoll(this.viewMatrix, this.heading, this.pitch, this.roll);
-    }
 
     initEvents() {
         // Drag to rotate sky (Desktop / fallback)
@@ -148,17 +105,14 @@ export class ARView {
             this.lastPointerX = e.clientX;
             this.lastPointerY = e.clientY;
 
+            // Sensitivity: dragging full width rotates ~90 degrees
             const degPerPxX = this.fovH / (this.canvas.width || 1);
             const degPerPxY = (this.fovH * (this.canvas.height / (this.canvas.width || 1))) / (this.canvas.height || 1);
 
             this.targetHeading = (this.targetHeading - dx * degPerPxX + 360) % 360;
-            this.targetPitch = Math.max(-89.5, Math.min(89.5, this.targetPitch + dy * degPerPxY));
+            this.targetPitch = Math.max(-85, Math.min(85, this.targetPitch + dy * degPerPxY));
             this.heading = this.targetHeading;
             this.pitch = this.targetPitch;
-
-            Quat.fromHeadingPitchRoll(this.targetQuat, this.targetHeading, this.targetPitch, this.targetRoll);
-            Quat.copy(this.cameraQuat, this.targetQuat);
-            Mat3.fromHeadingPitchRoll(this.viewMatrix, this.heading, this.pitch, this.roll);
         });
 
         window.addEventListener('pointerup', () => {
@@ -167,17 +121,14 @@ export class ARView {
     }
 
     resize() {
-        if (!this.canvas) return;
         const dpr = window.devicePixelRatio || 1;
         const rect = this.canvas.getBoundingClientRect();
         this.width = rect.width || window.innerWidth;
         this.height = rect.height || window.innerHeight;
         this.canvas.width = this.width * dpr;
         this.canvas.height = this.height * dpr;
-        if (this.ctx) {
-            this.ctx.setTransform(1, 0, 0, 1, 0, 0);
-            this.ctx.scale(dpr, dpr);
-        }
+        this.ctx.setTransform(1, 0, 0, 1, 0, 0);
+        this.ctx.scale(dpr, dpr);
     }
 
     async startCamera() {
@@ -199,10 +150,8 @@ export class ARView {
                 audio: false
             };
             this.stream = await navigator.mediaDevices.getUserMedia(constraints);
-            if (this.video) {
-                this.video.srcObject = this.stream;
-                await this.video.play();
-            }
+            this.video.srcObject = this.stream;
+            await this.video.play();
             this.cameraActive = true;
             return true;
         } catch (err) {
@@ -224,162 +173,258 @@ export class ARView {
     }
 
     async requestDeviceOrientation() {
-        // 1. Android: Try W3C Generic Sensor API (AbsoluteOrientationSensor)
-        if (typeof window !== 'undefined' && 'AbsoluteOrientationSensor' in window) {
-            try {
-                // @ts-ignore
-                const sensor = new AbsoluteOrientationSensor({ frequency: 60, referenceFrame: 'device' });
-                sensor.addEventListener('reading', () => {
-                    this.gyroAvailable = true;
-                    this.usingAbsoluteSensor = true;
-                    this.compassUnavailable = false;
-                    const q = sensor.quaternion; // [x, y, z, w]
-                    this.handleAbsoluteQuaternion(q[0], q[1], q[2], q[3]);
-                });
-                sensor.addEventListener('error', (event) => {
-                    console.warn("AbsoluteOrientationSensor error:", event.error);
-                    this.attachDeviceOrientationFallback();
-                });
-                sensor.start();
-                return true;
-            } catch (err) {
-                console.warn("Could not start AbsoluteOrientationSensor:", err);
-            }
-        }
-
-        // 2. iOS 13+ permission request
+        // iOS 13+ permission request
         if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
             try {
                 const response = await DeviceOrientationEvent.requestPermission();
                 if (response === 'granted') {
-                    this.attachDeviceOrientationFallback();
+                    this.attachOrientationListeners();
                     return true;
                 }
+                console.warn("DeviceOrientation permission not granted:", response);
                 return false;
             } catch (err) {
                 console.warn("DeviceOrientation permission error:", err);
                 return false;
             }
         } else {
-            // Android & Desktop Fallback
-            this.attachDeviceOrientationFallback();
+            // Android & Desktop (no permission API needed)
+            this.attachOrientationListeners();
             return true;
         }
     }
 
-    attachDeviceOrientationFallback() {
-        // Android deviceorientationabsolute
+    attachOrientationListeners() {
+        if (this._listenersAttached) return;
+        this._listenersAttached = true;
+
+        // Absolute orientation on Android
         if ('ondeviceorientationabsolute' in window) {
             window.addEventListener('deviceorientationabsolute', (e) => this.handleOrientation(e, true), true);
         }
-        // Standard iOS & non-absolute fallback
+        // Standard fallback (and iOS Safari)
         window.addEventListener('deviceorientation', (e) => this.handleOrientation(e, false), true);
     }
 
-    /**
-     * SENS-01: Direct Android Generic Sensor Quaternion Handler
-     */
-    handleAbsoluteQuaternion(qx, qy, qz, qw) {
-        // Raw quaternion from Android sensor is in standard ENU reference frame
-        Quat.set(this.targetQuat, qx, qy, qz, qw);
-
-        // Derive approximate Euler angles for UI readouts
-        const sinP = 2 * (qw * qy - qz * qx);
-        if (Math.abs(sinP) >= 0.999) {
-            this.pitch = Math.sign(sinP) * 90;
-            this.heading = (2 * Math.atan2(qx, qw) * 180 / Math.PI + 360) % 360;
-        } else {
-            this.pitch = Math.asin(sinP) * 180 / Math.PI;
-            this.heading = (Math.atan2(2 * (qw * qz + qx * qy), 1 - 2 * (qy * qy + qz * qz)) * 180 / Math.PI + 360) % 360;
-        }
-        this.targetHeading = this.heading;
-        this.targetPitch = this.pitch;
-    }
-
-    /**
-     * SENS-02: DeviceOrientation Event Handler (iOS Safari & Android fallback)
-     */
     handleOrientation(e, isAbsolute) {
-        if (e.alpha === null) return;
+        if (e.alpha === null && e.beta === null && e.gamma === null && e.webkitCompassHeading === undefined) return;
         this.gyroAvailable = true;
 
         let compassHeading = null;
 
-        // iOS provides webkitCompassHeading directly (always North-referenced)
-        if (e.webkitCompassHeading !== undefined && e.webkitCompassHeading !== null) {
+        // iOS provides webkitCompassHeading directly (always North-referenced, 0=N, 90=E, 180=S, 270=W)
+        if (e.webkitCompassHeading !== undefined && e.webkitCompassHeading !== null && !isNaN(e.webkitCompassHeading)) {
             compassHeading = e.webkitCompassHeading;
         } else if (isAbsolute || e.absolute) {
+            // deviceorientationabsolute: alpha is measured clockwise from North
+            if (e.alpha !== null && !isNaN(e.alpha)) {
+                compassHeading = (360 - e.alpha) % 360;
+            }
+        } else if (e.alpha !== null && !isNaN(e.alpha)) {
+            // Relative fallback
             compassHeading = (360 - e.alpha) % 360;
-        } else {
-            this.compassUnavailable = true;
         }
 
-        const beta = e.beta || 0;
-        const gamma = e.gamma || 0;
+        // Screen orientation angle (portrait = 0, landscape-left = 90, landscape-right = -90 / 270)
+        const screenAngle = (window.screen?.orientation?.angle !== undefined)
+            ? window.screen.orientation.angle
+            : (window.orientation || 0);
 
-        let devicePitch = 0;
-
-        if (window.orientation === 90 || window.orientation === -90) {
-            devicePitch = gamma;
-        } else {
-            // Portrait: looking straight ahead is beta = 90, tilting to sky is beta > 90
-            devicePitch = beta - 90;
+        // Device upside-down mount detection
+        const isUpsideDownNow = (window.orientation === 180 || (typeof screen !== 'undefined' && screen.orientation && screen.orientation.type === 'portrait-secondary'));
+        if (this.isUpsideDown !== isUpsideDownNow) {
+            this.isUpsideDown = isUpsideDownNow;
+            this.heading = (this.heading + 180) % 360;
+            this.targetHeading = (this.targetHeading + 180) % 360;
+            this._prevRawHeading = (this._prevRawHeading + 180) % 360;
+            this._candidateSpikeH = (this._candidateSpikeH + 180) % 360;
+            this._spikeCountH = 0;
+            this._prevVelocityH = 0;
         }
 
         if (compassHeading !== null) {
             this.compassUnavailable = false;
-            compassHeading = (compassHeading + this.calibrationOffset + 360) % 360;
-            this.targetHeading = compassHeading;
+            // Adjust heading for landscape rotation and manual calibration
+            let adjustedHeading = compassHeading + this.calibrationOffset;
+            if (e.webkitCompassHeading !== undefined && e.webkitCompassHeading !== null) {
+                // On iOS, webkitCompassHeading is relative to device top; rotate if in landscape
+                adjustedHeading += screenAngle;
+            }
+            if (this.isUpsideDown) {
+                adjustedHeading = (adjustedHeading + 180) % 360;
+            }
+            adjustedHeading = (adjustedHeading + 3600) % 360;
+
+            if (!this._compassInitialized) {
+                this.heading = adjustedHeading;
+                this.targetHeading = adjustedHeading;
+                this._prevRawHeading = adjustedHeading;
+                this._candidateSpikeH = adjustedHeading;
+                this._compassInitialized = true;
+            } else {
+                this.targetHeading = adjustedHeading;
+            }
+        } else {
+            this.compassUnavailable = true;
         }
 
-        this.targetPitch = Math.max(-89.5, Math.min(89.5, devicePitch));
-        this.targetRoll = Math.max(-90, Math.min(90, gamma));
+        // Robust 3D Pitch & Roll Calculation
+        // In the W3C device coordinate frame (+X right, +Y top, +Z screen outward):
+        // Rear camera vector is [0, 0, -1].
+        // When rotated by Tait-Bryan Z-X-Y angles (alpha, beta, gamma),
+        // the world Z component of the rear camera vector is:
+        // camZ = -cos(beta) * cos(gamma)
+        // This is invariant to alpha and handles iOS Euler-angle inversions cleanly!
+        const beta = e.beta || 0;
+        const gamma = e.gamma || 0;
+        const degToRad = Math.PI / 180.0;
+        const radToDeg = 180.0 / Math.PI;
 
-        if (!this._compassInitialized && compassHeading !== null) {
-            this.heading = this.targetHeading;
-            this.pitch = this.targetPitch;
-            this.roll = this.targetRoll;
-            this._prevRawHeading = this.heading;
-            this._prevRawPitch = this.pitch;
-            this._prevRawRoll = this.roll;
-            this._compassInitialized = true;
+        const bRad = beta * degToRad;
+        const gRad = gamma * degToRad;
+
+        // World vertical component of the rear camera forward vector
+        const camZ = -Math.cos(bRad) * Math.cos(gRad);
+        const clampedZ = Math.max(-1.0, Math.min(1.0, camZ));
+        let pitch = Math.asin(clampedZ) * radToDeg;
+        if (this.isUpsideDown) {
+            pitch = -pitch;
         }
 
-        // Direct update of target quaternion without Euler singularity
-        Quat.fromHeadingPitchRoll(this.targetQuat, this.targetHeading, this.targetPitch, this.targetRoll);
+        // Roll calculation around screen normal
+        let roll = gamma;
+        if (screenAngle === 90) {
+            roll = beta - 90;
+        } else if (screenAngle === -90 || screenAngle === 270) {
+            roll = -(beta - 90);
+        } else if (screenAngle === 180) {
+            roll = -gamma;
+        }
+
+        this.targetPitch = Math.max(-85, Math.min(85, pitch));
+        this.targetRoll = roll;
     }
 
-    /**
-     * SENS-03: Quaternion SLERP & Adaptive Smoothing Filter
-     */
     updateOrientationSmoothly() {
+        if (!this.gyroAvailable) return;
+
         const now = (typeof performance !== 'undefined') ? performance.now() : Date.now();
-        const dt = Math.max(0.001, (now - this._lastSmoothTime) / 1000.0);
+        const dt = Math.max(0.005, (now - this._lastSmoothTime) / 1000.0);
         this._lastSmoothTime = now;
 
-        if (this.usingAbsoluteSensor) {
-            // Absolute generic sensor: smooth using quaternion slerp directly
-            Quat.slerp(this.cameraQuat, this.cameraQuat, this.targetQuat, 0.25);
-            Mat3.fromQuat(this.viewMatrix, this.cameraQuat);
-            return;
+        // Stage 1: Jitter Gate on target angles (spike reject & deadband)
+        let dRawH = this.targetHeading - this._prevRawHeading;
+        while (dRawH > 180) dRawH -= 360;
+        while (dRawH < -180) dRawH += 360;
+
+        const dRawP = this.targetPitch - this._prevRawPitch;
+        const dRawR = this.targetRoll - this._prevRawRoll;
+
+        const instantSpeedH = Math.abs(dRawH) / dt;
+        const instantSpeedP = Math.abs(dRawP) / dt;
+        const instantSpeedR = Math.abs(dRawR) / dt;
+
+        this._recentSpeedH = this._recentSpeedH * 0.8 + instantSpeedH * 0.2;
+        this._recentSpeedP = this._recentSpeedP * 0.8 + instantSpeedP * 0.2;
+        this._recentSpeedR = this._recentSpeedR * 0.8 + instantSpeedR * 0.2;
+
+        // Heading spike rejection with re-acquisition
+        let filteredTargetH = this.targetHeading;
+        if (Math.abs(dRawH) > this.spikeRejectThreshold) {
+            let dCandH = this.targetHeading - this._candidateSpikeH;
+            while (dCandH > 180) dCandH -= 360;
+            while (dCandH < -180) dCandH += 360;
+
+            if (this._spikeCountH > 0 && Math.abs(dCandH) < 10.0) {
+                this._spikeCountH++;
+            } else {
+                this._spikeCountH = 1;
+                this._candidateSpikeH = this.targetHeading;
+            }
+
+            if (this._spikeCountH >= this.spikeConfirmCount) {
+                filteredTargetH = this.targetHeading;
+                this._prevRawHeading = this.targetHeading;
+                this._spikeCountH = 0;
+            } else {
+                filteredTargetH = this._prevRawHeading;
+            }
+        } else {
+            this._spikeCountH = 0;
+            this._prevRawHeading = this.targetHeading;
         }
 
-        // Angular step
-        let dH = this.targetHeading - this.heading;
-        while (dH > 180) dH -= 360;
-        while (dH < -180) dH += 360;
+        // Pitch spike rejection with re-acquisition
+        let filteredTargetP = this.targetPitch;
+        if (Math.abs(dRawP) > this.spikeRejectThreshold) {
+            const dCandP = Math.abs(this.targetPitch - this._candidateSpikeP);
+            if (this._spikeCountP > 0 && dCandP < 10.0) {
+                this._spikeCountP++;
+            } else {
+                this._spikeCountP = 1;
+                this._candidateSpikeP = this.targetPitch;
+            }
 
-        const dP = this.targetPitch - this.pitch;
-        const dR = this.targetRoll - this.roll;
+            if (this._spikeCountP >= this.spikeConfirmCount) {
+                filteredTargetP = this.targetPitch;
+                this._prevRawPitch = this.targetPitch;
+                this._spikeCountP = 0;
+            } else {
+                filteredTargetP = this._prevRawPitch;
+            }
+        } else {
+            this._spikeCountP = 0;
+            this._prevRawPitch = this.targetPitch;
+        }
 
-        const speedH = Math.abs(dH) / dt;
-        const speedP = Math.abs(dP) / dt;
-        const speedR = Math.abs(dR) / dt;
+        // Roll spike rejection with re-acquisition
+        let filteredTargetR = this.targetRoll;
+        if (Math.abs(dRawR) > this.spikeRejectThreshold) {
+            const dCandR = Math.abs(this.targetRoll - this._candidateSpikeR);
+            if (this._spikeCountR > 0 && dCandR < 10.0) {
+                this._spikeCountR++;
+            } else {
+                this._spikeCountR = 1;
+                this._candidateSpikeR = this.targetRoll;
+            }
 
-        this._recentSpeedH = this._recentSpeedH * 0.8 + speedH * 0.2;
-        this._recentSpeedP = this._recentSpeedP * 0.8 + speedP * 0.2;
-        this._recentSpeedR = this._recentSpeedR * 0.8 + speedR * 0.2;
+            if (this._spikeCountR >= this.spikeConfirmCount) {
+                filteredTargetR = this.targetRoll;
+                this._prevRawRoll = this.targetRoll;
+                this._spikeCountR = 0;
+            } else {
+                filteredTargetR = this._prevRawRoll;
+            }
+        } else {
+            this._spikeCountR = 0;
+            this._prevRawRoll = this.targetRoll;
+        }
 
+        // Per-axis Adaptive Deadband
+        const speedNormH = Math.min(1.0, Math.max(0.0, this._recentSpeedH / 5.0));
+        const speedNormP = Math.min(1.0, Math.max(0.0, this._recentSpeedP / 5.0));
+        const speedNormR = Math.min(1.0, Math.max(0.0, this._recentSpeedR / 5.0));
+
+        const deadbandH = this.deadbandMax + (this.deadbandMin - this.deadbandMax) * speedNormH;
+        const deadbandP = this.deadbandMax + (this.deadbandMin - this.deadbandMax) * speedNormP;
+        const deadbandR = this.deadbandMax + (this.deadbandMin - this.deadbandMax) * speedNormR;
+
+        let dSmoothedH = filteredTargetH - this.heading;
+        while (dSmoothedH > 180) dSmoothedH -= 360;
+        while (dSmoothedH < -180) dSmoothedH += 360;
+
+        if (Math.abs(dSmoothedH) < deadbandH) {
+            filteredTargetH = this.heading;
+            dSmoothedH = 0;
+        }
+        if (Math.abs(filteredTargetP - this.pitch) < deadbandP) {
+            filteredTargetP = this.pitch;
+        }
+        if (Math.abs(filteredTargetR - this.roll) < deadbandR) {
+            filteredTargetR = this.roll;
+        }
+
+        // Stage 2: Adaptive EMA per-axis
         const tH = Math.min(1.0, Math.max(0.0, (this._recentSpeedH - this.velocityLow) / (this.velocityHigh - this.velocityLow)));
         const tP = Math.min(1.0, Math.max(0.0, (this._recentSpeedP - this.velocityLow) / (this.velocityHigh - this.velocityLow)));
         const tR = Math.min(1.0, Math.max(0.0, (this._recentSpeedR - this.velocityLow) / (this.velocityHigh - this.velocityLow)));
@@ -388,84 +433,113 @@ export class ARView {
         const alphaP = this.alphaMin + (this.alphaMax - this.alphaMin) * tP;
         const alphaR = this.alphaMin + (this.alphaMax - this.alphaMin) * tR;
 
-        this.heading = (this.heading + dH * alphaH + 360) % 360;
-        this.pitch = Math.max(-89.5, Math.min(89.5, this.pitch + dP * alphaP));
-        this.roll = Math.max(-90, Math.min(90, this.roll + dR * alphaR));
+        let velH = dSmoothedH * alphaH;
+        let velP = (filteredTargetP - this.pitch) * alphaP;
+        let velR = (filteredTargetR - this.roll) * alphaR;
 
-        // Reconstruct View Matrix from filtered angles with robust forward/up vectors
-        Mat3.fromHeadingPitchRoll(this.viewMatrix, this.heading, this.pitch, this.roll);
+        // Stage 3: Velocity Damping (overshoot prevention)
+        if (this._prevVelocityH !== 0 && (velH > 0) !== (this._prevVelocityH > 0)) {
+            velH *= this.overshootDamp;
+        }
+        if (this._prevVelocityP !== 0 && (velP > 0) !== (this._prevVelocityP > 0)) {
+            velP *= this.overshootDamp;
+        }
+        if (this._prevVelocityR !== 0 && (velR > 0) !== (this._prevVelocityR > 0)) {
+            velR *= this.overshootDamp;
+        }
+
+        this._prevVelocityH = velH;
+        this._prevVelocityP = velP;
+        this._prevVelocityR = velR;
+
+        this.heading = (this.heading + velH + 360) % 360;
+        this.pitch = Math.max(-85, Math.min(85, this.pitch + velP));
+        this.roll = Math.max(-90, Math.min(90, this.roll + velR));
     }
 
     /**
      * Project spherical coordinates (Azimuth, Altitude) to Screen (X, Y)
-     * Fully backward compatible with existing tests and callers.
+     * Uses true pinhole perspective with square pixels
      */
     projectToScreen(azimuth, altitude) {
-        Vec3.fromSphericalENU(this._tempV, azimuth, altitude);
-        Mat3.multiplyVec3(this._pCam1, this.viewMatrix, this._tempV);
-        return FrustumClipper.projectToScreen(this._pCam1, this.width, this.height, this.fovH);
-    }
+        // Delta azimuth relative to camera heading
+        let dAz = azimuth - this.heading;
+        while (dAz > 180) dAz -= 360;
+        while (dAz < -180) dAz += 360;
 
-    /**
-     * Fast-Path: Project 3D ENU unit vector directly to screen.
-     */
-    projectENUToScreen(vENU) {
-        Mat3.multiplyVec3(this._pCam1, this.viewMatrix, vENU);
-        return FrustumClipper.projectToScreen(this._pCam1, this.width, this.height, this.fovH);
-    }
+        // Delta altitude relative to camera pitch
+        const dAlt = altitude - this.pitch;
 
-    /**
-     * MATH-02 & VIEW-01: Draw pre-densified 3D line strip with near-plane frustum clipping.
-     */
-    drawClippedPolyline(pointsENU, colorMain, lineWidth, lineDash = [], glowColor = null) {
-        if (!pointsENU || pointsENU.length < 2) return;
-        const ctx = this.ctx;
-        ctx.save();
-        ctx.beginPath();
-        ctx.strokeStyle = colorMain;
-        ctx.lineWidth = lineWidth;
-        if (lineDash.length > 0) ctx.setLineDash(lineDash);
-        if (glowColor) {
-            ctx.shadowColor = glowColor;
-            ctx.shadowBlur = 8;
+        // Check if point is behind camera (> 95° away in azimuth or altitude)
+        if (Math.abs(dAz) > 95 || Math.abs(dAlt) > 85) {
+            return { visible: false, x: 0, y: 0 };
         }
 
-        const view = this.viewMatrix;
-        const w = this.width;
-        const h = this.height;
-        const fov = this.fovH;
+        const fovH_rad = (this.fovH * Math.PI) / 180.0;
+        const dAz_rad = (dAz * Math.PI) / 180.0;
+        const dAlt_rad = (dAlt * Math.PI) / 180.0;
 
-        for (let i = 0; i < pointsENU.length - 1; ++i) {
-            const v1 = pointsENU[i];
-            const v2 = pointsENU[i + 1];
+        // Physical focal length in pixels: f_px = (width / 2) / tan(fovH / 2)
+        const f_px = (this.width / 2.0) / Math.tan(fovH_rad / 2.0);
 
-            Mat3.multiplyVec3(this._pCam1, view, v1);
-            Mat3.multiplyVec3(this._pCam2, view, v2);
+        // Convert to canvas pixels (screen center = (width/2, height/2))
+        let screenX = (this.width / 2.0) + f_px * Math.tan(dAz_rad);
+        let screenY = (this.height / 2.0) - f_px * Math.tan(dAlt_rad);
 
-            const clipped = FrustumClipper.clipLineSegment(this._pCam1, this._pCam2, 0.05);
-            if (!clipped) continue;
-
-            const s1 = FrustumClipper.projectToScreen(clipped[0], w, h, fov);
-            const s2 = FrustumClipper.projectToScreen(clipped[1], w, h, fov);
-
-            if (s1.visible || s2.visible) {
-                ctx.moveTo(s1.x, s1.y);
-                ctx.lineTo(s2.x, s2.y);
-            }
+        // Apply roll rotation if phone is tilted horizontally
+        if (Math.abs(this.roll) > 1.0) {
+            const rollRad = (this.roll * Math.PI) / 180.0;
+            const cx = this.width / 2.0;
+            const cy = this.height / 2.0;
+            const dx = screenX - cx;
+            const dy = screenY - cy;
+            screenX = cx + dx * Math.cos(-rollRad) - dy * Math.sin(-rollRad);
+            screenY = cy + dx * Math.sin(-rollRad) + dy * Math.cos(-rollRad);
         }
 
-        ctx.stroke();
-        ctx.restore();
+        // Visible if roughly within bounds (+ margin for smooth line transitions & tags)
+        const margin = 160;
+        const visible = (screenX >= -margin && screenX <= this.width + margin &&
+                         screenY >= -margin && screenY <= this.height + margin);
+
+        return { visible, x: screenX, y: screenY, dAz, dAlt };
+    }
+
+    drawVideoFrame() {
+        const vw = this.video.videoWidth;
+        const vh = this.video.videoHeight;
+        if (!vw || !vh) {
+            this.drawSimulatedSky();
+            return;
+        }
+
+        // Center-crop "cover" to fill the canvas without aspect ratio distortion
+        const videoAspect = vw / vh;
+        const canvasAspect = this.width / this.height;
+        let sx = 0, sy = 0, sw = vw, sh = vh;
+
+        if (videoAspect > canvasAspect) {
+            sw = vh * canvasAspect;
+            sx = (vw - sw) / 2.0;
+        } else {
+            sh = vw / canvasAspect;
+            sy = (vh - sh) / 2.0;
+        }
+
+        this.ctx.drawImage(this.video, sx, sy, sw, sh, 0, 0, this.width, this.height);
     }
 
     render() {
-        if (!this.ctx) return;
         this.updateOrientationSmoothly();
         const ctx = this.ctx;
         ctx.clearRect(0, 0, this.width, this.height);
 
-        // If camera is OFF, render simulated landscape sky dome background
-        if (!this.cameraActive) {
+        // If camera is ON and has decoded frames, draw video feed directly onto the canvas.
+        // This guarantees the celestial lines & HUD are ALWAYS rendered on top of the camera feed
+        // and cannot be occluded by iOS Safari native AVPlayer compositor layers!
+        if (this.cameraActive && this.video && this.video.readyState >= 2) {
+            this.drawVideoFrame();
+        } else {
             this.drawSimulatedSky();
         }
 
@@ -475,15 +549,13 @@ export class ARView {
             this.drawCompassTape();
         }
 
-        // 2. Trajectories from Static World Sky Sphere
-        if (this.showSunPath && this.skySphere.sunCurve.length > 0) {
-            this.drawClippedPolyline(this.skySphere.sunCurve, '#ffb703', 3, [], '#fb8500');
-            this.drawHourlyMarkers(this.skySphere.sunHourlyMarkers, '#ffb703');
+        // 2. Trajectories
+        if (this.showSunPath && this.sunTrajectory.length > 0) {
+            this.drawTrajectory(this.sunTrajectory, '#ffb703', '#fb8500', 'sun');
         }
 
-        if (this.showMoonPath && this.skySphere.moonCurve.length > 0) {
-            this.drawClippedPolyline(this.skySphere.moonCurve, '#38bdf8', 2.5, [6, 5], '#818cf8');
-            this.drawHourlyMarkers(this.skySphere.moonHourlyMarkers, '#38bdf8');
+        if (this.showMoonPath && this.moonTrajectory.length > 0) {
+            this.drawTrajectory(this.moonTrajectory, '#38bdf8', '#818cf8', 'moon');
         }
 
         // 3. Current Sun and Moon discs (only when active)
@@ -501,10 +573,12 @@ export class ARView {
 
     drawSimulatedSky() {
         const ctx = this.ctx;
+        // Pitch-dependent sky gradient
         const horizonProj = this.projectToScreen(this.heading, 0);
         const horizonY = horizonProj.y;
 
         const grad = ctx.createLinearGradient(0, 0, 0, this.height);
+        // Deep obsidian indigo night fading to twilight at horizon
         grad.addColorStop(0, '#040711');
         grad.addColorStop(0.45, '#0a1428');
         grad.addColorStop(0.55, '#122344');
@@ -512,6 +586,7 @@ export class ARView {
         ctx.fillStyle = grad;
         ctx.fillRect(0, 0, this.width, this.height);
 
+        // Ground shading below horizon
         if (horizonY < this.height) {
             const groundGrad = ctx.createLinearGradient(0, Math.max(0, horizonY), 0, this.height);
             groundGrad.addColorStop(0, 'rgba(15, 23, 42, 0.7)');
@@ -525,29 +600,50 @@ export class ARView {
         const ctx = this.ctx;
         ctx.save();
 
-        // 1. Horizon Ring (Alt = 0°)
-        this.drawClippedPolyline(this.skySphere.horizonRing, 'rgba(56, 189, 248, 0.65)', 2);
+        // Draw pitch lines at 0° (Horizon), +15°, +30°, +45°, +60°
+        const pitchSteps = [0, 15, 30, 45, 60, -15, -30];
 
-        // 2. Altitude Parallels
-        for (const ring of this.skySphere.altitudeRings) {
-            this.drawClippedPolyline(ring.points, 'rgba(255, 255, 255, 0.12)', 1, [4, 6]);
-            // Draw altitude text label on the current view center line
-            const proj = this.projectToScreen(this.heading, ring.altitude);
-            if (proj.visible && Math.abs(ring.altitude) <= 45) {
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
-                ctx.font = '500 10px monospace';
-                ctx.fillText(`${ring.altitude > 0 ? '+' : ''}${ring.altitude}°`, 20, proj.y - 4);
+        for (const p of pitchSteps) {
+            // Only draw if within reasonable viewing range
+            if (Math.abs(p - this.pitch) > 75) continue;
+
+            const isZero = (p === 0);
+            ctx.beginPath();
+            ctx.strokeStyle = isZero ? 'rgba(56, 189, 248, 0.75)' : 'rgba(255, 255, 255, 0.15)';
+            ctx.lineWidth = isZero ? 2 : 1;
+            if (!isZero) ctx.setLineDash([4, 6]);
+            else ctx.setLineDash([]);
+
+            // Sample line across current FOV + extra margin for roll
+            const span = this.fovH * 0.9;
+            let firstPt = true;
+            for (let d = -span; d <= span; d += span / 4) {
+                const az = (this.heading + d + 3600) % 360;
+                const pt = this.projectToScreen(az, p);
+                if (firstPt) {
+                    ctx.moveTo(pt.x, pt.y);
+                    firstPt = false;
+                } else {
+                    ctx.lineTo(pt.x, pt.y);
+                }
+            }
+            ctx.stroke();
+
+            // Label
+            const labelAz = (this.heading - this.fovH * 0.42 + 3600) % 360;
+            const labelPt = this.projectToScreen(labelAz, p);
+            if (labelPt.visible) {
+                if (isZero) {
+                    ctx.fillStyle = 'rgba(56, 189, 248, 0.9)';
+                    ctx.font = '600 11px system-ui, -apple-system, sans-serif';
+                    ctx.fillText('HORIZON 0°', Math.max(16, labelPt.x), labelPt.y - 6);
+                } else if (Math.abs(p) <= 45) {
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+                    ctx.font = '500 10px monospace';
+                    ctx.fillText(`${p > 0 ? '+' : ''}${p}°`, Math.max(16, labelPt.x), labelPt.y - 4);
+                }
             }
         }
-
-        // Horizon tag
-        const hProj = this.projectToScreen(this.heading, 0);
-        if (hProj.visible) {
-            ctx.fillStyle = 'rgba(56, 189, 248, 0.85)';
-            ctx.font = '600 11px system-ui, -apple-system, sans-serif';
-            ctx.fillText('HORIZON 0°', 16, hProj.y - 6);
-        }
-
         ctx.restore();
     }
 
@@ -556,30 +652,41 @@ export class ARView {
         ctx.save();
 
         const tapeY = 32;
+        const directions = [
+            { label: 'N', az: 0, major: true, color: '#f43f5e' },
+            { label: 'NE', az: 45, major: false },
+            { label: 'E', az: 90, major: true, color: '#38bdf8' },
+            { label: 'SE', az: 135, major: false },
+            { label: 'S', az: 180, major: true, color: '#ffb703' },
+            { label: 'SW', az: 225, major: false },
+            { label: 'W', az: 270, major: true, color: '#38bdf8' },
+            { label: 'NW', az: 315, major: false },
+        ];
 
-        // Draw ticks from cached sky sphere
-        for (const tick of this.skySphere.compassTicks) {
-            const proj = this.projectENUToScreen(tick.enu);
+        // Draw ticks every 10 degrees
+        for (let az = 0; az < 360; az += 10) {
+            const proj = this.projectToScreen(az, this.pitch);
             if (!proj.visible) continue;
 
+            const isMajor = (az % 30 === 0);
             ctx.beginPath();
-            ctx.strokeStyle = tick.isMajor ? 'rgba(255, 255, 255, 0.5)' : 'rgba(255, 255, 255, 0.2)';
-            ctx.lineWidth = tick.isMajor ? 1.5 : 1;
+            ctx.strokeStyle = isMajor ? 'rgba(255, 255, 255, 0.5)' : 'rgba(255, 255, 255, 0.2)';
+            ctx.lineWidth = isMajor ? 1.5 : 1;
             ctx.moveTo(proj.x, tapeY);
-            ctx.lineTo(proj.x, tapeY + (tick.isMajor ? 12 : 6));
+            ctx.lineTo(proj.x, tapeY + (isMajor ? 12 : 6));
             ctx.stroke();
 
-            if (tick.isMajor && tick.az % 90 !== 0) {
+            if (isMajor && az % 90 !== 0) {
                 ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
                 ctx.font = '9px monospace';
                 ctx.textAlign = 'center';
-                ctx.fillText(`${tick.az}°`, proj.x, tapeY + 22);
+                ctx.fillText(`${az}°`, proj.x, tapeY + 22);
             }
         }
 
-        // Draw Cardinal labels from cached geometry
-        for (const dir of this.skySphere.cardinalMarkers) {
-            const proj = this.projectENUToScreen(dir.enu);
+        // Draw Cardinal labels
+        for (const dir of directions) {
+            const proj = this.projectToScreen(dir.az, this.pitch);
             if (!proj.visible) continue;
 
             ctx.fillStyle = dir.color || '#ffffff';
@@ -603,43 +710,95 @@ export class ARView {
         ctx.restore();
     }
 
-    drawHourlyMarkers(markers, colorMain) {
-        if (!this.showTimeLabels || !markers || markers.length === 0) return;
+    drawTrajectory(points, colorMain, colorGlow, type) {
+        if (!points || points.length === 0) return;
         const ctx = this.ctx;
         ctx.save();
 
-        for (const marker of markers) {
-            const proj = this.projectENUToScreen(marker.enu);
-            if (!proj.visible) continue;
+        // 1. Draw glowing curve segments
+        ctx.beginPath();
+        let isDrawing = false;
+        let lastPt = null;
+        let lastProj = null;
 
-            // Tick dot
-            ctx.beginPath();
-            ctx.arc(proj.x, proj.y, 4, 0, 2 * Math.PI);
-            ctx.fillStyle = marker.isAboveHorizon ? colorMain : 'rgba(255, 255, 255, 0.4)';
-            ctx.fill();
+        for (let i = 0; i < points.length; ++i) {
+            const pt = points[i];
+            const proj = this.projectToScreen(pt.azimuth, pt.altitude);
 
-            // Pill label
-            const label = marker.timeStr;
-            ctx.font = '600 10px monospace';
-            const textWidth = ctx.measureText(label).width;
+            if (proj.visible) {
+                let wrapped = false;
+                if (lastPt) {
+                    let dAzDiff = Math.abs(pt.azimuth - lastPt.azimuth);
+                    if (dAzDiff > 180) dAzDiff = 360 - dAzDiff;
+                    // Detect boundary wrap jumps
+                    if (dAzDiff > 30 || (lastProj && Math.hypot(proj.x - lastProj.x, proj.y - lastProj.y) > Math.hypot(this.width, this.height) * 0.95)) {
+                        wrapped = true;
+                    }
+                }
 
-            ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
-            ctx.strokeStyle = colorMain;
-            ctx.lineWidth = 1;
-            const pillX = proj.x - textWidth / 2 - 4;
-            const pillY = proj.y - 20;
+                if (!isDrawing || wrapped) {
+                    ctx.moveTo(proj.x, proj.y);
+                    isDrawing = true;
+                } else {
+                    ctx.lineTo(proj.x, proj.y);
+                }
+                lastProj = proj;
+            } else {
+                isDrawing = false;
+                lastProj = null;
+            }
+            lastPt = pt;
+        }
 
-            this.roundRect(ctx, pillX, pillY, textWidth + 8, 15, 4);
-            ctx.fill();
-            ctx.stroke();
+        ctx.strokeStyle = colorMain;
+        ctx.lineWidth = (type === 'sun') ? 3 : 2.5;
+        if (type === 'moon') ctx.setLineDash([6, 5]);
+        ctx.shadowColor = colorGlow;
+        ctx.shadowBlur = 10;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
 
-            ctx.fillStyle = '#ffffff';
-            ctx.textAlign = 'center';
-            ctx.fillText(label, proj.x, pillY + 11);
+        // 2. Draw Hourly Time Markers
+        if (this.showTimeLabels) {
+            ctx.setLineDash([]);
+            for (let i = 0; i < points.length; ++i) {
+                const pt = points[i];
+                // Show markers every hour or at 2-hour intervals
+                if (pt.minute === 0 && pt.hour % 2 === 0) {
+                    const proj = this.projectToScreen(pt.azimuth, pt.altitude);
+                    if (!proj.visible) continue;
+
+                    // Tick dot
+                    ctx.beginPath();
+                    ctx.arc(proj.x, proj.y, 4, 0, 2 * Math.PI);
+                    ctx.fillStyle = pt.isAboveHorizon ? colorMain : 'rgba(255, 255, 255, 0.4)';
+                    ctx.fill();
+
+                    // Pill label
+                    const label = pt.timeStr;
+                    ctx.font = '600 10px monospace';
+                    const textWidth = ctx.measureText(label).width;
+
+                    ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+                    ctx.strokeStyle = colorMain;
+                    ctx.lineWidth = 1;
+                    const pillX = proj.x - textWidth / 2 - 4;
+                    const pillY = proj.y - 20;
+
+                    this.roundRect(ctx, pillX, pillY, textWidth + 8, 15, 4);
+                    ctx.fill();
+                    ctx.stroke();
+
+                    ctx.fillStyle = '#ffffff';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(label, proj.x, pillY + 11);
+                }
+            }
         }
 
         ctx.restore();
     }
+
 
     drawSun(sun) {
         const proj = this.projectToScreen(sun.azimuth, sun.altitude);
@@ -686,7 +845,7 @@ export class ARView {
         ctx.arc(x, y, radius, 0, 2 * Math.PI);
         ctx.fill();
 
-        // Readout Tag
+        // Sun readout tag
         const tag = `☀️ Sun ${this.currentTimeStr} | Alt ${Math.round(sun.altitude)}°`;
         ctx.font = '600 11px system-ui';
         const tw = ctx.measureText(tag).width;
@@ -731,19 +890,23 @@ export class ARView {
         ctx.arc(x, y, radius, 0, 2 * Math.PI);
         ctx.clip();
 
+        // Dark side background
         ctx.fillStyle = '#1e293b';
         ctx.fill();
 
+        // Illuminated crescent/gibbous
         ctx.fillStyle = '#e2e8f0';
         const illum = phase.illuminationFraction;
         const isWaxing = phase.phaseFraction < 0.5;
 
         ctx.beginPath();
         if (isWaxing) {
+            // Bright on the right
             ctx.arc(x, y, radius, -Math.PI / 2, Math.PI / 2, false);
             const w = radius * (2 * illum - 1);
             ctx.ellipse(x, y, Math.abs(w), radius, 0, Math.PI / 2, -Math.PI / 2, w < 0);
         } else {
+            // Bright on the left
             ctx.arc(x, y, radius, Math.PI / 2, -Math.PI / 2, false);
             const w = radius * (2 * illum - 1);
             ctx.ellipse(x, y, Math.abs(w), radius, 0, -Math.PI / 2, Math.PI / 2, w < 0);
@@ -751,12 +914,14 @@ export class ARView {
         ctx.fill();
         ctx.restore();
 
+        // Moon rim stroke
         ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
         ctx.lineWidth = 1.5;
         ctx.beginPath();
         ctx.arc(x, y, radius, 0, 2 * Math.PI);
         ctx.stroke();
 
+        // Moon readout tag
         const tag = `${phase.icon} ${phase.name} ${phase.illuminationPercent}% | Alt ${Math.round(moon.altitude)}°`;
         ctx.font = '600 11px system-ui';
         const tw = ctx.measureText(tag).width;
@@ -781,12 +946,14 @@ export class ARView {
         const radius = 28;
         ctx.save();
 
+        // Outer compass ring
         ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
         ctx.lineWidth = 1.5;
         ctx.beginPath();
         ctx.arc(cx, cy, radius, 0, 2 * Math.PI);
         ctx.stroke();
 
+        // North indicator needle (pointing toward true/magnetic North)
         const northAngle = -this.heading * Math.PI / 180.0;
         const tipX = cx + Math.sin(northAngle) * (radius - 2);
         const tipY = cy - Math.cos(northAngle) * (radius - 2);
@@ -803,6 +970,7 @@ export class ARView {
         ctx.closePath();
         ctx.fill();
 
+        // Cardinal markers (N, E, S, W)
         const cardinals = [
             { label: 'N', angle: 0, color: '#f43f5e' },
             { label: 'E', angle: 90, color: '#ffffff' },
@@ -821,6 +989,7 @@ export class ARView {
             ctx.fillText(c.label, lx, ly);
         });
 
+        // Center crosshair ticks
         ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
         ctx.lineWidth = 1;
         ctx.beginPath();
@@ -828,6 +997,7 @@ export class ARView {
         ctx.moveTo(cx, cy - 6); ctx.lineTo(cx, cy + 6);
         ctx.stroke();
 
+        // Numeric heading readout
         const cardinals16 = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
         const cardIdx = Math.floor(((this.heading + 11.25) % 360) / 22.5);
         const cardName = cardinals16[cardIdx];

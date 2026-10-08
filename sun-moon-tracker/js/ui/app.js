@@ -95,6 +95,17 @@ export class App {
         if ("geolocation" in navigator) {
             this.detectGPS(false);
         }
+
+        // Auto-attach orientation listeners on non-iOS devices where requestPermission is not needed
+        if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission !== 'function') {
+            this.arView.requestDeviceOrientation();
+        } else if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+            // On iOS, make the gyroscope button visible so users can tap to grant sensor access anytime
+            const btnSensors = document.getElementById('btn-enable-sensors');
+            if (btnSensors) {
+                btnSensors.style.display = 'inline-flex';
+            }
+        }
     }
 
     initDOM() {
@@ -221,12 +232,35 @@ export class App {
                     document.getElementById('ar-badge')?.classList.remove('badge-live');
                 } else {
                     try {
+                        // CRITICAL FOR IOS: Request orientation permission FIRST while transient user gesture is active!
+                        // Calling getUserMedia() first causes an async roundtrip that invalidates the gesture token,
+                        // causing DeviceOrientationEvent.requestPermission() to be rejected with NotAllowedError.
+                        let sensorGranted = false;
+                        if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                            try {
+                                sensorGranted = await this.arView.requestDeviceOrientation();
+                                if (sensorGranted) {
+                                    const btnSensors = document.getElementById('btn-enable-sensors');
+                                    if (btnSensors) btnSensors.style.display = 'none';
+                                }
+                            } catch (e) {
+                                console.warn("Sensor request on camera start:", e);
+                            }
+                        } else {
+                            await this.arView.requestDeviceOrientation();
+                        }
+
                         btnCamera.innerHTML = `<span>⏳ Starting Camera...</span>`;
                         await this.arView.startCamera();
-                        await this.arView.requestDeviceOrientation();
                         btnCamera.innerHTML = `<span>⏹️ Stop Camera (360° Mode)</span>`;
                         btnCamera.classList.add('active');
                         document.getElementById('ar-badge')?.classList.add('badge-live');
+
+                        // If sensors weren't granted yet on iOS, ensure sensor button is visible
+                        if (!this.arView.gyroAvailable && typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                            const btnSensors = document.getElementById('btn-enable-sensors');
+                            if (btnSensors) btnSensors.style.display = 'inline-flex';
+                        }
                     } catch (err) {
                         alert("Camera access denied or unavailable: " + (err.message || err));
                         btnCamera.innerHTML = `<span>📷 Enable Live AR Camera</span>`;
@@ -240,7 +274,8 @@ export class App {
         document.getElementById('btn-enable-sensors')?.addEventListener('click', async () => {
             const granted = await this.arView.requestDeviceOrientation();
             if (granted) {
-                document.getElementById('btn-enable-sensors').style.display = 'none';
+                const btn = document.getElementById('btn-enable-sensors');
+                if (btn) btn.style.display = 'none';
             }
         });
 
@@ -410,9 +445,9 @@ export class App {
         // 2. Lunar Times
         this.lunarTimes = AstronomyEngine.calculateLunarTimes(y, m, d, offset, lat, lon);
 
-        // 3. Trajectories (sampled every 15 mins for smooth curves)
-        this.sunTrajectory = AstronomyEngine.calculateSunTrajectory(y, m, d, offset, lat, lon, 15);
-        this.moonTrajectory = AstronomyEngine.calculateMoonTrajectory(y, m, d, offset, lat, lon, 15);
+        // 3. Trajectories (sampled every 5 mins for smooth curves and gap-free lines)
+        this.sunTrajectory = AstronomyEngine.calculateSunTrajectory(y, m, d, offset, lat, lon, 5);
+        this.moonTrajectory = AstronomyEngine.calculateMoonTrajectory(y, m, d, offset, lat, lon, 5);
 
         // Pass to AR View
         if (this.arView) {

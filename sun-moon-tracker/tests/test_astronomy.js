@@ -196,7 +196,7 @@ function testPhotographyTips() {
 function testARProjectionMath() {
     console.log("[TEST 8] AR 3D Spherical to Screen Projection Geometry...");
 
-    // Simulated projection formula from ARView
+    // True physical pinhole camera projection formula from ARView
     const project = (az, alt, heading, pitch, roll, width, height, fovH = 65.0) => {
         let dAz = az - heading;
         while (dAz > 180) dAz -= 360;
@@ -208,16 +208,13 @@ function testARProjectionMath() {
         }
 
         const fovH_rad = (fovH * Math.PI) / 180.0;
-        const fovV_rad = fovH_rad * (height / width);
-
         const dAz_rad = (dAz * Math.PI) / 180.0;
         const dAlt_rad = (dAlt * Math.PI) / 180.0;
 
-        const xNorm = Math.tan(dAz_rad) / Math.tan(fovH_rad / 2.0);
-        const yNorm = Math.tan(dAlt_rad) / Math.tan(fovV_rad / 2.0);
+        const f_px = (width / 2.0) / Math.tan(fovH_rad / 2.0);
 
-        let screenX = (width / 2) + xNorm * (width / 2);
-        let screenY = (height / 2) - yNorm * (height / 2);
+        let screenX = (width / 2.0) + f_px * Math.tan(dAz_rad);
+        let screenY = (height / 2.0) - f_px * Math.tan(dAlt_rad);
 
         return { visible: true, x: screenX, y: screenY };
     };
@@ -248,6 +245,41 @@ function testARProjectionMath() {
     console.log("  ✓ AR Projection geometry tests PASSED!");
 }
 
+// 9. AR Device Orientation Pitch & Inversion Calculation
+function testDeviceOrientationMath() {
+    console.log("[TEST 9] AR Device Orientation Pitch & Euler flip handling...");
+
+    const calcPitch = (beta, gamma) => {
+        const bRad = (beta || 0) * (Math.PI / 180.0);
+        const gRad = (gamma || 0) * (Math.PI / 180.0);
+        const camZ = -Math.cos(bRad) * Math.cos(gRad);
+        const clampedZ = Math.max(-1.0, Math.min(1.0, camZ));
+        return Math.asin(clampedZ) * (180.0 / Math.PI);
+    };
+
+    // 1. Phone held upright (beta = 90, gamma = 0) -> looking at horizon (0°)
+    const pitchHorizon = calcPitch(90, 0);
+    assert.ok(Math.abs(pitchHorizon) < 1e-5, `Expected 0°, got ${pitchHorizon}`);
+
+    // 2. Phone tilted up to sky by 30° (unflipped beta = 120, gamma = 0)
+    const pitchSky30 = calcPitch(120, 0);
+    assert.ok(Math.abs(pitchSky30 - 30.0) < 1e-5, `Expected 30°, got ${pitchSky30}`);
+
+    // 3. Phone tilted up to sky by 30° on iOS where Euler flip occurs (beta = 60, gamma = 180)
+    const pitchSky30Flipped = calcPitch(60, 180);
+    assert.ok(Math.abs(pitchSky30Flipped - 30.0) < 1e-5, `Expected 30° on iOS flip, got ${pitchSky30Flipped}`);
+
+    // 4. Phone tilted up to sky by 60° on iOS (beta = 30, gamma = 180)
+    const pitchSky60Flipped = calcPitch(30, 180);
+    assert.ok(Math.abs(pitchSky60Flipped - 60.0) < 1e-5, `Expected 60° on iOS flip, got ${pitchSky60Flipped}`);
+
+    // 5. Phone tilted down to ground by 30° (beta = 60, gamma = 0)
+    const pitchGround30 = calcPitch(60, 0);
+    assert.ok(Math.abs(pitchGround30 - (-30.0)) < 1e-5, `Expected -30°, got ${pitchGround30}`);
+
+    console.log("  ✓ AR Device Orientation pitch & flip tests PASSED!");
+}
+
 // Run all test functions
 testJulianDate();
 testSolarPosition();
@@ -257,5 +289,6 @@ testMoonEphemeris();
 testTrajectories();
 testPhotographyTips();
 testARProjectionMath();
+testDeviceOrientationMath();
 
-console.log("\n>>> ALL 8 WEB ASTRONOMY & AR TEST SUITES PASSED! <<<\n");
+console.log("\n>>> ALL 9 WEB ASTRONOMY & AR TEST SUITES PASSED! <<<\n");
