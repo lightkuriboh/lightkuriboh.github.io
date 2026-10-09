@@ -33,7 +33,25 @@ const FALLBACK_STRINGS = {
     savedToDevice: "Saved to device: {fileName}",
     removedFromFavorites: "Removed \"{name}\" from Favorites",
     addedToFavorites: "Added \"{name}\" to Favorites",
-    noFavoritesYet: "No favorite films yet. Click the star icon on any film card to bookmark it."
+    noFavoritesYet: "No favorite films yet. Click the star icon on any film card to bookmark it.",
+    library: "Library",
+    libraryTitle: "Saved Photo Library",
+    photoLibrary: "Photo Library",
+    noSavedPhotos: "No saved photos yet. Export photos to save them here.",
+    saveToPhotos: "Save to Photos",
+    tapAndHoldToSave: "Tap and hold the image below, then choose Save to Photos.",
+    done: "Done",
+    tagOriginal: "ORIGINAL",
+    tagFiltered: "FILTERED",
+    categoryFilm: "Film",
+    categoryEffect: "Effect",
+    categoryBaseline: "Original",
+    tuneRecipe: "Fine-Tune Recipe",
+    chipAll: "All",
+    sortRecent: "Recent",
+    sortFilterName: "Filter Name",
+    sortSize: "Size",
+    noFavoritesTitle: "No favorite films yet"
   }
 };
 

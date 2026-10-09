@@ -151,14 +151,18 @@ class FilmApp {
     const filmCount = catalog.filter(p => p.category === 'Film').length;
     const effectCount = catalog.filter(p => p.category === 'Effect').length;
     const allCount = catalog.length;
+    const favCount = this.favorites ? this.favorites.size : 0;
+
     const btnAll = document.querySelector('.tab-btn[data-category="all"]');
     if (btnAll) btnAll.textContent = this.i18n ? this.i18n.t('allPresets', { count: allCount }) : `All Presets (${allCount})`;
+    const btnFav = document.getElementById('tabFavorites') || document.querySelector('.tab-btn[data-category="Favorites"]');
+    if (btnFav) btnFav.textContent = this.i18n ? this.i18n.t('favorites', { count: favCount }) : `Favorites (${favCount})`;
     const btnFilm = document.querySelector('.tab-btn[data-category="Film"]');
     if (btnFilm) btnFilm.textContent = this.i18n ? this.i18n.t('historicFilms', { count: filmCount }) : `Historic Films (${filmCount})`;
     const btnEffect = document.querySelector('.tab-btn[data-category="Effect"]');
     if (btnEffect) btnEffect.textContent = this.i18n ? this.i18n.t('creativeEffects', { count: effectCount }) : `Creative Effects (${effectCount})`;
     const favCountEl = document.getElementById('favCount');
-    if (favCountEl) favCountEl.textContent = this.favorites.size;
+    if (favCountEl) favCountEl.textContent = favCount;
   }
 
   initUI() {
@@ -171,6 +175,9 @@ class FilmApp {
           await this.i18n.setLocale(e.target.value);
           this.updateTabLabels();
           this.selectFilter(this.selectedFilterId);
+          if (this.activeCategory === 'Favorites') {
+            this.renderCarousel();
+          }
         });
       }
     }
@@ -199,7 +206,10 @@ class FilmApp {
     }
 
     // Buttons
-    document.getElementById('btnSample').addEventListener('click', () => this.loadSampleImage());
+    const btnSample = document.getElementById('btnSample');
+    if (btnSample) {
+      btnSample.addEventListener('click', () => this.loadSampleImage());
+    }
     document.getElementById('btnUpload').addEventListener('click', () => document.getElementById('fileInput').click());
     document.getElementById('fileInput').addEventListener('change', (e) => this.handleFileSelect(e));
     document.getElementById('btnDownload').addEventListener('click', () => this.exportImage());
@@ -336,11 +346,13 @@ class FilmApp {
     });
 
     if (this.activeCategory === 'Favorites' && items.length === 0) {
+      const title = this.i18n ? this.i18n.t('noFavoritesTitle') : 'No favorite films yet';
+      const desc = this.i18n ? this.i18n.t('noFavoritesYet') : 'Click the star button on any film stock to pin it to your quick-access favorites.';
       track.innerHTML = `
         <div class="empty-favorites-msg">
           <span class="empty-star">★</span>
-          <div><strong>No favorite films yet</strong></div>
-          <div>Click the star button on any film stock to pin it to your quick-access favorites.</div>
+          <div><strong>${title}</strong></div>
+          <div>${desc}</div>
         </div>
       `;
       return;
@@ -544,7 +556,11 @@ class FilmApp {
     const filterNameEl = document.getElementById('filterName');
     if (filterNameEl) filterNameEl.textContent = p.name;
     const filterCatEl = document.getElementById('filterCategory');
-    if (filterCatEl) filterCatEl.textContent = `(${p.category})`;
+    if (filterCatEl) {
+      const catKey = p.category === 'Film' ? 'categoryFilm' : (p.category === 'Effect' ? 'categoryEffect' : 'categoryBaseline');
+      const catLabel = this.i18n ? this.i18n.t(catKey) : p.category;
+      filterCatEl.textContent = `(${catLabel})`;
+    }
     const filterDescEl = document.getElementById('filterDesc');
     if (filterDescEl) filterDescEl.textContent = p.desc;
     const filterDotEl = document.getElementById('filterDot');
@@ -562,15 +578,14 @@ class FilmApp {
     const btn = document.getElementById('btnFavorite');
     if (btn) {
       const isFav = this.favorites.has(this.selectedFilterId);
+      const favTitle = this.i18n ? this.i18n.t('toggleFavorite') : (isFav ? 'Remove from Favorites' : 'Add to Favorites');
       if (isFav) {
         btn.classList.add('active');
-        btn.title = 'Remove from Favorites';
-        btn.setAttribute('aria-label', 'Remove from Favorites');
       } else {
         btn.classList.remove('active');
-        btn.title = 'Add to Favorites';
-        btn.setAttribute('aria-label', 'Add to Favorites');
       }
+      btn.title = favTitle;
+      btn.setAttribute('aria-label', favTitle);
     }
     const favCountEl = document.getElementById('favCount');
     if (favCountEl) favCountEl.textContent = this.favorites.size;
@@ -594,6 +609,7 @@ class FilmApp {
     } catch (_) {}
 
     this.updateFavoriteButton();
+    this.updateTabLabels();
     this.renderCarousel();
     return isFav;
   }

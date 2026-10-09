@@ -92,3 +92,48 @@ test('processImageJS - Exposure adjustment increases pixel luminance', () => {
   // With positive exposure on baseline, pixel values should be brighter
   assert.ok(pixelsExposed[0] > pixelsBase[0]);
 });
+
+test('processImageJS - Warmth / Temperature adjustment adjusts red and blue channels', () => {
+  const w = 4, h = 4;
+  const pixelsWarm = new Uint8Array(w * h * 4).fill(128);
+  const pixelsCool = new Uint8Array(w * h * 4).fill(128);
+
+  processImageJS(pixelsWarm, w, h, 0, { temperature: 0.8 });
+  processImageJS(pixelsCool, w, h, 0, { temperature: -0.8 });
+
+  // Warmth increases red and decreases blue
+  assert.ok(pixelsWarm[0] > pixelsWarm[2], 'Warm temperature should make red higher than blue');
+  // Cool decreases red and increases blue
+  assert.ok(pixelsCool[2] > pixelsCool[0], 'Cool temperature should make blue higher than red');
+});
+
+test('handleWorkerMessage - dispatches image processing and calls postMessageFn', () => {
+  const { handleWorkerMessage } = require('../js/filter_worker.js');
+  const w = 4, h = 4;
+  const buffer = new ArrayBuffer(w * h * 4);
+  const pixels = new Uint8Array(buffer).fill(128);
+
+  let postedPayload = null;
+  let postedTransfer = null;
+
+  handleWorkerMessage({
+    id: 42,
+    rgbaBuffer: buffer,
+    width: w,
+    height: h,
+    filterId: 1,
+    params: { intensity: 1.0, grainStrength: 0.5, vignetteStrength: 0.5, exposure: 0.1, temperature: 0.1 }
+  }, (payload, transfer) => {
+    postedPayload = payload;
+    postedTransfer = transfer;
+  });
+
+  assert.ok(postedPayload);
+  assert.strictEqual(postedPayload.id, 42);
+  assert.strictEqual(postedPayload.width, w);
+  assert.strictEqual(postedPayload.height, h);
+  assert.strictEqual(postedPayload.filterId, 1);
+  assert.strictEqual(postedPayload.engineType, 'javascript');
+  assert.ok(postedPayload.latencyMs >= 0);
+  assert.ok(Array.isArray(postedTransfer) && postedTransfer.length === 1);
+});

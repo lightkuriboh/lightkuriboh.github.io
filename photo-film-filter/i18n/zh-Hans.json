@@ -35,5 +35,16 @@
   "noSavedPhotos": "暂无保存的照片。导出照片即可在此查看。",
   "saveToPhotos": "保存到相册",
   "tapAndHoldToSave": "长按下方图片，然后选择“保存到相册”。",
-  "done": "完成"
+  "done": "完成",
+  "tagOriginal": "原图",
+  "tagFiltered": "滤镜效果",
+  "categoryFilm": "胶片",
+  "categoryEffect": "特效",
+  "categoryBaseline": "原图",
+  "tuneRecipe": "微调配方",
+  "chipAll": "全部",
+  "sortRecent": "最新",
+  "sortFilterName": "滤镜名称",
+  "sortSize": "文件大小",
+  "noFavoritesTitle": "暂无收藏的胶片"
 }

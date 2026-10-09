@@ -605,7 +605,158 @@ async function runTest() {
     throw new Error('Canvas render dimensions check failed: canvasAfter is missing or 0x0!');
   }
 
-  console.log('\n★ ALL WEB FUNCTIONAL TESTS PASSED SUCCESSFULLY! ★');
+  console.log('\n--- 27. Device Emulation: Popular iPhone and Samsung Mobile Layouts ---');
+  const mobileDevices = [
+    { name: 'iPhone SE (3rd Gen)', width: 375, height: 667, scale: 2 },
+    { name: 'iPhone 14 / 15 / 16', width: 390, height: 844, scale: 3 },
+    { name: 'iPhone Pro Max', width: 430, height: 932, scale: 3 },
+    { name: 'Samsung Galaxy S22', width: 360, height: 800, scale: 3 },
+    { name: 'Samsung Galaxy S24 Ultra', width: 412, height: 915, scale: 3.5 }
+  ];
+
+  for (const dev of mobileDevices) {
+    console.log(`Testing viewport layout: ${dev.name} (${dev.width}x${dev.height})...`);
+    await sendCommand('Emulation.setDeviceMetricsOverride', {
+      width: dev.width,
+      height: dev.height,
+      deviceScaleFactor: dev.scale,
+      mobile: true
+    });
+    await sleep(300);
+
+    const check = await evaluate(`(() => {
+      const header = document.querySelector('.app-header');
+      const scrollWidth = document.documentElement.scrollWidth;
+      const clientWidth = document.documentElement.clientWidth;
+      const btnSample = document.getElementById('btnSample');
+      const btnLibrary = document.getElementById('btnLibrary');
+      const btnUpload = document.getElementById('btnUpload');
+      const btnDownload = document.getElementById('btnDownload');
+      const btnTune = document.getElementById('btnTune');
+      const langSelect = document.getElementById('langSelect');
+      const rect = header.getBoundingClientRect();
+
+      return {
+        noHorizontalOverflow: scrollWidth <= clientWidth + 2,
+        hasDuplicateSampleBtn: !!btnSample,
+        libraryVisible: !!btnLibrary && getComputedStyle(btnLibrary).display !== 'none',
+        uploadVisible: !!btnUpload && getComputedStyle(btnUpload).display !== 'none',
+        downloadVisible: !!btnDownload && getComputedStyle(btnDownload).display !== 'none',
+        tuneVisible: !!btnTune && getComputedStyle(btnTune).display !== 'none',
+        langSelectVisible: !!langSelect && getComputedStyle(langSelect).display !== 'none',
+        headerWidth: rect.width,
+        clientWidth
+      };
+    })()`);
+
+    console.log(`  ✓ ${dev.name} layout metrics:`, JSON.stringify(check));
+    if (!check.noHorizontalOverflow) {
+      throw new Error(`Horizontal overflow detected on ${dev.name}! clientWidth: ${check.clientWidth}, scrollWidth: ${check.scrollWidth}`);
+    }
+    if (check.hasDuplicateSampleBtn) {
+      throw new Error(`Duplicate sample button still present in DOM on ${dev.name}!`);
+    }
+    if (!check.libraryVisible || !check.uploadVisible || !check.downloadVisible || !check.tuneVisible || !check.langSelectVisible) {
+      throw new Error(`Essential header action buttons hidden or missing on ${dev.name}!`);
+    }
+  }
+
+  console.log('\n--- 28. Functional Test: In-Place Language Switching and Localization ---');
+  // Reset back to standard iPhone 15 layout for language testing
+  await sendCommand('Emulation.setDeviceMetricsOverride', {
+    width: 390,
+    height: 844,
+    deviceScaleFactor: 3,
+    mobile: true
+  });
+  await sleep(200);
+
+  const testLanguages = [
+    {
+      code: 'ja',
+      name: 'Japanese',
+      expectedOriginal: 'オリジナル',
+      expectedFiltered: 'フィルター適用',
+      expectedFavSubstr: 'お気に入り',
+      expectedFilmCategory: '(フィルム)'
+    },
+    {
+      code: 'vi',
+      name: 'Vietnamese',
+      expectedOriginal: 'ẢNH GỐC',
+      expectedFiltered: 'ĐÃ LỌC',
+      expectedFavSubstr: 'Yêu thích',
+      expectedFilmCategory: '(Phim)'
+    },
+    {
+      code: 'zh-Hans',
+      name: 'Simplified Chinese',
+      expectedOriginal: '原图',
+      expectedFiltered: '滤镜效果',
+      expectedFavSubstr: '收藏',
+      expectedFilmCategory: '(胶片)'
+    },
+    {
+      code: 'zh-Hant',
+      name: 'Traditional Chinese',
+      expectedOriginal: '原圖',
+      expectedFiltered: '濾鏡效果',
+      expectedFavSubstr: '收藏',
+      expectedFilmCategory: '(膠片)'
+    },
+    {
+      code: 'en',
+      name: 'English',
+      expectedOriginal: 'ORIGINAL',
+      expectedFiltered: 'FILTERED',
+      expectedFavSubstr: 'Favorites',
+      expectedFilmCategory: '(Film)'
+    }
+  ];
+
+  for (const l of testLanguages) {
+    console.log(`Switching language to ${l.name} (${l.code})...`);
+    await evaluate(`(() => {
+      const sel = document.getElementById('langSelect');
+      sel.value = '${l.code}';
+      sel.dispatchEvent(new Event('change'));
+    })()`);
+    await sleep(350);
+
+    const localizedTexts = await evaluate(`(() => {
+      const tagOrig = document.getElementById('tagOriginal')?.textContent?.trim();
+      const tagFilt = document.getElementById('tagFiltered')?.textContent?.trim();
+      const tabFav = document.getElementById('tabFavorites')?.textContent?.trim();
+      const catBadge = document.getElementById('filterCategory')?.textContent?.trim();
+      return { tagOrig, tagFilt, tabFav, catBadge };
+    })()`);
+
+    console.log(`  [${l.code}] Verified DOM texts:`, JSON.stringify(localizedTexts));
+
+    if (localizedTexts.tagOrig !== l.expectedOriginal) {
+      throw new Error(`tagOriginal translation mismatch for ${l.code}: expected "${l.expectedOriginal}", got "${localizedTexts.tagOrig}"`);
+    }
+    if (localizedTexts.tagFilt !== l.expectedFiltered) {
+      throw new Error(`tagFiltered translation mismatch for ${l.code}: expected "${l.expectedFiltered}", got "${localizedTexts.tagFilt}"`);
+    }
+    if (!localizedTexts.tabFav.includes(l.expectedFavSubstr)) {
+      throw new Error(`tabFavorites translation mismatch for ${l.code}: expected to contain "${l.expectedFavSubstr}", got "${localizedTexts.tabFav}"`);
+    }
+    if (localizedTexts.catBadge !== l.expectedFilmCategory) {
+      throw new Error(`filterCategory annotation mismatch for ${l.code}: expected "${l.expectedFilmCategory}", got "${localizedTexts.catBadge}"`);
+    }
+  }
+
+  // Also verify switching to an Effect filter localizes "(Effect)" correctly across languages
+  await evaluate('window.app.selectFilter(19)'); // Cinematic Teal & Orange (category: Effect)
+  await sleep(200);
+  const effectCatBadge = await evaluate('document.getElementById("filterCategory")?.textContent?.trim()');
+  console.log(`Effect filter category badge in English: "${effectCatBadge}"`);
+  if (effectCatBadge !== '(Effect)') {
+    throw new Error(`Expected category annotation "(Effect)", got "${effectCatBadge}"`);
+  }
+
+  console.log('\n★ ALL WEB FUNCTIONAL TESTS & RESPONSIVE DEVICE TESTS PASSED SUCCESSFULLY! ★');
 
   ws.close();
   chrome.kill();

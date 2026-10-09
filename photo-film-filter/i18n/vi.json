@@ -35,5 +35,16 @@
   "noSavedPhotos": "Chưa có ảnh đã lưu nào. Hãy xuất ảnh để lưu vào đây.",
   "saveToPhotos": "Lưu vào Ảnh",
   "tapAndHoldToSave": "Chạm và giữ hình ảnh bên dưới, sau đó chọn Lưu vào Ảnh.",
-  "done": "Xong"
+  "done": "Xong",
+  "tagOriginal": "ẢNH GỐC",
+  "tagFiltered": "ĐÃ LỌC",
+  "categoryFilm": "Phim",
+  "categoryEffect": "Hiệu ứng",
+  "categoryBaseline": "Ảnh gốc",
+  "tuneRecipe": "Công thức tinh chỉnh",
+  "chipAll": "Tất cả",
+  "sortRecent": "Gần đây",
+  "sortFilterName": "Tên bộ lọc",
+  "sortSize": "Kích thước",
+  "noFavoritesTitle": "Chưa có phim yêu thích"
 }

@@ -35,5 +35,16 @@
   "noSavedPhotos": "保存された写真はまだありません。写真をエクスポートするとここに表示されます。",
   "saveToPhotos": "写真に保存",
   "tapAndHoldToSave": "下の画像を長押しして「写真に保存」を選択してください。",
-  "done": "完了"
+  "done": "完了",
+  "tagOriginal": "オリジナル",
+  "tagFiltered": "フィルター適用",
+  "categoryFilm": "フィルム",
+  "categoryEffect": "エフェクト",
+  "categoryBaseline": "オリジナル",
+  "tuneRecipe": "微調整レシピ",
+  "chipAll": "すべて",
+  "sortRecent": "最新",
+  "sortFilterName": "フィルター名",
+  "sortSize": "ファイルサイズ",
+  "noFavoritesTitle": "お気に入りのフィルムがありません"
 }

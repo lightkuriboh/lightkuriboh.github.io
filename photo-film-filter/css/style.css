@@ -33,20 +33,27 @@ body {
   display: flex;
   flex-direction: column;
   height: 100vh;
+  height: 100dvh;
   width: 100vw;
   position: relative;
+  overflow: hidden;
 }
 
 /* Header */
 .app-header {
-  height: var(--header-height);
+  height: calc(var(--header-height) + env(safe-area-inset-top, 0px));
+  min-height: calc(var(--header-height) + env(safe-area-inset-top, 0px));
   background-color: var(--surface-1);
   border-bottom: 1px solid var(--border-color);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 16px;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: 0;
+  padding-left: calc(16px + env(safe-area-inset-left, 0px));
+  padding-right: calc(16px + env(safe-area-inset-right, 0px));
   z-index: 20;
+  box-sizing: border-box;
 }
 
 .brand {
@@ -451,13 +458,14 @@ input[type="range"]::-webkit-slider-thumb {
 
 /* Carousel Section */
 .carousel-section {
-  height: var(--footer-height);
+  min-height: calc(var(--footer-height) + env(safe-area-inset-bottom, 0px));
   background-color: var(--surface-1);
   border-top: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
-  padding: 10px 0;
+  padding: 10px 0 calc(10px + env(safe-area-inset-bottom, 0px)) 0;
   z-index: 15;
+  box-sizing: border-box;
 }
 
 .category-tabs {
@@ -618,9 +626,24 @@ input[type="range"]::-webkit-slider-thumb {
 
 /* Small screen responsive adjustments — prevents button overflow & keeps Save button visible */
 @media (max-width: 480px) {
+  .app-header {
+    padding-left: calc(8px + env(safe-area-inset-left, 0px));
+    padding-right: calc(8px + env(safe-area-inset-right, 0px));
+  }
+  .brand {
+    gap: 6px;
+    min-width: 0;
+    flex-shrink: 1;
+  }
+  .brand-text h1 {
+    font-size: 13px;
+    letter-spacing: 0.8px;
+    white-space: nowrap;
+  }
   .header-actions {
     gap: 4px;
     flex-wrap: nowrap;
+    flex-shrink: 0;
   }
   .header-actions .btn span {
     display: none;
@@ -628,17 +651,32 @@ input[type="range"]::-webkit-slider-thumb {
   .btn {
     padding: 6px 8px;
     min-width: 36px;
+    height: 34px;
     justify-content: center;
   }
-  .brand-text h1 {
-    font-size: 13px;
-    letter-spacing: 1px;
+  .lang-select {
+    padding: 4px 6px;
+    font-size: 11px;
+    height: 34px;
   }
   .filter-desc {
     display: none;
   }
   .status-indicator {
     display: none;
+  }
+}
+
+@media (max-width: 380px) {
+  .brand-text {
+    display: none;
+  }
+  .header-actions {
+    gap: 3px;
+  }
+  .btn {
+    padding: 6px 6px;
+    min-width: 32px;
   }
 }
 

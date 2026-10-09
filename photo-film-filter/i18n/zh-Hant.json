@@ -35,5 +35,16 @@
   "noSavedPhotos": "暫無儲存的照片。匯出照片即可在此查看。",
   "saveToPhotos": "儲存至相簿",
   "tapAndHoldToSave": "長按下方圖片，然後選擇「儲存至相簿」。",
-  "done": "完成"
+  "done": "完成",
+  "tagOriginal": "原圖",
+  "tagFiltered": "濾鏡效果",
+  "categoryFilm": "膠片",
+  "categoryEffect": "特效",
+  "categoryBaseline": "原圖",
+  "tuneRecipe": "微調配方",
+  "chipAll": "全部",
+  "sortRecent": "最新",
+  "sortFilterName": "濾鏡名稱",
+  "sortSize": "檔案大小",
+  "noFavoritesTitle": "尚無收藏的膠片"
 }

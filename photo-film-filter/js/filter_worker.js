@@ -558,50 +558,49 @@ function processImageJS(pixels, width, height, filterId, params) {
   }
 }
 
-// Processing dispatcher
-if (typeof self !== 'undefined') {
-  self.onmessage = function(e) {
-    const { id, rgbaBuffer, width, height, filterId, params } = e.data;
-    const startTime = performance.now();
+function handleWorkerMessage(data, postMessageFn) {
+  const { id, rgbaBuffer, width, height, filterId, params } = data;
+  const startTime = performance.now();
 
-    let engineType = 'javascript';
-    const pixels = new Uint8Array(rgbaBuffer);
+  let engineType = 'javascript';
+  const pixels = new Uint8Array(rgbaBuffer);
 
-    if (isWasmReady && wasmEngine && wasmCtx) {
-      try {
-        engineType = 'wasm';
-        const byteLen = width * height * 4;
-        const heapPtr = wasmEngine._malloc(byteLen);
-        wasmEngine.HEAPU8.set(pixels, heapPtr);
+  if (isWasmReady && wasmEngine && wasmCtx) {
+    try {
+      engineType = 'wasm';
+      const byteLen = width * height * 4;
+      const heapPtr = wasmEngine._malloc(byteLen);
+      wasmEngine.HEAPU8.set(pixels, heapPtr);
 
-        wasmEngine._film_engine_process_rgba(
-          wasmCtx,
-          heapPtr,
-          width,
-          height,
-          width * 4,
-          filterId,
-          params.intensity ?? 1.0,
-          params.grainStrength ?? 1.0,
-          params.vignetteStrength ?? 1.0,
-          params.exposure ?? 0.0,
-          params.temperature ?? 0.0
-        );
+      wasmEngine._film_engine_process_rgba(
+        wasmCtx,
+        heapPtr,
+        width,
+        height,
+        width * 4,
+        filterId,
+        params.intensity ?? 1.0,
+        params.grainStrength ?? 1.0,
+        params.vignetteStrength ?? 1.0,
+        params.exposure ?? 0.0,
+        params.temperature ?? 0.0
+      );
 
-        pixels.set(wasmEngine.HEAPU8.subarray(heapPtr, heapPtr + byteLen));
-        wasmEngine._free(heapPtr);
-      } catch (err) {
-        console.warn('WASM execution failed, falling back to JS:', err);
-        processImageJS(pixels, width, height, filterId, params);
-        engineType = 'javascript_fallback';
-      }
-    } else {
+      pixels.set(wasmEngine.HEAPU8.subarray(heapPtr, heapPtr + byteLen));
+      wasmEngine._free(heapPtr);
+    } catch (err) {
+      console.warn('WASM execution failed, falling back to JS:', err);
       processImageJS(pixels, width, height, filterId, params);
+      engineType = 'javascript_fallback';
     }
+  } else {
+    processImageJS(pixels, width, height, filterId, params);
+  }
 
-    const latencyMs = performance.now() - startTime;
+  const latencyMs = performance.now() - startTime;
 
-    self.postMessage({
+  if (typeof postMessageFn === 'function') {
+    postMessageFn({
       id,
       rgbaBuffer: pixels.buffer,
       width,
@@ -610,11 +609,17 @@ if (typeof self !== 'undefined') {
       latencyMs,
       engineType
     }, [pixels.buffer]); // Zero-copy transfer
+  }
+}
+
+// Processing dispatcher
+if (typeof self !== 'undefined') {
+  self.onmessage = function(e) {
+    handleWorkerMessage(e.data, (payload, transfer) => self.postMessage(payload, transfer));
   };
 }
 
-
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { JSSpline, processImageJS };
+  module.exports = { JSSpline, processImageJS, handleWorkerMessage };
 }
 

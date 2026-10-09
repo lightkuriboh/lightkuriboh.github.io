@@ -118,3 +118,69 @@ test('i18n - applyToDOM updates textContent and title based on data attributes',
   assert.strictEqual(titleEl.title, 'Save image to local device');
   assert.strictEqual(placeholderEl.placeholder, 'FILM MAGIC');
 });
+
+test('i18n - New keys exist and translate properly in all 5 languages', () => {
+  const locales = ['en', 'zh-Hans', 'zh-Hant', 'vi', 'ja'];
+  const testKeys = ['tagOriginal', 'tagFiltered', 'categoryFilm', 'categoryEffect', 'categoryBaseline', 'tuneRecipe', 'noFavoritesTitle'];
+
+  for (const loc of locales) {
+    const filePath = path.join(webDir, 'i18n', `${loc}.json`);
+    const dict = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    const i18n = new I18n(loc, { [loc]: dict });
+    for (const key of testKeys) {
+      assert.ok(i18n.t(key), `${loc} should translate ${key}`);
+      assert.notStrictEqual(i18n.t(key), key, `${loc} should not return fallback key for ${key}`);
+    }
+  }
+});
+
+test('i18n - loadLocale and setLocale with storage and custom event', async () => {
+  let storedKey = null;
+  let storedVal = null;
+  global.localStorage = {
+    getItem: (k) => (k === storedKey ? storedVal : null),
+    setItem: (k, v) => { storedKey = k; storedVal = v; }
+  };
+
+  let dispatchedEvent = null;
+  global.document = {
+    documentElement: { lang: '' },
+    querySelectorAll: () => [],
+    dispatchEvent: (evt) => { dispatchedEvent = evt; }
+  };
+  global.CustomEvent = class {
+    constructor(name, opts) {
+      this.type = name;
+      this.detail = opts ? opts.detail : {};
+    }
+  };
+
+  // Mock fetch for loadLocale
+  const origFetch = global.fetch;
+  global.fetch = async (url) => {
+    if (url.includes('vi.json')) {
+      return { ok: true, json: async () => ({ sample: 'Mẫu thử', tagOriginal: 'ẢNH GỐC' }) };
+    }
+    throw new Error('Network error');
+  };
+
+  try {
+    const i18n = new I18n('en');
+    await i18n.setLocale('vi');
+    assert.strictEqual(i18n.locale, 'vi');
+    assert.strictEqual(global.document.documentElement.lang, 'vi');
+    assert.strictEqual(storedVal, 'vi');
+    assert.strictEqual(dispatchedEvent?.type, 'localechange');
+    assert.strictEqual(dispatchedEvent?.detail?.locale, 'vi');
+    assert.strictEqual(i18n.t('tagOriginal'), 'ẢNH GỐC');
+
+    // Test invalid locale fallback to en
+    await i18n.setLocale('unknown-loc');
+    assert.strictEqual(i18n.locale, 'en');
+
+    // Test loadLocale error handling
+    await i18n.loadLocale('error-loc');
+  } finally {
+    global.fetch = origFetch;
+  }
+});

@@ -184,3 +184,71 @@ test('LibraryDB - LRU eviction automatically purges oldest entries when budget e
   assert.ok(entries.some((e) => e.id === 'item_2'));
   assert.ok(!entries.some((e) => e.id === 'item_1'));
 });
+
+test('LibraryDB - clearAll, sorting by size, and edge cases', async () => {
+  setupMockIndexedDB();
+  const lib = new LibraryDB('test_lib', 10);
+
+  await lib.saveEntry({ id: 'small', filterId: 1, filterName: 'Small', fullResDataUrl: 'data:image/png;base64,12' });
+  await lib.saveEntry({ id: 'large', filterId: 2, filterName: 'Large', fullResDataUrl: 'data:image/png;base64,12345678' });
+
+  // Sort by fileSizeBytes ascending
+  const sorted = await lib.getEntries({ sortBy: 'fileSizeBytes', descending: false });
+  assert.strictEqual(sorted[0].id, 'small');
+  assert.strictEqual(sorted[1].id, 'large');
+
+  // clearAll
+  await lib.clearAll();
+  const empty = await lib.getEntries();
+  assert.strictEqual(empty.length, 0);
+
+  // Test when indexedDB is undefined
+  const origIDB = global.indexedDB;
+  delete global.indexedDB;
+  const noIDBLib = new LibraryDB();
+  const res = await noIDBLib.open();
+  assert.strictEqual(res, null);
+  assert.deepStrictEqual(await noIDBLib.getEntries(), []);
+  assert.strictEqual(await noIDBLib.getImage('id'), null);
+  assert.strictEqual(await noIDBLib.deleteEntry('id'), false);
+  await noIDBLib.clearAll();
+  global.indexedDB = origIDB;
+
+  // Test onupgradeneeded and onerror branches
+  let createdStores = [];
+  const fakeDB = {
+    objectStoreNames: { contains: (n) => false },
+    createObjectStore: (name) => {
+      createdStores.push(name);
+      return { createIndex: () => {} };
+    }
+  };
+  global.indexedDB = {
+    open: () => {
+      const req = { onupgradeneeded: null, onsuccess: null, onerror: null };
+      setTimeout(() => {
+        if (req.onupgradeneeded) req.onupgradeneeded({ target: { result: fakeDB } });
+        if (req.onsuccess) req.onsuccess({ target: { result: fakeDB } });
+      }, 0);
+      return req;
+    }
+  };
+  const upgradeLib = new LibraryDB('upgrade_test');
+  await upgradeLib.open();
+  assert.ok(createdStores.includes('entries'));
+  assert.ok(createdStores.includes('images'));
+
+  // Test onerror
+  global.indexedDB = {
+    open: () => {
+      const req = { onerror: null };
+      setTimeout(() => {
+        if (req.onerror) req.onerror({ target: { error: new Error('IDB open failed') } });
+      }, 0);
+      return req;
+    }
+  };
+  const errLib = new LibraryDB('err_test');
+  await assert.rejects(async () => errLib.open(), /IDB open failed/);
+  global.indexedDB = origIDB;
+});
