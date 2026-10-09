@@ -186,6 +186,17 @@ function testStateAndCallbacks() {
     assert.strictEqual(stateFired.pitch, 45);
     assert.strictEqual(stateFired.isFlat, false);
 
+    // Flat on table (tilt = 0): MUST lie flat face up!
+    compass.setPose(90, 0, 0);
+    assert.strictEqual(Math.round(compass.heading), 90);
+    assert.strictEqual(compass.pitch, 0);
+    assert.strictEqual(stateFired.isFlat, true);
+
+    // Upright portrait (tilt = 90): clamped to 85 for 3D perspective
+    compass.setPose(90, 90, 0);
+    assert.strictEqual(compass.pitch, 85);
+    assert.strictEqual(stateFired.isFlat, false);
+
     // Snap Flat
     compass.snapFlat();
     assert.strictEqual(compass.pitch, 0);

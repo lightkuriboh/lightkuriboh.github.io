@@ -107,7 +107,13 @@ export class App {
         const loop = () => {
             this.arView.render();
             if (this.compass3D) {
-                this.compass3D.setPose(this.arView.heading, this.arView.pitch, this.arView.roll);
+                const tilt = (this.arView.deviceTilt !== undefined)
+                    ? this.arView.deviceTilt
+                    : Math.max(0.0, Math.min(85.0, 90.0 + this.arView.pitch));
+                const ch = (this.arView.compassHeading !== undefined)
+                    ? this.arView.compassHeading
+                    : this.arView.heading;
+                this.compass3D.setPose(ch, tilt, this.arView.roll);
             }
             requestAnimationFrame(loop);
         };

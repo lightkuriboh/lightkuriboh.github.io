@@ -90,6 +90,8 @@ export class ARView {
     set pitch(val) { this.fusion.manualPitch = val; }
 
     get roll() { return this.fusion.roll; }
+    get deviceTilt() { return this.fusion.deviceTilt; }
+    get compassHeading() { return this.fusion.compassHeading; }
 
     get gyroAvailable() { return this.fusion.gyroAvailable; }
     get compassUnavailable() { return !this.fusion.compassAvailable; }

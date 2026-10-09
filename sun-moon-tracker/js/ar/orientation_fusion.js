@@ -72,6 +72,8 @@ export class OrientationFusion {
         this.heading = 180.0;
         this.pitch = 10.0;
         this.roll = 0.0;
+        this.deviceTilt = 80.0;
+        this.compassHeading = 180.0;
 
         // Manual drag fallback (when sensors unavailable or desktop)
         this.manualHeading = 180.0;
@@ -204,10 +206,10 @@ export class OrientationFusion {
         
         // Apply magnetic declination + user calibration offset around Earth Z
         // Note: Earth Z points Up in ENU, so clockwise heading change requires negative Z rotation
-        const totalYawDeg = - (this.declination + this.calibrationOffset);
+        const totalYawDeg = this.declination + this.calibrationOffset;
         let qTarget;
         if (Math.abs(totalYawDeg) > 0.01) {
-            const qYaw = quatFromAxisAngle([0, 0, 1], totalYawDeg * DEG2RAD);
+            const qYaw = quatFromAxisAngle([0, 0, 1], - totalYawDeg * DEG2RAD);
             const qAligned = quatMultiply(qYaw, qScreenDev);
             qTarget = quatMultiply(qAligned, [1, 0, 0, 0]);
         } else {
@@ -268,8 +270,7 @@ export class OrientationFusion {
 
         // In deviceorientationabsolute, alpha is referenced directly to magnetic North.
         // Yaw offset combines magnetic declination and user calibration offset.
-        // Negative sign aligns with clockwise azimuth in ENU coordinates.
-        this._yawOffset = - (this.declination + this.calibrationOffset);
+        this._yawOffset = this.declination + this.calibrationOffset;
         this._yawOffsetInitialized = true;
 
         this._computeTargetQuat();
@@ -324,7 +325,7 @@ export class OrientationFusion {
             
             // True yaw offset is the angular difference between measured heading and relative camera heading
             // Note: heading is clockwise from North, so a rotation around Z counter-clockwise needs negative sign
-            const currentDelta = shortestAngleDeg(relCamHeading, measCompassHeading);
+            const currentDelta = shortestAngleDeg(measCompassHeading, relCamHeading);
 
             if (!this._yawOffsetInitialized) {
                 // Initial sample snaps to compass
@@ -354,12 +355,12 @@ export class OrientationFusion {
             this.activeSource = 'dev-orient-absolute';
             this.compassAvailable = true;
             this.compassAccuracy = 10.0;
-            this._yawOffset = - (this.declination + this.calibrationOffset);
+            this._yawOffset = this.declination + this.calibrationOffset;
             this._yawOffsetInitialized = true;
         } else {
             this.activeSource = 'relative';
             if (!this._yawOffsetInitialized) {
-                this._yawOffset = - this.calibrationOffset;
+                this._yawOffset = this.calibrationOffset;
                 this._yawOffsetInitialized = true;
             }
         }
@@ -379,7 +380,7 @@ export class OrientationFusion {
         const qW3C = quatFromW3CEuler(this._rawAlpha, this._rawBeta, this._rawGamma);
 
         // B. Apply calibrated Yaw Offset around Earth Z (East-North-Up vertical axis)
-        const qYaw = quatFromAxisAngle([0, 0, 1], this._yawOffset * DEG2RAD);
+        const qYaw = quatFromAxisAngle([0, 0, 1], - this._yawOffset * DEG2RAD);
         const qAligned = quatMultiply(qYaw, qW3C);
 
         // C. Apply Screen Orientation rotation around screen normal Z
@@ -430,6 +431,9 @@ export class OrientationFusion {
             this.roll = euler.roll;
         }
 
+        this.deviceTilt = euler.deviceTilt;
+        this.compassHeading = euler.compassHeading;
+
         // Record diagnostic sample for ?debug=1
         if (this._diagLog.length >= this._diagLogMax) {
             this._diagLog.shift();
@@ -440,6 +444,8 @@ export class OrientationFusion {
             h: parseFloat(this.heading.toFixed(1)),
             p: parseFloat(this.pitch.toFixed(1)),
             r: parseFloat(this.roll.toFixed(1)),
+            tilt: parseFloat(this.deviceTilt.toFixed(1)),
+            ch: parseFloat(this.compassHeading.toFixed(1)),
             yawOff: parseFloat(this._yawOffset.toFixed(1)),
             acc: this.compassAccuracy
         });
@@ -450,7 +456,8 @@ export class OrientationFusion {
      */
     nudgeYaw(deltaHeadingDeg) {
         if (this.gyroAvailable) {
-            this.calibrationOffset = (this.calibrationOffset - deltaHeadingDeg + 3600.0) % 360.0;
+            this.calibrationOffset = (this.calibrationOffset + deltaHeadingDeg + 3600.0) % 360.0;
+            this._yawOffset = this.declination + this.calibrationOffset;
             this._computeTargetQuat();
         } else {
             this.manualHeading = (this.manualHeading + deltaHeadingDeg + 360.0) % 360.0;
@@ -479,6 +486,8 @@ export class OrientationFusion {
             heading: this.heading,
             pitch: this.pitch,
             roll: this.roll,
+            deviceTilt: this.deviceTilt,
+            compassHeading: this.compassHeading,
             yawOffset: this._yawOffset,
             declination: this.declination,
             calibOffset: this.calibrationOffset,

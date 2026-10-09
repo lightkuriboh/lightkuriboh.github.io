@@ -146,7 +146,11 @@ export function quatSlerp(qa, qb, t) {
  * Returns q_device_to_world.
  */
 export function quatFromW3CEuler(alphaDeg = 0, betaDeg = 0, gammaDeg = 0) {
-    const a = (alphaDeg || 0) * DEG2RAD * 0.5;
+    // In Earth East-North-Up (ENU), +Z points Up.
+    // Compass azimuth heading increases clockwise (North -> East -> South -> West).
+    // In right-handed coordinates, clockwise rotation around +Z (Up) is negative.
+    // Therefore, alpha must be negated to align clockwise compass azimuth with ENU world frame.
+    const a = - (alphaDeg || 0) * DEG2RAD * 0.5;
     const b = (betaDeg || 0) * DEG2RAD * 0.5;
     const g = (gammaDeg || 0) * DEG2RAD * 0.5;
 
@@ -171,6 +175,7 @@ export function quatFromHeadingPitch(headingDeg = 180, pitchDeg = 0) {
 /**
  * Extracts derived heading (azimuth 0..360°), pitch (-90..+90°), and roll (-180..+180°)
  * from a camera-to-world quaternion.
+ * Also computes deviceTilt (0° flat face up to 90° upright) and compassHeading for 3D compass.
  *
  * In camera space:
  * - Camera forward optical axis is [0, 0, 1] (OpenCV convention)
@@ -193,7 +198,22 @@ export function quatGetHeadingPitchRoll(qCamToWorld) {
     // When right vector's Z component tilts down/up:
     const roll = Math.atan2(right[2], up[2]) * RAD2DEG;
 
-    return { heading, pitch, roll, fwd, right, up };
+    // Device physical tilt relative to the horizontal surface:
+    // Screen normal is out of screen (-fwd in camera coordinates, because camera is out back).
+    // When phone lies flat face up on surface: screen normal is [0, 0, 1], deviceTilt = 0°
+    // When phone is held upright: screen normal is horizontal, deviceTilt = 90°
+    const screenNormalZ = Math.max(-1.0, Math.min(1.0, -fwd[2]));
+    const deviceTilt = Math.acos(screenNormalZ) * RAD2DEG;
+
+    // Compass heading:
+    // When phone is flat on table (deviceTilt ≈ 0°): top of phone (up vector) defines heading.
+    // When phone is held upright (deviceTilt ≈ 90°): forward camera axis (fwd vector) defines heading.
+    const tTilt = Math.max(0.0, Math.min(1.0, deviceTilt / 90.0));
+    const aimX = (1.0 - tTilt) * up[0] + tTilt * fwd[0];
+    const aimY = (1.0 - tTilt) * up[1] + tTilt * fwd[1];
+    const compassHeading = (Math.atan2(aimX, aimY) * RAD2DEG + 360.0) % 360.0;
+
+    return { heading, pitch, roll, fwd, right, up, deviceTilt, compassHeading };
 }
 
 /**

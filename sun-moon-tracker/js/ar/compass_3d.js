@@ -122,14 +122,13 @@ export class Compass3D {
         this.draw();
     }
 
-    setPose(heading, pitch, roll) {
+    setPose(heading, tilt, roll) {
         if (this.followSensors && !this.isDragging) {
             this.heading = (heading + 360.0) % 360.0;
-            // Map camera pitch (-90 to +90) to compass tilt (0 to 85)
-            // When phone is upright portrait (pitch = 0 in camera space): compass tilt is ~75°
-            // When phone lies flat face up (pitch = -90 or +90 in camera space): compass tilt is 0°
-            if (pitch !== undefined) {
-                const absTilt = Math.max(0.0, Math.min(85.0, Math.abs(pitch)));
+            // Map device tilt (0° = flat face up on surface, 90° = upright portrait)
+            // Clamped to [0, 85] so when flat it is 0° (flat face up), and when upright it gives 3D perspective
+            if (tilt !== undefined) {
+                const absTilt = Math.max(0.0, Math.min(85.0, Math.abs(tilt)));
                 this.pitch = absTilt;
             }
             if (roll !== undefined) this.roll = roll;
@@ -149,7 +148,8 @@ export class Compass3D {
     toggleSensorFollow() {
         this.followSensors = !this.followSensors;
         if (this.followSensors && this.fusion) {
-            this.heading = this.fusion.heading;
+            this.heading = (this.fusion.compassHeading !== undefined) ? this.fusion.compassHeading : this.fusion.heading;
+            this.pitch = (this.fusion.deviceTilt !== undefined) ? Math.min(85.0, this.fusion.deviceTilt) : 28.0;
         }
         this.draw();
         this.dispatchStateChange();

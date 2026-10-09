@@ -18,9 +18,9 @@ console.log("  ✓ Manual Desktop Drag Mode PASSED!");
 // TEST 2: Android Absolute Orientation Mode
 console.log("[TEST 2] Android Absolute Orientation Mode...");
 const fusionAndroid = new OrientationFusion();
-// Upright device facing East (Azimuth 90° -> Alpha = 270°, Beta = 90°, Gamma = 0°)
+// Upright device facing East (Azimuth 90° -> Alpha = 90°, Beta = 90°, Gamma = 0°)
 fusionAndroid.handleDeviceOrientation({
-    alpha: 270,
+    alpha: 90,
     beta: 90,
     gamma: 0,
     absolute: true,
@@ -29,6 +29,8 @@ fusionAndroid.handleDeviceOrientation({
 fusionAndroid.update(1000);
 assert.ok(Math.abs(fusionAndroid.heading - 90) < 0.2, `Expected ~90°, got ${fusionAndroid.heading}`);
 assert.ok(Math.abs(fusionAndroid.pitch - 0) < 0.2, `Expected ~0°, got ${fusionAndroid.pitch}`);
+assert.ok(Math.abs(fusionAndroid.deviceTilt - 90) < 0.2, `Expected ~90° tilt, got ${fusionAndroid.deviceTilt}`);
+assert.ok(Math.abs(fusionAndroid.compassHeading - 90) < 0.2, `Expected ~90° compass heading, got ${fusionAndroid.compassHeading}`);
 console.log("  ✓ Android Absolute Orientation Mode PASSED!");
 
 // TEST 3: iOS Compass & Gyro Fusion with Jitter Filtering
@@ -63,9 +65,9 @@ const headingChange = Math.abs(fusionIOS.heading - 45);
 assert.ok(headingChange < 0.15, `Compass noise rejected: change was only ${headingChange}°`);
 
 // 3. Fast gyro rotation (user turns phone 30° clockwise to 75°)
-// Alpha changes from 0 to 330° (-30° in W3C counterclockwise = +30° clockwise azimuth)
+// Alpha changes from 0 to 30° (+30° clockwise azimuth)
 fusionIOS.handleDeviceOrientation({
-    alpha: 330,
+    alpha: 30,
     beta: 90,
     gamma: 0,
     webkitCompassHeading: 75,
@@ -118,7 +120,7 @@ console.log("[TEST 5] Android Stream Immunity (Ignore relative events when absol
 const fusionInterleave = new OrientationFusion();
 // 1. Android absolute event arrives (Heading 120°)
 fusionInterleave.handleDeviceOrientationAbsolute({
-    alpha: 240, // 360 - 240 = 120°
+    alpha: 120, // 120° Azimuth
     beta: 90,
     gamma: 0
 });
@@ -144,7 +146,7 @@ console.log("[TEST 6] iOS Pitch Sweep Stability (Freeze yaw when pitching into s
 const fusionPitch = new OrientationFusion();
 // Snap initial level orientation (Heading 90° East)
 fusionPitch.handleDeviceOrientation({
-    alpha: 270,
+    alpha: 90,
     beta: 90,
     gamma: 0,
     webkitCompassHeading: 90,
@@ -156,7 +158,7 @@ const initialYawOff = fusionPitch.getDiagnostics().yawOffset;
 // User points camera high up into sky (Beta = 145°, Pitch ~ +55° > 35° gate threshold)
 // Even if magnetometer is noisy or reports distorted heading 130° at high pitch:
 fusionPitch.handleDeviceOrientation({
-    alpha: 270,
+    alpha: 90,
     beta: 145,
     gamma: 5, // with roll
     webkitCompassHeading: 130, // distorted magnetic reading at high elevation
@@ -173,7 +175,7 @@ console.log("[TEST 7] Magnetic Declination True North Alignment...");
 const fusionDecl = new OrientationFusion();
 fusionDecl.setDeclination(15.0); // +15° East declination (e.g. Seattle)
 fusionDecl.handleDeviceOrientationAbsolute({
-    alpha: 270, // Magnetic 90° East
+    alpha: 90, // Magnetic 90° East
     beta: 90,
     gamma: 0
 });
@@ -181,6 +183,72 @@ fusionDecl.update(5000);
 // True heading should be 90° + 15° = 105°
 assert.ok(Math.abs(fusionDecl.heading - 105.0) < 0.5, `Expected 105° true heading with declination, got ${fusionDecl.heading}`);
 console.log("  ✓ Magnetic Declination PASSED!");
+
+// TEST 8: Phone Flat on Surface (3D Compass Face-Up Parity)
+console.log("[TEST 8] Phone Flat on Surface (Compass Disc Face-Up Parity)...");
+const fusionFlat = new OrientationFusion();
+// Placed flat face up on table pointing East (Beta = 0, Gamma = 0, Alpha = 90)
+fusionFlat.handleDeviceOrientationAbsolute({
+    alpha: 90,
+    beta: 0,
+    gamma: 0
+});
+fusionFlat.update(6000);
+// When flat face up on surface:
+// deviceTilt MUST be 0° (flat face up, ready for 3D compass top-down view!)
+// compassHeading MUST be 90° (top of phone points East)
+// cam pitch is -90° (camera points straight down into table)
+assert.ok(Math.abs(fusionFlat.deviceTilt - 0.0) < 0.5, `deviceTilt flat on table expected 0°, got ${fusionFlat.deviceTilt}`);
+assert.ok(Math.abs(fusionFlat.compassHeading - 90.0) < 0.5, `compassHeading flat on table expected 90°, got ${fusionFlat.compassHeading}`);
+assert.ok(Math.abs(fusionFlat.pitch - (-90.0)) < 0.5, `cam pitch flat on table expected -90°, got ${fusionFlat.pitch}`);
+console.log("  ✓ Phone Flat on Surface PASSED!");
+
+// TEST 9: Manual Drag and Nudge Yaw Trim
+console.log("[TEST 9] Manual Drag and Nudge Yaw Trim...");
+const fusionTrim = new OrientationFusion();
+fusionTrim.handleDeviceOrientationAbsolute({
+    alpha: 90,
+    beta: 90,
+    gamma: 0
+});
+fusionTrim.update(7000);
+assert.ok(Math.abs(fusionTrim.heading - 90.0) < 0.2);
+
+// User drags view to trim heading by +10°
+fusionTrim.nudgeYaw(10.0);
+for (let t = 7050; t <= 8000; t += 50) fusionTrim.update(t);
+assert.ok(Math.abs(fusionTrim.heading - 100.0) < 0.5, `Expected trimmed heading 100°, got ${fusionTrim.heading}`);
+
+// In manual mode (gyro unavailable)
+const fusionManualTrim = new OrientationFusion();
+fusionManualTrim.setManualPose(180, 10);
+fusionManualTrim.nudgeYaw(15.0);
+for (let t = 8050; t <= 9000; t += 50) fusionManualTrim.update(t);
+assert.ok(Math.abs(fusionManualTrim.heading - 195.0) < 0.5, `Expected manual trimmed heading 195°, got ${fusionManualTrim.heading}`);
+console.log("  ✓ Manual Drag and Nudge Yaw Trim PASSED!");
+
+// TEST 10: Quaternions, Diagnostics, CSV Export, and Reset
+console.log("[TEST 10] Quaternions, Diagnostics, CSV Export & Reset...");
+const fusionDiag = new OrientationFusion();
+fusionDiag.handleDeviceOrientationAbsolute({ alpha: 180, beta: 90, gamma: 0 });
+fusionDiag.update(10000);
+
+const qCurr = fusionDiag.getQuaternion();
+assert.strictEqual(qCurr.length, 4);
+const qInv = fusionDiag.getInverseQuaternion();
+assert.strictEqual(qInv.length, 4);
+
+const diag = fusionDiag.getDiagnostics();
+assert.strictEqual(typeof diag.heading, 'number');
+assert.strictEqual(typeof diag.deviceTilt, 'number');
+assert.strictEqual(typeof diag.compassHeading, 'number');
+
+const csv = fusionDiag.exportDiagLogCSV();
+assert.ok(csv.includes("time,src,heading,pitch,roll,yawOffset,acc"));
+
+fusionDiag.reset();
+assert.strictEqual(fusionDiag._yawOffsetInitialized, false);
+console.log("  ✓ Diagnostics & CSV Export PASSED!");
 
 console.log("\n>>> ALL ORIENTATION FUSION TESTS PASSED! <<<\n");
 
