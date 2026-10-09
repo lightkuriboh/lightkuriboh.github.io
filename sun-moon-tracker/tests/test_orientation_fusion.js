@@ -113,4 +113,74 @@ assert.ok(Math.abs(pitchAfter - 31.0) < 1.0, `Pitch after flip: ${pitchAfter}`);
 assert.ok(pitchAfter > pitchBefore, "Pitch increases monotonically across the 90° boundary");
 console.log("  ✓ Continuous Euler Flip PASSED!");
 
+// TEST 5: Android Stream Immunity (Interleaving relative events must be ignored)
+console.log("[TEST 5] Android Stream Immunity (Ignore relative events when absolute is active)...");
+const fusionInterleave = new OrientationFusion();
+// 1. Android absolute event arrives (Heading 120°)
+fusionInterleave.handleDeviceOrientationAbsolute({
+    alpha: 240, // 360 - 240 = 120°
+    beta: 90,
+    gamma: 0
+});
+fusionInterleave.update(3000);
+const headingAbs = fusionInterleave.heading;
+assert.ok(Math.abs(headingAbs - 120.0) < 0.5, `Expected heading 120°, got ${headingAbs}`);
+
+// 2. Interleaved relative deviceorientation event arrives with arbitrary relative alpha (e.g. 10°)
+fusionInterleave.handleDeviceOrientation({
+    alpha: 10,
+    beta: 90,
+    gamma: 0,
+    absolute: false
+});
+fusionInterleave.update(3016);
+const headingAfterRel = fusionInterleave.heading;
+// Heading must stay at 120° and NOT jump to relative 10°!
+assert.ok(Math.abs(headingAfterRel - 120.0) < 0.5, `Relative event corrupted heading! Got ${headingAfterRel}`);
+console.log("  ✓ Android Stream Immunity PASSED!");
+
+// TEST 6: iOS Pitch Sweep Stability & Camera Gating
+console.log("[TEST 6] iOS Pitch Sweep Stability (Freeze yaw when pitching into sky)...");
+const fusionPitch = new OrientationFusion();
+// Snap initial level orientation (Heading 90° East)
+fusionPitch.handleDeviceOrientation({
+    alpha: 270,
+    beta: 90,
+    gamma: 0,
+    webkitCompassHeading: 90,
+    webkitCompassAccuracy: 10
+});
+fusionPitch.update(4000);
+const initialYawOff = fusionPitch.getDiagnostics().yawOffset;
+
+// User points camera high up into sky (Beta = 145°, Pitch ~ +55° > 35° gate threshold)
+// Even if magnetometer is noisy or reports distorted heading 130° at high pitch:
+fusionPitch.handleDeviceOrientation({
+    alpha: 270,
+    beta: 145,
+    gamma: 5, // with roll
+    webkitCompassHeading: 130, // distorted magnetic reading at high elevation
+    webkitCompassAccuracy: 35
+});
+fusionPitch.update(4050);
+const highPitchYawOff = fusionPitch.getDiagnostics().yawOffset;
+// Yaw offset MUST remain frozen to prevent the lines from sliding away from camera center!
+assert.ok(Math.abs(highPitchYawOff - initialYawOff) < 0.1, `High pitch should freeze yawOffset! Initial: ${initialYawOff}, Got: ${highPitchYawOff}`);
+console.log("  ✓ iOS Pitch Sweep Stability PASSED!");
+
+// TEST 7: Magnetic Declination True North Alignment
+console.log("[TEST 7] Magnetic Declination True North Alignment...");
+const fusionDecl = new OrientationFusion();
+fusionDecl.setDeclination(15.0); // +15° East declination (e.g. Seattle)
+fusionDecl.handleDeviceOrientationAbsolute({
+    alpha: 270, // Magnetic 90° East
+    beta: 90,
+    gamma: 0
+});
+fusionDecl.update(5000);
+// True heading should be 90° + 15° = 105°
+assert.ok(Math.abs(fusionDecl.heading - 105.0) < 0.5, `Expected 105° true heading with declination, got ${fusionDecl.heading}`);
+console.log("  ✓ Magnetic Declination PASSED!");
+
 console.log("\n>>> ALL ORIENTATION FUSION TESTS PASSED! <<<\n");
+

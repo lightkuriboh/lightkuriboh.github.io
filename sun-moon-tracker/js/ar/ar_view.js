@@ -9,9 +9,9 @@ import { quatRotate, enuVectorFromAzAlt, shortestAngleDeg } from './quat.js';
 
 export class ARView {
     constructor(canvasId, videoId) {
-        this.canvas = document.getElementById(canvasId);
-        this.ctx = this.canvas.getContext('2d');
-        this.video = document.getElementById(videoId);
+        this.canvas = (typeof document !== 'undefined' && canvasId) ? document.getElementById(canvasId) : null;
+        this.ctx = this.canvas ? this.canvas.getContext('2d') : null;
+        this.video = (typeof document !== 'undefined' && videoId) ? document.getElementById(videoId) : null;
 
         // State
         this.cameraActive = false;
@@ -21,8 +21,14 @@ export class ARView {
         // Sensor Fusion Engine
         this.fusion = new OrientationFusion();
 
-        // Base Camera Field of View (horizontal degrees for virtual 360° mode)
+        // Base Camera Field of View (horizontal degrees for virtual 360° mode & long edge for camera)
         this.fovH = 65.0;
+        let savedFov = 66.0;
+        if (typeof localStorage !== 'undefined') {
+            const stored = parseFloat(localStorage.getItem('ar_fov_long'));
+            if (!isNaN(stored) && stored >= 45 && stored <= 90) savedFov = stored;
+        }
+        this.fovLong = savedFov;
 
         // Manual drag fallback (when gyro or camera is inactive/desktop)
         this.isDragging = false;
@@ -34,6 +40,7 @@ export class ARView {
         this.showMoonPath = true;
         this.showGrid = true;
         this.showTimeLabels = true;
+        this.showDebug = (typeof window !== 'undefined' && window.location?.search?.includes('debug=1'));
 
         // Ephemeris data to render
         this.sunPosition = null;
@@ -46,10 +53,33 @@ export class ARView {
         this.initEvents();
         this.resize();
 
-        window.addEventListener('resize', () => this.resize());
-        if (window.visualViewport) {
-            window.visualViewport.addEventListener('resize', () => this.resize());
+        if (typeof window !== 'undefined') {
+            window.addEventListener('resize', () => this.resize());
+            if (window.visualViewport) {
+                window.visualViewport.addEventListener('resize', () => this.resize());
+            }
         }
+        if (typeof ResizeObserver !== 'undefined' && this.canvas?.parentElement) {
+            this.resizeObserver = new ResizeObserver(() => this.resize());
+            this.resizeObserver.observe(this.canvas.parentElement);
+        }
+    }
+
+    setDeclination(declinationDeg) {
+        this.fusion.setDeclination(declinationDeg);
+    }
+
+    setFov(fovDeg) {
+        if (typeof fovDeg === 'number' && fovDeg >= 45 && fovDeg <= 90) {
+            this.fovLong = fovDeg;
+            if (typeof localStorage !== 'undefined') {
+                localStorage.setItem('ar_fov_long', fovDeg.toString());
+            }
+        }
+    }
+
+    exportDiagnosticsCSV() {
+        return this.fusion.exportDiagLogCSV();
     }
 
     // Dynamic Getters/Setters for compatibility with UI callers
@@ -73,8 +103,29 @@ export class ARView {
     set showMoon(val) { this.showMoonPath = val; }
 
     initEvents() {
+        if (!this.canvas) return;
         // Drag to rotate sky (Desktop / fallback / manual nudge)
         this.canvas.addEventListener('pointerdown', (e) => {
+            if (this.showDebug) {
+                const rect = this.canvas.getBoundingClientRect();
+                const clickX = e.clientX - rect.left;
+                const clickY = e.clientY - rect.top;
+                if (clickX >= 10 && clickX <= 280 && clickY >= 60 && clickY <= 195) {
+                    const csv = this.exportDiagnosticsCSV();
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        navigator.clipboard.writeText(csv).then(() => {
+                            alert("📋 AR Diagnostics CSV copied to clipboard!");
+                        }).catch(() => {
+                            console.log("AR Diagnostics Log:\n", csv);
+                            alert("AR Diagnostics printed to browser console!");
+                        });
+                    } else {
+                        console.log("AR Diagnostics Log:\n", csv);
+                        alert("AR Diagnostics printed to browser console!");
+                    }
+                    return;
+                }
+            }
             this.isDragging = true;
             this.lastPointerX = e.clientX;
             this.lastPointerY = e.clientY;
@@ -113,14 +164,17 @@ export class ARView {
     }
 
     resize() {
-        const dpr = window.devicePixelRatio || 1;
+        if (!this.canvas) return;
+        const dpr = Math.min(2.0, (typeof window !== 'undefined' && window.devicePixelRatio) || 1);
         const rect = this.canvas.getBoundingClientRect();
-        this.width = rect.width || window.innerWidth;
-        this.height = rect.height || window.innerHeight;
+        this.width = rect.width || (typeof window !== 'undefined' ? window.innerWidth : 800);
+        this.height = rect.height || (typeof window !== 'undefined' ? window.innerHeight : 600);
         this.canvas.width = Math.round(this.width * dpr);
         this.canvas.height = Math.round(this.height * dpr);
-        this.ctx.setTransform(1, 0, 0, 1, 0, 0);
-        this.ctx.scale(dpr, dpr);
+        if (this.ctx) {
+            this.ctx.setTransform(1, 0, 0, 1, 0, 0);
+            this.ctx.scale(dpr, dpr);
+        }
     }
 
     async startCamera() {
@@ -136,8 +190,8 @@ export class ARView {
             const constraints = {
                 video: {
                     facingMode: { ideal: this.facingMode },
-                    width: { ideal: 1920 },
-                    height: { ideal: 1080 }
+                    width: { ideal: 1280, max: 1920 },
+                    height: { ideal: 720, max: 1080 }
                 },
                 audio: false
             };
@@ -178,8 +232,8 @@ export class ARView {
         const vh = this.video?.videoHeight;
 
         if (this.cameraActive && vw && vh) {
-            // Standard smartphone main wide lens has ~68° FOV along the long sensor edge
-            const fovMajorRad = (68.0 * Math.PI) / 180.0;
+            // Standard smartphone main wide lens FOV along the long sensor edge
+            const fovMajorRad = (this.fovLong * Math.PI) / 180.0;
             const videoLong = Math.max(vw, vh);
             const f_video = (videoLong * 0.5) / Math.tan(fovMajorRad * 0.5);
 
@@ -297,6 +351,11 @@ export class ARView {
 
         // 5. Center Reticle HUD
         this.drawReticle();
+
+        // 6. Diagnostics HUD Overlay (when ?debug=1 or enabled)
+        if (this.showDebug) {
+            this.drawDebugOverlay();
+        }
     }
 
     drawSimulatedSky() {
@@ -760,5 +819,37 @@ export class ARView {
         ctx.lineTo(x, y + radius);
         ctx.quadraticCurveTo(x, y, x + radius, y);
         ctx.closePath();
+    }
+
+    drawDebugOverlay() {
+        const diag = this.fusion.getDiagnostics();
+        const ctx = this.ctx;
+        ctx.save();
+        const boxW = Math.min(this.width - 20, 270);
+        const boxH = 132;
+        const boxX = 10;
+        const boxY = 64;
+
+        ctx.fillStyle = 'rgba(6, 9, 19, 0.90)';
+        ctx.strokeStyle = 'rgba(56, 189, 248, 0.5)';
+        ctx.lineWidth = 1.5;
+        this.roundRect(ctx, boxX, boxY, boxW, boxH, 8);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#38bdf8';
+        ctx.font = 'bold 10px monospace';
+        ctx.fillText(`🔧 AR DEBUG (v2.1) • ${diag.source}`, boxX + 8, boxY + 16);
+
+        ctx.fillStyle = '#f8fafc';
+        ctx.font = '10px monospace';
+        ctx.fillText(`Rate: ${diag.hz} Hz | Speed: ${diag.angularSpeed.toFixed(1)}°/s`, boxX + 8, boxY + 34);
+        ctx.fillText(`Euler: H ${diag.heading.toFixed(1)}° P ${diag.pitch.toFixed(1)}° R ${diag.roll.toFixed(1)}°`, boxX + 8, boxY + 52);
+        ctx.fillText(`YawOff: ${diag.yawOffset.toFixed(1)}° | Decl: ${diag.declination.toFixed(1)}°`, boxX + 8, boxY + 70);
+        ctx.fillText(`CompassAcc: ${diag.compassAccuracy !== null ? diag.compassAccuracy.toFixed(1) + '°' : 'N/A'}`, boxX + 8, boxY + 88);
+        ctx.fillText(`FOV: ${this.fovLong.toFixed(1)}° | Calib: ${diag.calibOffset.toFixed(1)}°`, boxX + 8, boxY + 104);
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillText(`📋 [Tap box to copy CSV log]`, boxX + 8, boxY + 120);
+        ctx.restore();
     }
 }

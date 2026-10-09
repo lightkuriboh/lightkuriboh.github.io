@@ -2,11 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>LandscapeHelper — Sun & Moon AR Ephemeris Tracker</title>
     <meta name="description" content="Precision Sun & Moon ephemeris with live Augmented Reality (AR) camera view, golden hour calculator, moon phase tracking, and 24-hour celestial trajectory projection.">
     <meta name="theme-color" content="#060913">
     <meta name="color-scheme" content="dark">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="LandscapeHelper">
     
     <!-- PWA Manifest -->
     <link rel="manifest" href="manifest.webmanifest">
@@ -35,8 +38,8 @@
         </div>
 
         <!-- Navigation Tabs & Header Controls -->
-        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px;">
-            <nav class="nav-tabs" aria-label="Views">
+        <div class="header-controls">
+            <nav class="nav-tabs desktop-only" aria-label="Views">
                 <button class="nav-tab-btn active" data-tab="tab-ar" id="tab-btn-ar">
                     <span>📷</span> <span data-i18n="navArSky">AR Sky View</span>
                 </button>
@@ -50,8 +53,8 @@
                     <span>🧰</span> <span data-i18n="navFieldKit">Field Kit</span>
                 </button>
             </nav>
-            <select id="language-select" class="btn-pill" aria-label="Language Selector" style="background: rgba(15, 23, 42, 0.85); font-size: 0.8rem; padding: 6px 10px;">
-                <option value="en">English (US)</option>
+            <select id="language-select" class="btn-pill" aria-label="Language Selector">
+                <option value="en">English</option>
                 <option value="zh-TW">繁體中文</option>
                 <option value="zh-CN">简体中文</option>
                 <option value="vi">Tiếng Việt</option>
@@ -61,7 +64,7 @@
     </header>
 
     <!-- Top Control Bar (Date & Location) -->
-    <section class="control-bar" aria-label="Parameters">
+    <section class="control-bar" id="app-control-bar" aria-label="Parameters">
         <!-- Date Selector -->
         <div class="control-panel">
             <div>
@@ -105,49 +108,43 @@
             <div class="ar-hud-overlay">
                 <!-- Top HUD Info -->
                 <div class="hud-top-bar">
-                    <div class="hud-badge" id="ar-badge">
-                        <span>AR Engine Active</span>
-                        <span style="opacity: 0.6;">(Drag or tilt phone to look around)</span>
+                    <div class="hud-badge" id="ar-badge" role="button" tabindex="0" title="Tap to toggle debug diagnostics">
+                        <span class="badge-status-dot"></span>
+                        <span id="ar-badge-text">AR Active</span>
                     </div>
 
-                    <div class="hud-readouts">
-                        <div class="readout-card solar">
-                            <span class="control-label">☀️ Sun</span>
-                            <span class="readout-value">Az <span id="hud-sun-az">--°</span> • Alt <span id="hud-sun-alt">--°</span></span>
+                    <div class="hud-readouts-compact">
+                        <div class="readout-card solar compact-readout">
+                            <span class="readout-label">☀️</span>
+                            <span class="readout-value"><span id="hud-sun-az">--°</span> / <span id="hud-sun-alt">--°</span></span>
                         </div>
-                        <div class="readout-card lunar">
-                            <span class="control-label">🌙 Moon</span>
-                            <span class="readout-value">Az <span id="hud-moon-az">--°</span> • Alt <span id="hud-moon-alt">--°</span></span>
+                        <div class="readout-card lunar compact-readout">
+                            <span class="readout-label">🌙</span>
+                            <span class="readout-value"><span id="hud-moon-az">--°</span> / <span id="hud-moon-alt">--°</span></span>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Floating Center Object Filter (Both / Sun Only / Moon Only) -->
+                <div class="ar-center-dock">
+                    <div class="filter-chip-group ar-segmented-picker" role="radiogroup" aria-label="Celestial Object Filter">
+                        <button type="button" class="btn-chip active" id="chip-filter-both" title="Show both Sun and Moon paths">☀️🌙 Both</button>
+                        <button type="button" class="btn-chip" id="chip-filter-sun" title="Show Sun path only">☀️ Sun</button>
+                        <button type="button" class="btn-chip" id="chip-filter-moon" title="Show Moon path only">🌙 Moon</button>
                     </div>
                 </div>
 
                 <!-- Bottom Floating Actions & Toggles -->
                 <div class="hud-bottom-bar">
                     <div class="ar-quick-actions">
-                        <div class="btn-icon-group">
-                            <button class="btn-pill primary" id="btn-toggle-camera">
-                                <span>📷 Enable Live AR Camera</span>
-                            </button>
-                            <button class="btn-pill" id="btn-enable-sensors" style="display: none;">
-                                <span>🧭 Enable Gyroscope</span>
-                            </button>
-                        </div>
-
-                        <div class="hud-toggles">
-                            <div class="filter-chip-group" style="display: flex; gap: 4px; margin-right: 6px;">
-                                <button type="button" class="btn-chip active" id="chip-filter-both" title="Show both Sun and Moon paths">☀️🌙 Both</button>
-                                <button type="button" class="btn-chip" id="chip-filter-sun" title="Show Sun path only (avoids trajectory line overlap)">☀️ Sun Only</button>
-                                <button type="button" class="btn-chip" id="chip-filter-moon" title="Show Moon path only (avoids trajectory line overlap)">🌙 Moon Only</button>
-                            </div>
-                            <label><input type="checkbox" id="toggle-sun" checked> ☀️ Sun</label>
-                            <label><input type="checkbox" id="toggle-moon" checked> 🌙 Moon</label>
-                            <label><input type="checkbox" id="toggle-grid" checked> 📐 Grid</label>
-                            <label title="Manual Compass Calibration Offset">
-                                🧭 Calib: <input type="range" id="compass-calib-slider" min="-30" max="30" value="0" style="width: 60px;">
-                                <span id="calib-value" style="font-family: var(--font-mono); font-size: 0.75rem;">0°</span>
-                            </label>
-                        </div>
+                        <button class="btn-pill primary" id="btn-toggle-camera">
+                            <span>📷 <span class="btn-text">Live Camera</span></span>
+                        </button>
+                        <button class="btn-pill" id="btn-enable-sensors" style="display: none;">
+                            <span>🧭 <span class="btn-text">Enable Gyro</span></span>
+                        </button>
+                        <button class="btn-pill icon-only" id="btn-toggle-grid-pill" title="Toggle Grid Overlay">📐</button>
+                        <button class="btn-pill icon-only" id="btn-open-ar-options" title="AR Calibration & Options">⚙️</button>
                     </div>
                 </div>
             </div>
@@ -542,8 +539,77 @@
 
     <!-- Footer -->
     <footer class="app-footer">
-        LandscapeHelper PWA • Zero-latency C++ & JS Astronomical Engine • Works Offline in Remote Landscapes
+        <div>LandscapeHelper PWA • Zero-latency C++ & JS Astronomical Engine • Works Offline in Remote Landscapes</div>
+        <div style="margin-top: 4px; font-size: 0.72rem; opacity: 0.7;">Build <span id="app-build-version">v2.1 (2026.10)</span></div>
     </footer>
+</div>
+
+<!-- Mobile Bottom Navigation Bar -->
+<nav class="bottom-nav-bar mobile-only" aria-label="Mobile Navigation">
+    <button class="bottom-nav-btn active" data-tab="tab-ar" id="mobile-tab-btn-ar">
+        <span class="nav-icon">📷</span>
+        <span class="nav-label" data-i18n="navArSky">AR Sky</span>
+    </button>
+    <button class="bottom-nav-btn" data-tab="tab-ephem" id="mobile-tab-btn-ephem">
+        <span class="nav-icon">📊</span>
+        <span class="nav-label" data-i18n="navEphemeris">Times</span>
+    </button>
+    <button class="bottom-nav-btn" data-tab="tab-dial" id="mobile-tab-btn-dial">
+        <span class="nav-icon">🧭</span>
+        <span class="nav-label" data-i18n="nav3dCompass">360° Dial</span>
+    </button>
+    <button class="bottom-nav-btn" data-tab="tab-fieldkit" id="mobile-tab-btn-fieldkit">
+        <span class="nav-icon">🧰</span>
+        <span class="nav-label" data-i18n="navFieldKit">Field Kit</span>
+    </button>
+</nav>
+
+<!-- AR Options & Calibration Modal Sheet -->
+<div id="ar-options-modal" class="ar-modal-backdrop" style="display: none;">
+    <div class="ar-modal-dialog">
+        <div class="modal-header">
+            <h3>⚙️ AR Calibration & Options</h3>
+            <button class="btn-pill icon-only" id="btn-close-ar-options" aria-label="Close Options">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="settings-row">
+                <span>📐 Altitude & Horizon Grid</span>
+                <input type="checkbox" id="toggle-grid" checked>
+            </div>
+            <div class="settings-row">
+                <span>☀️ Sun Trajectory Path</span>
+                <input type="checkbox" id="toggle-sun" checked>
+            </div>
+            <div class="settings-row">
+                <span>🌙 Moon Trajectory Path</span>
+                <input type="checkbox" id="toggle-moon" checked>
+            </div>
+            <div class="settings-row">
+                <div class="setting-desc">
+                    <span>🧭 Compass Calibration Offset</span>
+                    <small>Adjust heading trim if nearby magnetic interference</small>
+                </div>
+                <div class="slider-group">
+                    <input type="range" id="compass-calib-slider" min="-30" max="30" value="0">
+                    <span id="calib-value" class="mono-badge">0°</span>
+                </div>
+            </div>
+            <div class="settings-row">
+                <div class="setting-desc">
+                    <span>📷 Camera Wide FOV (Calibration)</span>
+                    <small>Tune physical lens angle (Default: 66°)</small>
+                </div>
+                <div class="slider-group">
+                    <input type="range" id="camera-fov-slider" min="50" max="80" value="66">
+                    <span id="fov-value" class="mono-badge">66°</span>
+                </div>
+            </div>
+            <div class="settings-row">
+                <span>🔧 Diagnostics Overlay</span>
+                <button class="btn-pill" id="btn-toggle-debug">Toggle ?debug=1</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Main Application Module -->

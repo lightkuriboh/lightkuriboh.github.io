@@ -3,6 +3,7 @@
  */
 
 import { AstronomyEngine } from '../engine/astronomy.js';
+import { getDeclination } from '../engine/declination.js';
 import { ARView } from '../ar/ar_view.js';
 import { I18n } from './i18n.js';
 import { FeatureGate } from './feature_gate.js';
@@ -309,6 +310,47 @@ export class App {
             });
         }
 
+        // Camera FOV slider (Lens calibration)
+        const fovSlider = document.getElementById('camera-fov-slider');
+        if (fovSlider && this.arView) {
+            fovSlider.value = Math.round(this.arView.fovLong);
+            const fovVal = document.getElementById('fov-value');
+            if (fovVal) fovVal.textContent = `${Math.round(this.arView.fovLong)}°`;
+            fovSlider.addEventListener('input', (e) => {
+                const val = parseFloat(e.target.value);
+                this.arView.setFov(val);
+                if (fovVal) fovVal.textContent = `${val}°`;
+            });
+        }
+
+        // AR Options Modal Sheet
+        const modal = document.getElementById('ar-options-modal');
+        document.getElementById('btn-open-ar-options')?.addEventListener('click', () => {
+            if (modal) modal.style.display = 'flex';
+        });
+        document.getElementById('btn-close-ar-options')?.addEventListener('click', () => {
+            if (modal) modal.style.display = 'none';
+        });
+        modal?.addEventListener('click', (e) => {
+            if (e.target === modal) modal.style.display = 'none';
+        });
+
+        // Grid quick toggle pill
+        document.getElementById('btn-toggle-grid-pill')?.addEventListener('click', () => {
+            this.arView.showGrid = !this.arView.showGrid;
+            const chk = document.getElementById('toggle-grid');
+            if (chk) chk.checked = this.arView.showGrid;
+            document.getElementById('btn-toggle-grid-pill')?.classList.toggle('active', this.arView.showGrid);
+        });
+
+        // Diagnostics toggle
+        document.getElementById('btn-toggle-debug')?.addEventListener('click', () => {
+            this.arView.showDebug = !this.arView.showDebug;
+        });
+        document.getElementById('ar-badge')?.addEventListener('click', () => {
+            this.arView.showDebug = !this.arView.showDebug;
+        });
+
         // Language Selector
         const langSelect = document.getElementById('language-select');
         if (langSelect) {
@@ -321,15 +363,20 @@ export class App {
         }
 
         // View Tabs (AR Camera View vs Ephemeris Cards vs 2D Celestial Dial vs Field Kit)
-        const tabBtns = document.querySelectorAll('.nav-tab-btn');
+        // Supports both desktop top nav-tabs and mobile bottom-nav-bar
+        const tabBtns = document.querySelectorAll('.nav-tab-btn, .bottom-nav-btn');
         tabBtns.forEach(btn => {
             btn.addEventListener('click', () => {
-                tabBtns.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
                 const targetId = btn.dataset.tab;
+                document.querySelectorAll('.nav-tab-btn, .bottom-nav-btn').forEach(b => {
+                    b.classList.toggle('active', b.dataset.tab === targetId);
+                });
                 document.querySelectorAll('.view-tab-content').forEach(c => c.classList.remove('active'));
-                document.getElementById(targetId)?.classList.add('active');
-                if (targetId === 'tab-dial') {
+                const target = document.getElementById(targetId);
+                if (target) target.classList.add('active');
+                if (targetId === 'tab-ar' && this.arView) {
+                    this.arView.resize();
+                } else if (targetId === 'tab-dial') {
                     this.drawSolarDial();
                 } else if (targetId === 'tab-fieldkit') {
                     this.updateFieldKitCalculations();
@@ -451,6 +498,8 @@ export class App {
 
         // Pass to AR View
         if (this.arView) {
+            const declination = getDeclination(lat, lon, this.selectedDate);
+            this.arView.setDeclination(declination);
             this.arView.sunTrajectory = this.sunTrajectory;
             this.arView.moonTrajectory = this.moonTrajectory;
         }
