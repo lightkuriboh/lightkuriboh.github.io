@@ -57,13 +57,42 @@ export class I18n {
         this.applyTranslations();
     }
 
-    applyTranslations(root = document) {
+    applyTranslations(root = (typeof document !== 'undefined' ? document : null)) {
         if (!root || !root.querySelectorAll) return;
+
+        // Text content
         const elements = root.querySelectorAll('[data-i18n]');
         elements.forEach(el => {
             const key = el.getAttribute('data-i18n');
             if (key) {
                 el.textContent = this.t(key);
+            }
+        });
+
+        // Title / Tooltip attributes
+        const titleElements = root.querySelectorAll('[data-i18n-title]');
+        titleElements.forEach(el => {
+            const key = el.getAttribute('data-i18n-title');
+            if (key) {
+                el.title = this.t(key);
+            }
+        });
+
+        // Placeholders
+        const placeholderElements = root.querySelectorAll('[data-i18n-placeholder]');
+        placeholderElements.forEach(el => {
+            const key = el.getAttribute('data-i18n-placeholder');
+            if (key) {
+                el.placeholder = this.t(key);
+            }
+        });
+
+        // Accessibility aria-label
+        const ariaElements = root.querySelectorAll('[data-i18n-aria]');
+        ariaElements.forEach(el => {
+            const key = el.getAttribute('data-i18n-aria');
+            if (key) {
+                el.setAttribute('aria-label', this.t(key));
             }
         });
     }

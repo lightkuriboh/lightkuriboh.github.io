@@ -5,6 +5,7 @@
 import { AstronomyEngine } from '../engine/astronomy.js';
 import { getDeclination } from '../engine/declination.js';
 import { ARView } from '../ar/ar_view.js';
+import { Compass3D } from '../ar/compass_3d.js';
 import { I18n } from './i18n.js';
 import { FeatureGate } from './feature_gate.js';
 import { FieldKitMath, SensorPresets } from './field_kit.js';
@@ -52,16 +53,18 @@ export class App {
 
         // Modules & Services
         this.arView = null;
+        this.compass3D = null;
         this.i18n = new I18n();
         this.featureGate = new FeatureGate();
 
-        // Dial Canvas
+        // Dial Canvas (legacy)
         this.dialCanvas = document.getElementById('solar-dial-canvas');
         this.dialCtx = this.dialCanvas ? this.dialCanvas.getContext('2d') : null;
     }
 
     async init() {
         this.arView = new ARView('ar-canvas', 'camera-video');
+        this.compass3D = new Compass3D('compass-3d-canvas', this.arView.fusion);
 
         await this.i18n.init();
         this.i18n.applyTranslations(document);
@@ -72,13 +75,40 @@ export class App {
         this.bindEvents();
         this.registerServiceWorker();
 
+        // Wire 3D Compass onStateChange callback
+        if (this.compass3D) {
+            this.compass3D.onStateChange = (state) => {
+                const btnSnap = document.getElementById('btn-compass-snap-flat');
+                const btnFollow = document.getElementById('btn-compass-follow-sensors');
+                const poseStatus = document.getElementById('compass-pose-status');
+                const poseVal = document.getElementById('compass-pose-val');
+
+                if (btnSnap) btnSnap.classList.toggle('active', state.isFlat);
+                if (btnFollow) {
+                    btnFollow.classList.toggle('active', state.followSensors);
+                    btnFollow.innerHTML = state.followSensors 
+                        ? `<span>🧭 ${this.i18n.t('followSensors')}</span>` 
+                        : `<span>✋ ${this.i18n.t('manualMode')}</span>`;
+                }
+                if (poseStatus) {
+                    poseStatus.textContent = state.isFlat ? '2D Flat' : (state.followSensors ? 'Sensor 3D' : 'Manual 3D');
+                }
+                if (poseVal) {
+                    poseVal.textContent = `${Math.round(state.heading)}° Hdg / ${Math.round(state.pitch)}° Pitch`;
+                }
+            };
+        }
+
         // Calculate and update view
         this.recalculateDailyEphemeris();
         this.updateTimeScrubber(this.currentMinuteOfDay, false);
 
-        // Start render loop for AR canvas
+        // Start render loop for AR canvas and 3D Compass
         const loop = () => {
             this.arView.render();
+            if (this.compass3D) {
+                this.compass3D.setPose(this.arView.heading, this.arView.pitch, this.arView.roll);
+            }
             requestAnimationFrame(loop);
         };
         requestAnimationFrame(loop);
@@ -285,9 +315,13 @@ export class App {
         document.getElementById('btn-filter-sun')?.addEventListener('click', () => this.setCelestialVisibility(true, false));
         document.getElementById('btn-filter-moon')?.addEventListener('click', () => this.setCelestialVisibility(false, true));
 
-        document.getElementById('chip-filter-both')?.addEventListener('click', () => this.setCelestialVisibility(true, true));
-        document.getElementById('chip-filter-sun')?.addEventListener('click', () => this.setCelestialVisibility(true, false));
-        document.getElementById('chip-filter-moon')?.addEventListener('click', () => this.setCelestialVisibility(false, true));
+        // 3D Celestial Compass Controls
+        document.getElementById('btn-compass-snap-flat')?.addEventListener('click', () => {
+            if (this.compass3D) this.compass3D.snapFlat();
+        });
+        document.getElementById('btn-compass-follow-sensors')?.addEventListener('click', () => {
+            if (this.compass3D) this.compass3D.toggleSensorFollow();
+        });
 
         // Layer toggles checkboxes
         document.getElementById('toggle-sun')?.addEventListener('change', (e) => {
@@ -359,10 +393,13 @@ export class App {
                 await this.i18n.setLocale(e.target.value);
                 this.updateFieldKitCalculations();
                 this.renderMeteorShowers();
+                this.recalculateDailyEphemeris();
+                this.updateCurrentCalculations();
+                if (this.compass3D) this.compass3D.draw();
             });
         }
 
-        // View Tabs (AR Camera View vs Ephemeris Cards vs 2D Celestial Dial vs Field Kit)
+        // View Tabs (AR Camera View vs Ephemeris Cards vs 3D Celestial Compass vs Field Kit)
         // Supports both desktop top nav-tabs and mobile bottom-nav-bar
         const tabBtns = document.querySelectorAll('.nav-tab-btn, .bottom-nav-btn');
         tabBtns.forEach(btn => {
@@ -377,6 +414,7 @@ export class App {
                 if (targetId === 'tab-ar' && this.arView) {
                     this.arView.resize();
                 } else if (targetId === 'tab-dial') {
+                    if (this.compass3D) this.compass3D.resize();
                     this.drawSolarDial();
                 } else if (targetId === 'tab-fieldkit') {
                     this.updateFieldKitCalculations();
@@ -389,6 +427,11 @@ export class App {
     setCelestialVisibility(showSun, showMoon) {
         this.arView.showSunPath = showSun;
         this.arView.showMoonPath = showMoon;
+        if (this.compass3D) {
+            this.compass3D.showSun = showSun;
+            this.compass3D.showMoon = showMoon;
+            this.compass3D.draw();
+        }
 
         // Sync Checkboxes
         const chkSun = document.getElementById('toggle-sun');
@@ -396,15 +439,10 @@ export class App {
         const chkMoon = document.getElementById('toggle-moon');
         if (chkMoon) chkMoon.checked = showMoon;
 
-        // Sync Scrubber Filter Buttons
+        // Sync Celestial Filter Buttons
         document.getElementById('btn-filter-both')?.classList.toggle('active', showSun && showMoon);
         document.getElementById('btn-filter-sun')?.classList.toggle('active', showSun && !showMoon);
         document.getElementById('btn-filter-moon')?.classList.toggle('active', !showSun && showMoon);
-
-        // Sync AR HUD Chips
-        document.getElementById('chip-filter-both')?.classList.toggle('active', showSun && showMoon);
-        document.getElementById('chip-filter-sun')?.classList.toggle('active', showSun && !showMoon);
-        document.getElementById('chip-filter-moon')?.classList.toggle('active', !showSun && showMoon);
 
         // Dim inactive HUD cards
         const readoutSun = document.querySelector('.readout-card.solar');
@@ -504,6 +542,13 @@ export class App {
             this.arView.moonTrajectory = this.moonTrajectory;
         }
 
+        if (this.compass3D) {
+            this.compass3D.setData({
+                sunTrajectory: this.sunTrajectory,
+                moonTrajectory: this.moonTrajectory
+            });
+        }
+
         // Update UI summary cards
         this.renderEphemerisCards();
         this.drawSolarDial();
@@ -565,8 +610,39 @@ export class App {
         document.getElementById('hud-moon-az')?.replaceChildren(document.createTextNode(`${Math.round(moonPos.azimuth)}°`));
         document.getElementById('hud-moon-alt')?.replaceChildren(document.createTextNode(`${Math.round(moonPos.altitude)}°`));
 
-        // Photography guidance tip
-        const tip = AstronomyEngine.getPhotographyTip(sunPos.altitude, moonPhase.illuminationFraction, moonPos.isAboveHorizon);
+        // Update 3D Compass data and status cards
+        if (this.compass3D) {
+            this.compass3D.setData({
+                sunPosition: sunPos,
+                moonPosition: moonPos,
+                sunTrajectory: this.sunTrajectory,
+                moonTrajectory: this.moonTrajectory,
+                moonPhase: moonPhase
+            });
+
+            const sunStatusEl = document.getElementById('compass-sun-status');
+            const sunValEl = document.getElementById('compass-sun-val');
+            const moonStatusEl = document.getElementById('compass-moon-status');
+            const moonValEl = document.getElementById('compass-moon-val');
+
+            if (sunStatusEl) {
+                sunStatusEl.textContent = sunPos.isAboveHorizon ? this.i18n.t('aboveHorizon') : this.i18n.t('belowHorizon');
+                sunStatusEl.className = `status-dot-pill ${sunPos.isAboveHorizon ? 'active' : 'inactive'}`;
+            }
+            if (sunValEl) {
+                sunValEl.textContent = `${Math.round(sunPos.azimuth)}° Az / ${Math.round(sunPos.altitude)}° Alt`;
+            }
+            if (moonStatusEl) {
+                moonStatusEl.textContent = moonPos.isAboveHorizon ? this.i18n.t('aboveHorizon') : this.i18n.t('belowHorizon');
+                moonStatusEl.className = `status-dot-pill ${moonPos.isAboveHorizon ? 'active' : 'inactive'}`;
+            }
+            if (moonValEl) {
+                moonValEl.textContent = `${Math.round(moonPos.azimuth)}° Az / ${Math.round(moonPos.altitude)}° Alt`;
+            }
+        }
+
+        // Photography guidance tip (localized)
+        const tip = this.getPhotographyTipI18n(sunPos.altitude, moonPhase.illuminationFraction, moonPos.isAboveHorizon);
         const tipTitle = document.getElementById('photo-tip-title');
         const tipDesc = document.getElementById('photo-tip-desc');
         if (tipTitle) tipTitle.textContent = tip.title;
@@ -581,11 +657,11 @@ export class App {
         const btn = document.getElementById('btn-timelapse');
         if (this.isPlayingTimelapse) {
             this.stopTimelapse();
-            if (btn) btn.innerHTML = `<span>▶️ Play 24h</span>`;
+            if (btn) btn.innerHTML = `<span>▶️ ${this.i18n.t('play24h')}</span>`;
         } else {
             this.isPlayingTimelapse = true;
             this.isLiveTime = false;
-            if (btn) btn.innerHTML = `<span>⏸️ Pause</span>`;
+            if (btn) btn.innerHTML = `<span>⏸️ ${this.i18n.t('pause24h')}</span>`;
             this.timelapseInterval = setInterval(() => {
                 this.currentMinuteOfDay = (this.currentMinuteOfDay + 10) % 1440;
                 this.updateTimeScrubber(this.currentMinuteOfDay, false);
@@ -599,6 +675,8 @@ export class App {
             clearInterval(this.timelapseInterval);
             this.timelapseInterval = null;
         }
+        const btn = document.getElementById('btn-timelapse');
+        if (btn) btn.innerHTML = `<span>▶️ ${this.i18n.t('play24h')}</span>`;
     }
 
     renderEphemerisCards() {
@@ -700,12 +778,67 @@ export class App {
         ctx.arc(cx, cy, r, 0, 2 * Math.PI);
         ctx.stroke();
 
-        // Textual info under moon
-        document.getElementById('moon-phase-name')?.replaceChildren(document.createTextNode(phase.name));
-        document.getElementById('moon-illum-percent')?.replaceChildren(document.createTextNode(`${phase.illuminationPercent}% Illuminated`));
-        document.getElementById('moon-age-days')?.replaceChildren(document.createTextNode(`Age: ${phase.ageDays} days`));
-        document.getElementById('moon-next-full')?.replaceChildren(document.createTextNode(`Next Full Moon in ${phase.daysToFullMoon} days`));
-        document.getElementById('moon-next-new')?.replaceChildren(document.createTextNode(`Next New Moon in ${phase.daysToNewMoon} days`));
+        // Textual info under moon (localized)
+        const phaseName = this.getMoonPhaseI18nName(phase.name);
+        const illumText = `${phase.illuminationPercent}% ${this.i18n.t('illuminated')}`;
+        const ageText = this.i18n.t('moonAgeDays', { days: phase.ageDays });
+        const nextFullText = this.i18n.t('nextFullMoon', { days: phase.daysToFullMoon });
+        const nextNewText = this.i18n.t('nextNewMoon', { days: phase.daysToNewMoon });
+
+        document.getElementById('moon-phase-name')?.replaceChildren(document.createTextNode(phaseName));
+        document.getElementById('moon-illum-percent')?.replaceChildren(document.createTextNode(illumText));
+        document.getElementById('moon-age-days')?.replaceChildren(document.createTextNode(ageText));
+        document.getElementById('moon-next-full')?.replaceChildren(document.createTextNode(nextFullText));
+        document.getElementById('moon-next-new')?.replaceChildren(document.createTextNode(nextNewText));
+    }
+
+    getPhotographyTipI18n(sunAlt, moonIllum, moonUp) {
+        if (sunAlt >= -4.0 && sunAlt <= 6.0) {
+            return {
+                title: this.i18n.t('photoTipGoldenHourTitle'),
+                desc: this.i18n.t('photoTipGoldenHourDesc')
+            };
+        } else if (sunAlt >= -6.0 && sunAlt < -4.0) {
+            return {
+                title: this.i18n.t('photoTipBlueHourTitle'),
+                desc: this.i18n.t('photoTipBlueHourDesc')
+            };
+        } else if (sunAlt > 6.0 && sunAlt < 20.0) {
+            return {
+                title: this.i18n.t('photoTipWarmSunTitle'),
+                desc: this.i18n.t('photoTipWarmSunDesc')
+            };
+        } else if (sunAlt >= 20.0) {
+            return {
+                title: this.i18n.t('photoTipHarshSunTitle'),
+                desc: this.i18n.t('photoTipHarshSunDesc')
+            };
+        } else if (moonUp && moonIllum > 0.65) {
+            return {
+                title: this.i18n.t('photoTipMoonlitTitle'),
+                desc: this.i18n.t('photoTipMoonlitDesc')
+            };
+        } else {
+            return {
+                title: this.i18n.t('photoTipDarkSkyTitle'),
+                desc: this.i18n.t('photoTipDarkSkyDesc')
+            };
+        }
+    }
+
+    getMoonPhaseI18nName(name) {
+        const map = {
+            'New Moon': 'moonPhaseNewMoon',
+            'Waxing Crescent': 'moonPhaseWaxingCrescent',
+            'First Quarter': 'moonPhaseFirstQuarter',
+            'Waxing Gibbous': 'moonPhaseWaxingGibbous',
+            'Full Moon': 'moonPhaseFullMoon',
+            'Waning Gibbous': 'moonPhaseWaningGibbous',
+            'Last Quarter': 'moonPhaseLastQuarter',
+            'Waning Crescent': 'moonPhaseWaningCrescent'
+        };
+        const key = map[name];
+        return key ? this.i18n.t(key) : name;
     }
 
     drawSolarDial() {

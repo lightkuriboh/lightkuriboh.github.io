@@ -43,6 +43,7 @@ class MockElement {
     }
     getContext() { return new MockContext(); }
     getBoundingClientRect() { return { width: 1000, height: 600 }; }
+    play() { return Promise.resolve(); }
     addEventListener(evt, fn) {
         if (!this._listeners[evt]) this._listeners[evt] = [];
         this._listeners[evt].push(fn);
@@ -51,6 +52,10 @@ class MockElement {
         if (this._listeners[evt]) {
             this._listeners[evt] = this._listeners[evt].filter(f => f !== fn);
         }
+    }
+    dispatchEvent(evt) {
+        const list = this._listeners[evt.type] || [];
+        list.forEach(fn => fn(evt));
     }
 }
 
@@ -132,9 +137,73 @@ ar.sunTrajectory = [
     { azimuth: 90, altitude: 20, hour: 9, minute: 0, isAboveHorizon: true, timeStr: '09:00' },
     { azimuth: 100, altitude: 30, hour: 10, minute: 0, isAboveHorizon: true, timeStr: '10:00' }
 ];
+ar.moonTrajectory = [
+    { azimuth: 260, altitude: 5, hour: 18, minute: 0, isAboveHorizon: true, timeStr: '18:00' },
+    { azimuth: 270, altitude: 10, hour: 19, minute: 0, isAboveHorizon: true, timeStr: '19:00' },
+    { azimuth: 280, altitude: 15, hour: 20, minute: 0, isAboveHorizon: true, timeStr: '20:00' }
+];
 
-// Must render without throwing any exceptions
+// 1. Render both sun and moon paths
+ar.showSunPath = true;
+ar.showMoonPath = true;
+ar.showDebug = true;
 ar.render();
-console.log("  ✓ Render Loop PASSED!");
+
+// 2. Render only sun
+ar.showSunPath = true;
+ar.showMoonPath = false;
+ar.render();
+
+// 3. Render only moon
+ar.showSunPath = false;
+ar.showMoonPath = true;
+ar.render();
+
+// 4. Set declination
+ar.setDeclination(3.5);
+assert.strictEqual(ar.fusion.declination, 3.5);
+
+// 5. Test resize and FOV adjustment
+ar.resize();
+ar.setFov(70);
+assert.strictEqual(ar.fovLong, 70);
+
+console.log("  ✓ Render Loop & Toggles PASSED!");
+
+// TEST 6: Desktop Drag & Wheel Controls
+console.log("[TEST 6] Desktop Controls & Interaction...");
+const canvasEl = global.document.getElementById('ar-canvas');
+canvasEl.dispatchEvent({ type: 'pointerdown', clientX: 200, clientY: 200, setPointerCapture: () => {} });
+canvasEl.dispatchEvent({ type: 'pointermove', clientX: 250, clientY: 220 });
+canvasEl.dispatchEvent({ type: 'pointerup', clientX: 250, clientY: 220 });
+canvasEl.dispatchEvent({ type: 'wheel', deltaY: 100, preventDefault: () => {} });
+console.log("  ✓ Desktop Controls PASSED!");
+
+// TEST 7: Camera Lifecycle & Orientation Permission
+console.log("[TEST 7] Camera Lifecycle & Orientation Permission...");
+try {
+    Object.defineProperty(globalThis.navigator, 'mediaDevices', {
+        value: {
+            getUserMedia: async () => ({
+                getTracks: () => [{ stop: () => {} }]
+            })
+        },
+        configurable: true,
+        writable: true
+    });
+} catch (e) {
+    // Fallback if property is non-configurable
+}
+const vidEl = global.document.getElementById('camera-video');
+vidEl.play = async () => {};
+
+await ar.startCamera();
+assert.strictEqual(ar.cameraActive, true);
+ar.stopCamera();
+assert.strictEqual(ar.cameraActive, false);
+
+// Orientation permission
+await ar.requestDeviceOrientation();
+console.log("  ✓ Camera Lifecycle PASSED!");
 
 console.log("\n>>> ALL ARVIEW INTEGRATION TESTS PASSED! <<<\n");

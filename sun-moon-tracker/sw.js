@@ -1,5 +1,5 @@
 // LandscapeHelper PWA Service Worker
-const BUILD_VERSION = 'v2.1-20261009';
+const BUILD_VERSION = 'v2.2-20261009';
 const CACHE_NAME = `landscape-helper-${BUILD_VERSION}`;
 
 const ASSETS_TO_CACHE = [
@@ -24,6 +24,7 @@ const ASSETS_TO_CACHE = [
   './js/ar/sky_sphere.js',
   './js/ar/orientation_fusion.js',
   './js/ar/ar_view.js',
+  './js/ar/compass_3d.js',
   './js/ui/i18n.js',
   './js/ui/feature_gate.js',
   './js/ui/field_kit.js',

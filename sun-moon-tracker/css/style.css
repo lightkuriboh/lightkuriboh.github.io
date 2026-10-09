@@ -200,6 +200,63 @@ body {
     gap: 10px;
 }
 
+#date-time-panel {
+    align-items: flex-start;
+}
+
+.control-label-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+
+.scrubber-readout-pill {
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--solar-gold);
+    background: rgba(15, 23, 42, 0.7);
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(255, 183, 3, 0.3);
+}
+
+.date-time-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.date-btn-group {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.time-action-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.time-slider-compact-wrap {
+    width: 100%;
+    margin-top: 2px;
+}
+
+.slider-ticks-compact {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.68rem;
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+    margin-top: 4px;
+}
+
 .control-label {
     font-size: 0.75rem;
     text-transform: uppercase;
@@ -481,7 +538,35 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
 }
 
-/* Time Scrubber Panel */
+/* Dedicated Celestial Object Selection Panel */
+.celestial-selection-panel {
+    background: var(--bg-card);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--border-glass);
+    border-radius: var(--radius-lg);
+    padding: 14px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    box-shadow: var(--shadow-glass);
+}
+
+.celestial-selector-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.object-filter-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Time Scrubber Panel (Legacy / Compatible) */
 .scrubber-panel {
     background: var(--bg-card);
     backdrop-filter: blur(20px);
@@ -700,7 +785,119 @@ input[type="range"]::-webkit-slider-thumb:hover {
     color: var(--text-muted);
 }
 
-/* 2D Celestial Dial View */
+/* 3D Celestial Compass Sphere View */
+.compass-3d-view-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    padding: 20px;
+    background: var(--bg-card);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--border-glass);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-glass);
+    width: 100%;
+    max-width: 680px;
+    margin: 0 auto;
+}
+
+.compass-3d-header {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    border-bottom: 1px solid var(--border-glass);
+    padding-bottom: 12px;
+}
+
+.compass-3d-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.compass-3d-canvas-wrap {
+    position: relative;
+    width: min(100%, 360px);
+    aspect-ratio: 1 / 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: none;
+}
+
+#compass-3d-canvas {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: radial-gradient(circle at 50% 50%, #0a1128 0%, #030712 100%);
+    box-shadow: 0 0 35px rgba(0, 0, 0, 0.7), inset 0 0 25px rgba(15, 23, 42, 0.8), 0 0 15px rgba(56, 189, 248, 0.15);
+    cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+#compass-3d-canvas:active {
+    cursor: grabbing;
+}
+
+.compass-3d-readouts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
+    width: 100%;
+}
+
+.compass-3d-readouts .readout-card {
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid var(--border-glass);
+    border-radius: var(--radius-sm);
+    padding: 8px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.compass-3d-readouts .readout-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.compass-3d-readouts .readout-title {
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.compass-3d-readouts .readout-card.solar .readout-title { color: var(--solar-gold); }
+.compass-3d-readouts .readout-card.lunar .readout-title { color: var(--lunar-cyan); }
+.compass-3d-readouts .readout-card.orientation .readout-title { color: #f43f5e; }
+
+.status-dot-pill {
+    font-size: 0.68rem;
+    padding: 1px 6px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-muted);
+}
+
+.status-dot-pill.active {
+    background: rgba(74, 222, 128, 0.2);
+    color: #4ade80;
+    font-weight: 600;
+}
+
+.compass-3d-readouts .readout-val {
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    color: var(--text-primary);
+}
+
+/* 2D Celestial Dial View (Fallback / Compatible) */
 .dial-view-container {
     display: flex;
     flex-direction: column;

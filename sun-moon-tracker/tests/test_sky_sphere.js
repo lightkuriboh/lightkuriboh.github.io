@@ -161,10 +161,82 @@ function testARViewCompatibility() {
     console.log("  ✓ ARView compatibility tests PASSED!");
 }
 
+function testMath3DUtilities() {
+    console.log("[TEST 6] Math3D Matrix, Vector & Quaternion Utilities...");
+
+    // 1. Vec3 set, copy, lerp, normalize edge cases
+    const a = Vec3.create(1, 2, 3);
+    const b = Vec3.create();
+    Vec3.set(b, 4, 5, 6);
+    assert.strictEqual(b.x, 4);
+    assert.strictEqual(b.y, 5);
+    assert.strictEqual(b.z, 6);
+
+    const c = Vec3.create();
+    Vec3.copy(c, b);
+    assert.strictEqual(c.x, 4);
+
+    const zero = Vec3.create(0, 0, 0);
+    const normZero = Vec3.create();
+    Vec3.normalize(normZero, zero);
+    assert.strictEqual(normZero.x, 0);
+
+    const lerpRes = Vec3.create();
+    Vec3.lerp(lerpRes, a, b, 0.5);
+    assert.strictEqual(lerpRes.x, 2.5);
+    assert.strictEqual(lerpRes.y, 3.5);
+    assert.strictEqual(lerpRes.z, 4.5);
+
+    // 2. Quat creation, set, copy, fromAxisAngle, slerp
+    const q1 = Quat.create();
+    assert.strictEqual(q1.w, 1);
+    Quat.set(q1, 1, 0, 0, 0);
+    assert.strictEqual(q1.x, 1);
+
+    const qCopy = Quat.create();
+    Quat.copy(qCopy, q1);
+    assert.strictEqual(qCopy.x, 1);
+
+    const qAxis = Quat.create();
+    Quat.fromAxisAngle(qAxis, { x: 0, y: 1, z: 0 }, Math.PI / 2);
+    assert.ok(Math.abs(qAxis.w - Math.cos(Math.PI / 4)) < 1e-5);
+
+    const qSlerp = Quat.create();
+    Quat.slerp(qSlerp, Quat.create(), qAxis, 0.5);
+    assert.ok(qSlerp.w > 0);
+
+    // Quat from heading, pitch, roll
+    const qHpr = Quat.create();
+    Quat.fromHeadingPitchRoll(qHpr, 45, 30, 10);
+    const qLen = Math.hypot(qHpr.x, qHpr.y, qHpr.z, qHpr.w);
+    assert.ok(Math.abs(qLen - 1.0) < 1e-4);
+
+    // 3. Mat3 identity, fromQuat, fromCameraBasis
+    const m = Mat3.create();
+    Mat3.identity(m);
+    assert.strictEqual(m[0], 1);
+    assert.strictEqual(m[4], 1);
+    assert.strictEqual(m[8], 1);
+
+    Mat3.fromQuat(m, qAxis);
+    assert.ok(m[0] !== 0);
+
+    const right = { x: 1, y: 0, z: 0 };
+    const up = { x: 0, y: 1, z: 0 };
+    const fwd = { x: 0, y: 0, z: 1 };
+    Mat3.fromCameraBasis(m, right, up, fwd);
+    assert.strictEqual(m[0], 1);
+    assert.strictEqual(m[4], 1);
+    assert.strictEqual(m[8], 1);
+
+    console.log("  ✓ Math3D Utilities tests PASSED!");
+}
+
 testSphericalENUConversion();
 testZenithStabilityAndGimbalLock();
 testFrustumClipping();
 testSkySphereCaching();
 testARViewCompatibility();
+testMath3DUtilities();
 
 console.log("\n>>> ALL STABLE SKY SPHERE UNIT TESTS PASSED FLAWLESSLY! <<<\n");

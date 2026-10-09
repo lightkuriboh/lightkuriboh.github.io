@@ -63,17 +63,39 @@
         </div>
     </header>
 
-    <!-- Top Control Bar (Date & Location) -->
+    <!-- Top Control Bar (Date & Time + Location) -->
     <section class="control-bar" id="app-control-bar" aria-label="Parameters">
-        <!-- Date Selector -->
-        <div class="control-panel">
-            <div>
-                <div class="control-label">Date Selection</div>
-                <div class="btn-icon-group">
-                    <button class="btn-pill" id="btn-prev-day" title="Previous Day">◀</button>
-                    <input type="date" id="date-picker-input" aria-label="Target Date">
-                    <button class="btn-pill" id="btn-next-day" title="Next Day">▶</button>
-                    <button class="btn-pill" id="btn-today">Today</button>
+        <!-- Date & Time Selector Panel -->
+        <div class="control-panel" id="date-time-panel">
+            <div style="flex: 1; min-width: 260px;">
+                <div class="control-label-row">
+                    <span class="control-label" data-i18n="dateTimeSelection">📅 Date & Time</span>
+                    <span class="scrubber-readout-pill">⏱️ <span id="scrubber-time-readout">12:00</span></span>
+                </div>
+                <div class="date-time-row">
+                    <div class="btn-icon-group date-btn-group">
+                        <button class="btn-pill" id="btn-prev-day" title="Previous Day">◀</button>
+                        <input type="date" id="date-picker-input" aria-label="Target Date">
+                        <button class="btn-pill" id="btn-next-day" title="Next Day">▶</button>
+                        <button class="btn-pill" id="btn-today" data-i18n="today">Today</button>
+                    </div>
+                    <div class="btn-icon-group time-action-group">
+                        <button class="btn-pill" id="btn-timelapse" title="Play / Pause 24h Timelapse">
+                            <span>▶️ <span data-i18n="play24h">Play 24h</span></span>
+                        </button>
+                        <button class="btn-pill" id="btn-reset-now" data-i18n="now">Now</button>
+                    </div>
+                </div>
+                <!-- Time Slider within Date & Time Panel -->
+                <div class="time-slider-compact-wrap">
+                    <input type="range" id="time-slider" min="0" max="1439" value="720" step="1" aria-label="Time of Day Scrubber (0h to 24h)">
+                    <div class="slider-ticks-compact">
+                        <span>00:00</span>
+                        <span>06:00 (Dawn)</span>
+                        <span>12:00 (Noon)</span>
+                        <span>18:00 (Dusk)</span>
+                        <span>24:00</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -81,16 +103,16 @@
         <!-- Location Selector -->
         <div class="control-panel">
             <div style="flex: 1;">
-                <div class="control-label">Observer Location</div>
+                <div class="control-label" data-i18n="observerLocation">Observer Location</div>
                 <div id="current-location-text" style="font-size: 0.85rem; font-weight: 600; margin-bottom: 6px;">
                     Hanoi, Vietnam (21.03°, 105.85°)
                 </div>
                 <div class="btn-icon-group">
                     <button class="btn-pill primary" id="btn-use-gps" title="Auto-detect current GPS">
-                        <span>📍</span> GPS Auto
+                        <span>📍</span> <span data-i18n="gpsAuto">GPS Auto</span>
                     </button>
                     <select id="location-preset-select" aria-label="Select City Preset"></select>
-                    <button class="btn-pill" id="btn-custom-coords" title="Custom Coordinates">⚙️</button>
+                    <button class="btn-pill" id="btn-custom-coords" title="Custom Coordinates" data-i18n-title="customCoords">⚙️</button>
                 </div>
             </div>
         </div>
@@ -110,7 +132,7 @@
                 <div class="hud-top-bar">
                     <div class="hud-badge" id="ar-badge" role="button" tabindex="0" title="Tap to toggle debug diagnostics">
                         <span class="badge-status-dot"></span>
-                        <span id="ar-badge-text">AR Active</span>
+                        <span id="ar-badge-text" data-i18n="arActive">AR Active</span>
                     </div>
 
                     <div class="hud-readouts-compact">
@@ -125,26 +147,17 @@
                     </div>
                 </div>
 
-                <!-- Floating Center Object Filter (Both / Sun Only / Moon Only) -->
-                <div class="ar-center-dock">
-                    <div class="filter-chip-group ar-segmented-picker" role="radiogroup" aria-label="Celestial Object Filter">
-                        <button type="button" class="btn-chip active" id="chip-filter-both" title="Show both Sun and Moon paths">☀️🌙 Both</button>
-                        <button type="button" class="btn-chip" id="chip-filter-sun" title="Show Sun path only">☀️ Sun</button>
-                        <button type="button" class="btn-chip" id="chip-filter-moon" title="Show Moon path only">🌙 Moon</button>
-                    </div>
-                </div>
-
                 <!-- Bottom Floating Actions & Toggles -->
                 <div class="hud-bottom-bar">
                     <div class="ar-quick-actions">
                         <button class="btn-pill primary" id="btn-toggle-camera">
-                            <span>📷 <span class="btn-text">Live Camera</span></span>
+                            <span>📷 <span class="btn-text" data-i18n="liveCamera">Live Camera</span></span>
                         </button>
                         <button class="btn-pill" id="btn-enable-sensors" style="display: none;">
-                            <span>🧭 <span class="btn-text">Enable Gyro</span></span>
+                            <span>🧭 <span class="btn-text" data-i18n="enableGyro">Enable Gyro</span></span>
                         </button>
-                        <button class="btn-pill icon-only" id="btn-toggle-grid-pill" title="Toggle Grid Overlay">📐</button>
-                        <button class="btn-pill icon-only" id="btn-open-ar-options" title="AR Calibration & Options">⚙️</button>
+                        <button class="btn-pill icon-only" id="btn-toggle-grid-pill" title="Toggle Grid Overlay" data-i18n-title="altitudeGrid">📐</button>
+                        <button class="btn-pill icon-only" id="btn-open-ar-options" title="AR Calibration & Options" data-i18n-title="arOptionsTitle">⚙️</button>
                     </div>
                 </div>
             </div>
@@ -262,18 +275,59 @@
         </div>
     </section>
 
-    <!-- MAIN VIEWPORT 3: 2D Celestial Dial View -->
+    <!-- MAIN VIEWPORT 3: 3D Celestial Compass View -->
     <section id="tab-dial" class="view-tab-content">
-        <div class="dial-view-container">
-            <h2 style="font-size: 1.1rem; font-weight: 700;">Overhead 360° Celestial Compass Dial</h2>
-            <div style="font-size: 0.85rem; color: var(--text-muted); text-align: center;">
-                Top view of the celestial dome: center is Zenith (90° overhead), outer perimeter is Horizon (0°).
+        <div class="compass-3d-view-container">
+            <div class="compass-3d-header">
+                <div>
+                    <h2 class="card-title" data-i18n="compass3dTitle">🧭 3D Celestial Compass Sphere</h2>
+                    <div class="brand-subtitle" data-i18n="compass3dSubtitle">Drag to rotate & tilt • Live orientation tracking</div>
+                </div>
+                <div class="compass-3d-actions">
+                    <button class="btn-pill" id="btn-compass-snap-flat" title="Snap to top-down 2D compass view" data-i18n="snapFlat">
+                        <span>📐 Snap Flat</span>
+                    </button>
+                    <button class="btn-pill active" id="btn-compass-follow-sensors" title="Toggle device orientation sensor follow" data-i18n="followSensors">
+                        <span>🧭 Sensors Active</span>
+                    </button>
+                </div>
             </div>
-            <canvas id="solar-dial-canvas" width="320" height="320"></canvas>
+
+            <div class="compass-3d-canvas-wrap">
+                <canvas id="compass-3d-canvas" width="360" height="360"></canvas>
+            </div>
+
+            <!-- Compass 3D Quick Status Cards -->
+            <div class="compass-3d-readouts">
+                <div class="readout-card solar">
+                    <div class="readout-header">
+                        <span class="readout-title">☀️ Sun</span>
+                        <span class="status-dot-pill active" id="compass-sun-status" data-i18n="aboveHorizon">Above</span>
+                    </div>
+                    <div class="readout-val" id="compass-sun-val">--° Az / --° Alt</div>
+                </div>
+                <div class="readout-card lunar">
+                    <div class="readout-header">
+                        <span class="readout-title">🌙 Moon</span>
+                        <span class="status-dot-pill active" id="compass-moon-status" data-i18n="aboveHorizon">Above</span>
+                    </div>
+                    <div class="readout-val" id="compass-moon-val">--° Az / --° Alt</div>
+                </div>
+                <div class="readout-card orientation">
+                    <div class="readout-header">
+                        <span class="readout-title">🧭 Pose</span>
+                        <span class="status-dot-pill active" id="compass-pose-status">3D Tilt</span>
+                    </div>
+                    <div class="readout-val" id="compass-pose-val">--° Hdg / --° Pitch</div>
+                </div>
+            </div>
+
+            <!-- Compass 3D Legend -->
             <div class="dial-legend">
-                <div class="legend-item"><div class="legend-color" style="background: var(--solar-gold);"></div> Sun Arc (Daylight)</div>
-                <div class="legend-item"><div class="legend-color" style="background: var(--lunar-cyan);"></div> Moon Arc</div>
-                <div class="legend-item"><div class="legend-color" style="background: #f43f5e;"></div> North Reference</div>
+                <div class="legend-item"><div class="legend-color" style="background: var(--solar-gold);"></div> <span data-i18n="sunArcLegend">Sun Arc & Line</span></div>
+                <div class="legend-item"><div class="legend-color" style="background: var(--lunar-cyan);"></div> <span data-i18n="moonArcLegend">Moon Arc & Line</span></div>
+                <div class="legend-item"><div class="legend-color" style="background: #f43f5e;"></div> <span data-i18n="northLegend">North (0°)</span></div>
+                <div class="legend-item"><div class="legend-color" style="background: #94a3b8;"></div> <span data-i18n="horizonLegend">Horizon (0°)</span></div>
             </div>
         </div>
     </section>
@@ -488,40 +542,14 @@
         </div>
     </section>
 
-    <!-- Interactive 24-Hour Time Scrubber -->
-    <section class="scrubber-panel" aria-label="Time Scrubber Controller">
-        <div class="scrubber-header">
-            <div class="scrubber-readout">
-                <span>⏱️</span>
-                <span id="scrubber-time-readout">12:00</span>
-            </div>
-            <div class="btn-icon-group">
-                <div class="btn-icon-group" role="group" aria-label="Celestial Body Display Filter" style="margin-right: 4px;">
-                    <button class="btn-pill active" id="btn-filter-both" title="Show both Sun and Moon trajectories">☀️🌙 Both</button>
-                    <button class="btn-pill" id="btn-filter-sun" title="Show Sun trajectory only (avoids Moon line overlap)">☀️ Sun Only</button>
-                    <button class="btn-pill" id="btn-filter-moon" title="Show Moon trajectory only (avoids Sun line overlap)">🌙 Moon Only</button>
-                </div>
-                <button class="btn-pill" id="btn-timelapse">
-                    <span>▶️ Play 24h</span>
-                </button>
-                <button class="btn-pill" id="btn-reset-now">
-                    <span>Now</span>
-                </button>
-            </div>
-        </div>
-
-        <div class="time-slider-container">
-            <input type="range" id="time-slider" min="0" max="1439" value="720" step="1" aria-label="Time of Day Scrubber (0h to 24h)">
-            <div class="slider-ticks">
-                <span>00:00</span>
-                <span>03:00</span>
-                <span>06:00 (Dawn)</span>
-                <span>09:00</span>
-                <span>12:00 (Noon)</span>
-                <span>15:00</span>
-                <span>18:00 (Dusk)</span>
-                <span>21:00</span>
-                <span>24:00</span>
+    <!-- Dedicated Celestial Object Filter & Photography Guidance Bar -->
+    <section class="celestial-selection-panel" aria-label="Celestial Object Selection">
+        <div class="celestial-selector-bar">
+            <div class="control-label" data-i18n="objectSelectionTitle">🔭 View Trajectories:</div>
+            <div class="btn-icon-group object-filter-group" role="group" aria-label="Celestial Body Display Filter">
+                <button class="btn-pill active" id="btn-filter-both" title="Show both Sun and Moon trajectories" data-i18n="filterBoth">☀️🌙 Both</button>
+                <button class="btn-pill" id="btn-filter-sun" title="Show Sun trajectory only" data-i18n="filterSun">☀️ Sun Only</button>
+                <button class="btn-pill" id="btn-filter-moon" title="Show Moon trajectory only" data-i18n="filterMoon">🌙 Moon Only</button>
             </div>
         </div>
 

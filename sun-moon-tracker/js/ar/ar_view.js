@@ -349,8 +349,7 @@ export class ARView {
             this.drawMoon(this.moonPosition, this.moonPhase);
         }
 
-        // 5. Center Reticle HUD
-        this.drawReticle();
+        // 5. Center optical reticle removed per user requirement (unobstructed sky viewport)
 
         // 6. Diagnostics HUD Overlay (when ?debug=1 or enabled)
         if (this.showDebug) {
