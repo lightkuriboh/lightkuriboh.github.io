@@ -1,6 +1,6 @@
-// LandscapeHelper PWA Service Worker
-const BUILD_VERSION = 'v2.2-20261009';
-const CACHE_NAME = `landscape-helper-${BUILD_VERSION}`;
+// Stellar Vista PWA Service Worker
+const BUILD_VERSION = 'v2.3-20261010-stellar-vista';
+const CACHE_NAME = `stellar-vista-${BUILD_VERSION}`;
 
 const ASSETS_TO_CACHE = [
   './',
