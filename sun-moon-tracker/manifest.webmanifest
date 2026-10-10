@@ -1,6 +1,6 @@
 {
-  "name": "LandscapeHelper — Sun & Moon AR Tracker",
-  "short_name": "LandscapeHelper",
+  "name": "Stellar Vista — Sun & Moon AR Tracker",
+  "short_name": "Stellar Vista",
   "description": "Track Sun & Moon rising and setting with live Augmented Reality (AR) camera view, golden hour alerts, and offline ephemeris.",
   "start_url": "./index.html",
   "display": "standalone",

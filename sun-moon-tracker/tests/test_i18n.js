@@ -28,12 +28,12 @@ function testTranslationsAndParamInterpolation() {
     console.log("[TEST 2] Translation & Parameter Interpolation...");
     const i18n = new I18n();
     i18n.strings = {
-        'app_title': 'LandscapeHelper',
+        'app_title': 'Stellar Vista',
         'greeting': 'Hello, {name}!',
         'sun_altitude': 'Sun altitude is {alt}° at {time}'
     };
 
-    assert.strictEqual(i18n.t('app_title'), 'LandscapeHelper');
+    assert.strictEqual(i18n.t('app_title'), 'Stellar Vista');
     assert.strictEqual(i18n.t('greeting', { name: 'Photographer' }), 'Hello, Photographer!');
     assert.strictEqual(i18n.t('sun_altitude', { alt: '45.2', time: '14:30' }), 'Sun altitude is 45.2° at 14:30');
     assert.strictEqual(i18n.t('missing_key'), 'missing_key'); // Falls back to key
