@@ -271,7 +271,10 @@ export class OrientationFusion {
         this.compassAvailable = true;
         this.compassAccuracy = 10.0;
 
-        this._rawAlpha = e.alpha;
+        // In Chrome on Android, e.alpha is clockwise compass heading (0° = North, 90° = East, 270° = West).
+        // quatFromW3CEuler expects counter-clockwise angle around +Z (Earth Up).
+        // To align clockwise compass heading with right-handed ENU coordinates:
+        this._rawAlpha = (360.0 - (e.alpha % 360.0) + 360.0) % 360.0;
         this._rawBeta = e.beta;
         this._rawGamma = e.gamma;
 
@@ -327,8 +330,10 @@ export class OrientationFusion {
             const instantSpeed = Math.abs(dH) / dt;
             this._angularVelocityH = this._angularVelocityH * 0.8 + instantSpeed * 0.2;
 
-            // Measured true heading: webkitCompassHeading + screen rotation + magnetic declination + user trim
-            const measCompassHeading = (e.webkitCompassHeading + this._screenAngle + this.declination + this.calibrationOffset + 3600.0) % 360.0;
+            // Measured true heading: webkitCompassHeading + screen rotation + user trim
+            // Note: On iOS, WebKit's webkitCompassHeading is ALREADY True North when location is authorized.
+            // Do NOT add this.declination here to prevent double-correcting magnetic declination!
+            const measCompassHeading = (e.webkitCompassHeading + this._screenAngle + this.calibrationOffset + 3600.0) % 360.0;
             
             // True yaw offset is the angular difference between measured heading and relative camera heading
             // Note: heading is clockwise from North, so a rotation around Z counter-clockwise needs negative sign
@@ -350,18 +355,20 @@ export class OrientationFusion {
 
                 if (pitchModerate && rollModerate && motionStable && accuracyGood) {
                     const diff = shortestAngleDeg(currentDelta, this._yawOffset);
-                    // Outlier rejection: if compass jump is huge (>25°), dampen heavily
-                    if (Math.abs(diff) < 25.0) {
-                        const effectiveTau = (now - (this._yawInitTime || now) < 2000) ? 0.8 : this._yawFilterTau;
-                        const alphaFilter = 1.0 - Math.exp(-dt / effectiveTau);
-                        this._yawOffset = (this._yawOffset + diff * alphaFilter + 360.0) % 360.0;
-                    }
+                    const effectiveTau = (now - (this._yawInitTime || now) < 2000) ? 0.8 : this._yawFilterTau;
+                    // Continuous damping: if difference is large (>25°), dampen heavily with smaller slew factor instead of dropping completely
+                    const slewFactor = (Math.abs(diff) < 25.0) ? 1.0 : (25.0 / Math.abs(diff));
+                    const alphaFilter = (1.0 - Math.exp(-dt / effectiveTau)) * slewFactor;
+                    this._yawOffset = (this._yawOffset + diff * alphaFilter + 360.0) % 360.0;
                 }
             }
         } else if (e.absolute) {
             this.activeSource = 'dev-orient-absolute';
             this.compassAvailable = true;
             this.compassAccuracy = 10.0;
+            this._rawAlpha = (360.0 - (e.alpha % 360.0) + 360.0) % 360.0;
+            this._rawBeta = e.beta;
+            this._rawGamma = e.gamma;
             this._yawOffset = this.declination + this.calibrationOffset;
             this._yawOffsetInitialized = true;
         } else {

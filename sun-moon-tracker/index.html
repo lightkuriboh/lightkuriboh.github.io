@@ -68,7 +68,7 @@
     <section class="control-bar" id="app-control-bar" aria-label="Parameters">
         <!-- Date & Time Selector Panel -->
         <div class="control-panel" id="date-time-panel">
-            <div style="flex: 1; min-width: 260px;">
+            <div class="control-panel-inner">
                 <div class="control-label-row">
                     <span class="control-label" data-i18n="dateTimeSelection">📅 Date & Time</span>
                     <span class="scrubber-readout-pill">⏱️ <span id="scrubber-time-readout">12:00</span></span>
@@ -92,9 +92,9 @@
                     <input type="range" id="time-slider" min="0" max="1439" value="720" step="1" aria-label="Time of Day Scrubber (0h to 24h)">
                     <div class="slider-ticks-compact">
                         <span>00:00</span>
-                        <span>06:00 (Dawn)</span>
-                        <span>12:00 (Noon)</span>
-                        <span>18:00 (Dusk)</span>
+                        <span>06:00<span class="tick-sub"> (Dawn)</span></span>
+                        <span>12:00<span class="tick-sub"> (Noon)</span></span>
+                        <span>18:00<span class="tick-sub"> (Dusk)</span></span>
                         <span>24:00</span>
                     </div>
                 </div>
@@ -102,13 +102,13 @@
         </div>
 
         <!-- Location Selector -->
-        <div class="control-panel">
-            <div style="flex: 1;">
+        <div class="control-panel" id="location-panel">
+            <div class="control-panel-inner">
                 <div class="control-label" data-i18n="observerLocation">Observer Location</div>
-                <div id="current-location-text" style="font-size: 0.85rem; font-weight: 600; margin-bottom: 6px;">
+                <div id="current-location-text">
                     Hanoi, Vietnam (21.03°, 105.85°)
                 </div>
-                <div class="btn-icon-group">
+                <div class="btn-icon-group location-action-group">
                     <button class="btn-pill primary" id="btn-use-gps" title="Auto-detect current GPS">
                         <span>📍</span> <span data-i18n="gpsAuto">GPS Auto</span>
                     </button>
@@ -636,6 +636,30 @@
             <div class="settings-row">
                 <span>🔧 Diagnostics Overlay</span>
                 <button class="btn-pill" id="btn-toggle-debug">Toggle ?debug=1</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Coordinates Modal Sheet -->
+<div id="custom-coords-modal" class="ar-modal-backdrop" style="display: none;">
+    <div class="ar-modal-dialog" style="max-width: 400px; border-radius: var(--radius-lg); margin: auto;">
+        <div class="modal-header">
+            <h3>📍 Custom Coordinates</h3>
+            <button class="btn-pill icon-only" id="btn-close-coords-modal" aria-label="Close Coordinates Modal">✕</button>
+        </div>
+        <div class="modal-body">
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+                <label for="input-custom-lat" style="font-size: 0.85rem; font-weight: 600; color: var(--text-secondary);">Latitude (-90° to +90°)</label>
+                <input type="number" id="input-custom-lat" step="any" min="-90" max="90" style="padding: 10px 14px; border-radius: var(--radius-sm); background: rgba(255,255,255,0.06); border: 1px solid var(--border-glass); color: #fff; font-size: 1rem; font-family: var(--font-mono);">
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+                <label for="input-custom-lon" style="font-size: 0.85rem; font-weight: 600; color: var(--text-secondary);">Longitude (-180° to +180°)</label>
+                <input type="number" id="input-custom-lon" step="any" min="-180" max="180" style="padding: 10px 14px; border-radius: var(--radius-sm); background: rgba(255,255,255,0.06); border: 1px solid var(--border-glass); color: #fff; font-size: 1rem; font-family: var(--font-mono);">
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px;">
+                <button class="btn-pill" id="btn-cancel-custom-coords">Cancel</button>
+                <button class="btn-pill primary" id="btn-save-custom-coords">Apply Coordinates</button>
             </div>
         </div>
     </div>

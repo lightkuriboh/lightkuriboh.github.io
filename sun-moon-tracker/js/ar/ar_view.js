@@ -321,8 +321,17 @@ export class ARView {
         ctx.clearRect(0, 0, this.width, this.height);
 
         // 1. Background video stream or virtual sky dome
-        if (this.cameraActive && this.video && this.video.readyState >= 2) {
-            this.drawVideoFrame();
+        if (this.cameraActive && this.video) {
+            // Auto-unpause watchdog: iOS Safari can silently pause the video element when
+            // user interactions (like alerts, prompts, modal dialogs, or switching apps) interrupt playback.
+            if (this.video.paused) {
+                this.video.play().catch(() => {});
+            }
+            if (this.video.readyState >= 2) {
+                this.drawVideoFrame();
+            } else {
+                this.drawSimulatedSky();
+            }
         } else {
             this.drawSimulatedSky();
         }

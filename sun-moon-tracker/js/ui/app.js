@@ -238,14 +238,33 @@ export class App {
         document.getElementById('btn-use-gps')?.addEventListener('click', () => this.detectGPS(true));
 
         // Custom coordinates modal
-        document.getElementById('btn-custom-coords')?.addEventListener('click', () => {
-            const latStr = prompt("Enter Latitude (-90 to +90):", this.location.lat);
-            if (latStr === null) return;
-            const lonStr = prompt("Enter Longitude (-180 to +180):", this.location.lon);
-            if (lonStr === null) return;
+        const coordsModal = document.getElementById('custom-coords-modal');
+        const latInput = document.getElementById('input-custom-lat');
+        const lonInput = document.getElementById('input-custom-lon');
+        const closeCoordsModal = () => {
+            if (coordsModal) coordsModal.style.display = 'none';
+            if (this.arView?.cameraActive && this.arView?.video?.paused) {
+                this.arView.video.play().catch(() => {});
+            }
+        };
 
-            const lat = parseFloat(latStr);
-            const lon = parseFloat(lonStr);
+        document.getElementById('btn-custom-coords')?.addEventListener('click', () => {
+            if (coordsModal && latInput && lonInput) {
+                latInput.value = this.location.lat.toFixed(4);
+                lonInput.value = this.location.lon.toFixed(4);
+                coordsModal.style.display = 'flex';
+            }
+        });
+
+        document.getElementById('btn-close-coords-modal')?.addEventListener('click', closeCoordsModal);
+        document.getElementById('btn-cancel-custom-coords')?.addEventListener('click', closeCoordsModal);
+        coordsModal?.addEventListener('click', (e) => {
+            if (e.target === coordsModal) closeCoordsModal();
+        });
+
+        document.getElementById('btn-save-custom-coords')?.addEventListener('click', () => {
+            const lat = parseFloat(latInput?.value);
+            const lon = parseFloat(lonInput?.value);
             if (!isNaN(lat) && !isNaN(lon) && lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180) {
                 this.location.name = `Custom (${lat.toFixed(3)}°, ${lon.toFixed(3)}°)`;
                 this.location.lat = lat;
@@ -253,8 +272,9 @@ export class App {
                 this.updateLocationLabel();
                 this.recalculateDailyEphemeris();
                 this.updateCurrentCalculations();
+                closeCoordsModal();
             } else {
-                alert("Invalid coordinates.");
+                alert("Please enter valid coordinates (-90 to +90 lat, -180 to +180 lon).");
             }
         });
 

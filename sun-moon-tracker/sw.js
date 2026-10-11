@@ -1,16 +1,19 @@
 // Stellar Vista PWA Service Worker
-const BUILD_VERSION = 'v2.3-20261010-stellar-vista';
+const BUILD_VERSION = 'v2.4-20261011-pwa-fix';
 const CACHE_NAME = `stellar-vista-${BUILD_VERSION}`;
 
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './manifest.webmanifest',
+  './manifest.json',
   './css/style.css',
   './feature_config.json',
   './icons/icon.svg',
   './icons/icon-192.png',
   './icons/icon-512.png',
+  './icons/apple-touch-icon.png',
+  './icons/favicon-32.png',
   './i18n/en.json',
   './i18n/ja.json',
   './i18n/vi.json',

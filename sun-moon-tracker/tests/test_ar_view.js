@@ -206,4 +206,21 @@ assert.strictEqual(ar.cameraActive, false);
 await ar.requestDeviceOrientation();
 console.log("  ✓ Camera Lifecycle PASSED!");
 
+// TEST 8: Camera Pause Watchdog (Auto-resume when paused)
+console.log("[TEST 8] Camera Auto-Unpause Watchdog...");
+const arWatchdog = new ARView('ar-canvas', 'camera-video');
+arWatchdog.cameraActive = true;
+let playCalled = false;
+arWatchdog.video = {
+    paused: true,
+    readyState: 4,
+    play: async () => { playCalled = true; },
+    videoWidth: 1920,
+    videoHeight: 1080
+};
+arWatchdog.render();
+assert.strictEqual(playCalled, true, "Watchdog should attempt video.play() when cameraActive and video is paused");
+console.log("  ✓ Camera Auto-Unpause Watchdog PASSED!");
+
 console.log("\n>>> ALL ARVIEW INTEGRATION TESTS PASSED! <<<\n");
+

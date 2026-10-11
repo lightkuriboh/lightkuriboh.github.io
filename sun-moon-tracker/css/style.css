@@ -198,9 +198,19 @@ body {
     align-items: center;
     justify-content: space-between;
     gap: 10px;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
-#date-time-panel {
+.control-panel-inner {
+    flex: 1 1 100%;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+#date-time-panel, #location-panel {
     align-items: flex-start;
 }
 
@@ -227,20 +237,36 @@ body {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     margin-bottom: 8px;
+    width: 100%;
 }
 
 .date-btn-group {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 4px;
+    flex: 1 1 auto;
+}
+
+#date-picker-input {
+    flex: 1 1 110px;
+    min-width: 0;
+    max-width: 135px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--border-glass);
+    color: var(--text-primary);
+    padding: 5px 8px;
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
 }
 
 .time-action-group {
     display: flex;
     align-items: center;
     gap: 6px;
+    flex: 0 0 auto;
 }
 
 .time-slider-compact-wrap {
@@ -266,10 +292,44 @@ body {
     margin-bottom: 4px;
 }
 
+#current-location-text {
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
 .btn-icon-group {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 6px;
+}
+
+.location-action-group {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+}
+
+#location-preset-select {
+    flex: 1 1 120px;
+    min-width: 0;
+    max-width: 100%;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--border-glass);
+    color: var(--text-primary);
+    padding: 6px 10px;
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
 }
 
 .btn-pill {
@@ -1290,6 +1350,10 @@ input[type="range"]::-webkit-slider-thumb:hover {
     }
 
     .btn-text {
+        display: none;
+    }
+
+    .tick-sub {
         display: none;
     }
 
