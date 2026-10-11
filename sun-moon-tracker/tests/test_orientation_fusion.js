@@ -18,9 +18,9 @@ console.log("  ✓ Manual Desktop Drag Mode PASSED!");
 // TEST 2: Android Absolute Orientation Mode
 console.log("[TEST 2] Android Absolute Orientation Mode...");
 const fusionAndroid = new OrientationFusion();
-// Upright device facing East (Azimuth 90° -> Alpha = 90°, Beta = 90°, Gamma = 0°)
+// Upright device facing East (Azimuth 90° -> Alpha = 270° in W3C CCW convention, Beta = 90°, Gamma = 0°)
 fusionAndroid.handleDeviceOrientation({
-    alpha: 90,
+    alpha: 270,
     beta: 90,
     gamma: 0,
     absolute: true,
@@ -65,9 +65,9 @@ const headingChange = Math.abs(fusionIOS.heading - 45);
 assert.ok(headingChange < 0.15, `Compass noise rejected: change was only ${headingChange}°`);
 
 // 3. Fast gyro rotation (user turns phone 30° clockwise to 75°)
-// Alpha changes from 0 to 30° (+30° clockwise azimuth)
+// Alpha changes from 0 to 330° (-30° in W3C counterclockwise = +30° clockwise azimuth)
 fusionIOS.handleDeviceOrientation({
-    alpha: 30,
+    alpha: 330,
     beta: 90,
     gamma: 0,
     webkitCompassHeading: 75,
@@ -120,7 +120,7 @@ console.log("[TEST 5] Android Stream Immunity (Ignore relative events when absol
 const fusionInterleave = new OrientationFusion();
 // 1. Android absolute event arrives (Heading 120°)
 fusionInterleave.handleDeviceOrientationAbsolute({
-    alpha: 120, // 120° Azimuth
+    alpha: 240, // 360 - 240 = 120° in W3C
     beta: 90,
     gamma: 0
 });
@@ -146,7 +146,7 @@ console.log("[TEST 6] iOS Pitch Sweep Stability (Freeze yaw when pitching into s
 const fusionPitch = new OrientationFusion();
 // Snap initial level orientation (Heading 90° East)
 fusionPitch.handleDeviceOrientation({
-    alpha: 90,
+    alpha: 270,
     beta: 90,
     gamma: 0,
     webkitCompassHeading: 90,
@@ -158,7 +158,7 @@ const initialYawOff = fusionPitch.getDiagnostics().yawOffset;
 // User points camera high up into sky (Beta = 145°, Pitch ~ +55° > 35° gate threshold)
 // Even if magnetometer is noisy or reports distorted heading 130° at high pitch:
 fusionPitch.handleDeviceOrientation({
-    alpha: 90,
+    alpha: 270,
     beta: 145,
     gamma: 5, // with roll
     webkitCompassHeading: 130, // distorted magnetic reading at high elevation
@@ -175,7 +175,7 @@ console.log("[TEST 7] Magnetic Declination True North Alignment...");
 const fusionDecl = new OrientationFusion();
 fusionDecl.setDeclination(15.0); // +15° East declination (e.g. Seattle)
 fusionDecl.handleDeviceOrientationAbsolute({
-    alpha: 90, // Magnetic 90° East
+    alpha: 270, // Magnetic 90° East
     beta: 90,
     gamma: 0
 });
@@ -187,9 +187,9 @@ console.log("  ✓ Magnetic Declination PASSED!");
 // TEST 8: Phone Flat on Surface (3D Compass Face-Up Parity)
 console.log("[TEST 8] Phone Flat on Surface (Compass Disc Face-Up Parity)...");
 const fusionFlat = new OrientationFusion();
-// Placed flat face up on table pointing East (Beta = 0, Gamma = 0, Alpha = 90)
+// Placed flat face up on table pointing East (Beta = 0, Gamma = 0, Alpha = 270)
 fusionFlat.handleDeviceOrientationAbsolute({
-    alpha: 90,
+    alpha: 270,
     beta: 0,
     gamma: 0
 });
@@ -207,7 +207,7 @@ console.log("  ✓ Phone Flat on Surface PASSED!");
 console.log("[TEST 9] Manual Drag and Nudge Yaw Trim...");
 const fusionTrim = new OrientationFusion();
 fusionTrim.handleDeviceOrientationAbsolute({
-    alpha: 90,
+    alpha: 270,
     beta: 90,
     gamma: 0
 });
@@ -249,6 +249,58 @@ assert.ok(csv.includes("time,src,heading,pitch,roll,yawOffset,acc"));
 fusionDiag.reset();
 assert.strictEqual(fusionDiag._yawOffsetInitialized, false);
 console.log("  ✓ Diagnostics & CSV Export PASSED!");
+
+// TEST 11: Android Generic Sensor Adaptive Velocity Estimation
+console.log("[TEST 11] Android Generic Sensor Adaptive Velocity Estimation...");
+const fusionVelocity = new OrientationFusion();
+// Initial pose at North (H=0°)
+fusionVelocity.handleOrientationSensorReading([0, 0, 0, 1]); // Identity
+fusionVelocity.update(11000);
+assert.ok(fusionVelocity._angularVelocityH < 1.0, `Initial velocity should be ~0: ${fusionVelocity._angularVelocityH}`);
+
+// Simulate fast pan to East over 200ms (90° turn -> ~450°/s)
+// East in sensor frame is -45° around Z: [0, 0, sin(-pi/4), cos(-pi/4)]
+const sin45 = Math.sin(-Math.PI / 4);
+const cos45 = Math.cos(-Math.PI / 4);
+fusionVelocity.handleOrientationSensorReading([0, 0, sin45, cos45]);
+fusionVelocity.update(11200);
+assert.ok(fusionVelocity._angularVelocityH > 15.0, `Velocity should be detected during pan! Got: ${fusionVelocity._angularVelocityH}`);
+console.log("  ✓ Android Sensor Adaptive Velocity Estimation PASSED!");
+
+// TEST 12: iOS Gyro-Compass Pan Simulation (No Divergence / Fighting)
+console.log("[TEST 12] iOS Gyro-Compass Continuous Pan Simulation...");
+const fusionPan = new OrientationFusion();
+let simTime = 12000;
+// Snap at North (H = 0°)
+fusionPan.handleDeviceOrientation({
+    alpha: 0,
+    beta: 90,
+    gamma: 0,
+    webkitCompassHeading: 0,
+    webkitCompassAccuracy: 10,
+    timeStamp: simTime
+});
+fusionPan.update(simTime);
+
+// Pan right at 20°/s for 3 seconds (60° total turn to H = 60°)
+// Truth: H(t) = 20 * dt, alpha(t) = (360 - H(t)) % 360, compass(t) = H(t)
+for (let step = 1; step <= 60; step++) {
+    simTime += 50; // 50ms per step
+    const truthH = (step * 1.0); // 1° per 50ms = 20°/s
+    const alpha = (360 - truthH) % 360;
+    fusionPan.handleDeviceOrientation({
+        alpha: alpha,
+        beta: 90,
+        gamma: 0,
+        webkitCompassHeading: truthH,
+        webkitCompassAccuracy: 10,
+        timeStamp: simTime
+    });
+    fusionPan.update(simTime);
+}
+// After 3 seconds of panning, heading should smoothly track truth ~60° with minimal lag (within 2°)
+assert.ok(Math.abs(fusionPan.heading - 60.0) < 2.5, `Panning heading diverged! Expected ~60°, got ${fusionPan.heading}`);
+console.log("  ✓ iOS Gyro-Compass Continuous Pan Simulation PASSED!");
 
 console.log("\n>>> ALL ORIENTATION FUSION TESTS PASSED! <<<\n");
 

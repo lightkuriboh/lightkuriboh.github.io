@@ -55,15 +55,16 @@ assert.ok(Math.abs(fwdNorth[0]) < 1e-6, "Facing North X ≈ 0");
 assert.ok(Math.abs(fwdNorth[1] - 1.0) < 1e-6, "Facing North Y ≈ 1");
 assert.ok(Math.abs(fwdNorth[2]) < 1e-6, "Facing North Z ≈ 0");
 
-// Android Upright Facing East (alpha=90, beta=90, gamma=0) -> Heading 90° East
-const qCamEast = quatMultiply(quatFromW3CEuler(90, 90, 0), qCamToDev);
+// Android Upright Facing East (alpha=270, beta=90, gamma=0) -> Heading 90° East
+// Per W3C spec: alpha is CCW around Earth Z, so clockwise heading H has alpha = (360 - H) % 360.
+const qCamEast = quatMultiply(quatFromW3CEuler(270, 90, 0), qCamToDev);
 const eulerEast = quatGetHeadingPitchRoll(qCamEast);
 assert.ok(Math.abs(eulerEast.heading - 90.0) < 1e-4, `East heading: expected 90, got ${eulerEast.heading}`);
 assert.ok(Math.abs(eulerEast.deviceTilt - 90.0) < 1e-4, `East deviceTilt: expected 90, got ${eulerEast.deviceTilt}`);
 assert.ok(Math.abs(eulerEast.compassHeading - 90.0) < 1e-4, `East compassHeading: expected 90, got ${eulerEast.compassHeading}`);
 
-// Android Upright Facing West (alpha=270, beta=90, gamma=0) -> Heading 270° West
-const qCamWest = quatMultiply(quatFromW3CEuler(270, 90, 0), qCamToDev);
+// Android Upright Facing West (alpha=90, beta=90, gamma=0) -> Heading 270° West
+const qCamWest = quatMultiply(quatFromW3CEuler(90, 90, 0), qCamToDev);
 const eulerWest = quatGetHeadingPitchRoll(qCamWest);
 assert.ok(Math.abs(eulerWest.heading - 270.0) < 1e-4, `West heading: expected 270, got ${eulerWest.heading}`);
 assert.ok(Math.abs(eulerWest.compassHeading - 270.0) < 1e-4, `West compassHeading: expected 270, got ${eulerWest.compassHeading}`);
@@ -71,8 +72,8 @@ assert.ok(Math.abs(eulerWest.compassHeading - 270.0) < 1e-4, `West compassHeadin
 // Device Flat on Table Face Up (beta=0, gamma=0):
 // Camera optical axis points down into table (pitch = -90°).
 // deviceTilt MUST be 0° (lying flat face up, NOT standing on edge!).
-// compassHeading is determined by top of phone (up vector).
-const qCamFlatEast = quatMultiply(quatFromW3CEuler(90, 0, 0), qCamToDev);
+// compassHeading is determined by top of phone (pointing East -> alpha = 270°).
+const qCamFlatEast = quatMultiply(quatFromW3CEuler(270, 0, 0), qCamToDev);
 const eulerFlatEast = quatGetHeadingPitchRoll(qCamFlatEast);
 assert.ok(Math.abs(eulerFlatEast.deviceTilt - 0.0) < 1e-4, `Flat on table deviceTilt: expected 0°, got ${eulerFlatEast.deviceTilt}`);
 assert.ok(Math.abs(eulerFlatEast.compassHeading - 90.0) < 1e-4, `Flat on table compassHeading: expected 90°, got ${eulerFlatEast.compassHeading}`);

@@ -6,8 +6,8 @@
  * coordinate projections.
  */
 
-const DEG2RAD = Math.PI / 180.0;
-const RAD2DEG = 180.0 / Math.PI;
+export const DEG2RAD = Math.PI / 180.0;
+export const RAD2DEG = 180.0 / Math.PI;
 
 /**
  * Returns an identity quaternion [0, 0, 0, 1].
@@ -147,10 +147,9 @@ export function quatSlerp(qa, qb, t) {
  */
 export function quatFromW3CEuler(alphaDeg = 0, betaDeg = 0, gammaDeg = 0) {
     // In Earth East-North-Up (ENU), +Z points Up.
-    // Compass azimuth heading increases clockwise (North -> East -> South -> West).
-    // In right-handed coordinates, clockwise rotation around +Z (Up) is negative.
-    // Therefore, alpha must be negated to align clockwise compass azimuth with ENU world frame.
-    const a = - (alphaDeg || 0) * DEG2RAD * 0.5;
+    // W3C DeviceOrientation specifies alpha as a counter-clockwise rotation around +Z (Earth Up).
+    // In standard right-handed coordinates, counter-clockwise rotation around +Z is positive.
+    const a = (alphaDeg || 0) * DEG2RAD * 0.5;
     const b = (betaDeg || 0) * DEG2RAD * 0.5;
     const g = (gammaDeg || 0) * DEG2RAD * 0.5;
 

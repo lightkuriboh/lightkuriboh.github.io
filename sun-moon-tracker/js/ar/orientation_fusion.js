@@ -61,6 +61,8 @@ export class OrientationFusion {
         this._currentQuat = quatFromHeadingPitch(180, 10);
         this._invCurrentQuat = quatInverse(this._currentQuat);
         this._initializedFirstQuat = false;
+        this._prevTargetQuat = null;
+        this._lastTargetQuatTime = 0;
 
         // Adaptive smoothing parameters
         this._smoothTauMin = 0.030; // 30ms during fast intentional motion
@@ -194,6 +196,10 @@ export class OrientationFusion {
         }
     }
 
+    handleOrientationSensorReading(sensorQuat) {
+        this._onGenericSensorReading(sensorQuat);
+    }
+
     _onGenericSensorReading(sensorQuat) {
         if (!sensorQuat || sensorQuat.length < 4) return;
         this._recordEventHz();
@@ -217,6 +223,7 @@ export class OrientationFusion {
         }
 
         this._targetQuat = quatNormalize(qTarget);
+        this._updateAngularSpeed();
     }
 
     attachListeners() {
@@ -373,6 +380,7 @@ export class OrientationFusion {
             // Desktop manual pose
             this.activeSource = 'manual';
             this._targetQuat = quatFromHeadingPitch(this.manualHeading, this.manualPitch);
+            this._updateAngularSpeed();
             return;
         }
 
@@ -390,6 +398,25 @@ export class OrientationFusion {
         // D. Transform from screen/device frame to camera frame (180° around X axis)
         const qCamToDev = [1, 0, 0, 0];
         this._targetQuat = quatNormalize(quatMultiply(qScreenDev, qCamToDev));
+        this._updateAngularSpeed();
+    }
+
+    _updateAngularSpeed(timestamp) {
+        const now = (typeof timestamp === 'number') ? timestamp : ((typeof performance !== 'undefined') ? performance.now() : Date.now());
+        if (this._prevTargetQuat && this._lastTargetQuatTime > 0) {
+            const dt = Math.max(0.001, (now - this._lastTargetQuatTime) / 1000.0);
+            const dot = Math.abs(
+                this._prevTargetQuat[0] * this._targetQuat[0] +
+                this._prevTargetQuat[1] * this._targetQuat[1] +
+                this._prevTargetQuat[2] * this._targetQuat[2] +
+                this._prevTargetQuat[3] * this._targetQuat[3]
+            );
+            const angleDeg = 2.0 * Math.acos(Math.min(1.0, dot)) * 180.0 / Math.PI;
+            const instantSpeed = angleDeg / dt;
+            this._angularVelocityH = this._angularVelocityH * 0.7 + instantSpeed * 0.3;
+        }
+        this._prevTargetQuat = [...this._targetQuat];
+        this._lastTargetQuatTime = now;
     }
 
     /**
@@ -512,6 +539,9 @@ export class OrientationFusion {
         this._yawOffsetInitialized = false;
         this._yawInitCount = 0;
         this._initializedFirstQuat = false;
+        this._prevTargetQuat = null;
+        this._lastTargetQuatTime = 0;
+        this._angularVelocityH = 0.0;
         this._lastUpdateTime = (typeof performance !== 'undefined') ? performance.now() : Date.now();
     }
 }

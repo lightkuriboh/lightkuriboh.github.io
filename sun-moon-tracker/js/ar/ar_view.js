@@ -398,11 +398,14 @@ export class ARView {
             if (!isZero) ctx.setLineDash([4, 6]);
             else ctx.setLineDash([]);
 
-            // Sample altitude circle across visible azimuth span in 3D
+            // Sample altitude circle across visible azimuth span in 3D anchored to fixed world grid
             const span = 85.0;
+            const step = 3.5;
+            const startAz = Math.floor((this.heading - span) / step) * step;
+            const endAz = Math.ceil((this.heading + span) / step) * step;
             let firstPt = true;
-            for (let d = -span; d <= span; d += 3.5) {
-                const az = (this.heading + d + 3600.0) % 360.0;
+            for (let a = startAz; a <= endAz; a += step) {
+                const az = ((a % 360.0) + 360.0) % 360.0;
                 const pt = this.projectToScreen(az, p);
                 if (pt.visible) {
                     if (firstPt) {
