@@ -115,6 +115,32 @@ export class App {
                     : this.arView.heading;
                 this.compass3D.setPose(ch, tilt, this.arView.roll);
             }
+
+            // Live compass accuracy check
+            const accInfo = this.arView.getCompassAccuracyInfo();
+            const accBadge = document.getElementById('ar-accuracy-badge');
+            if (accBadge) {
+                if (accInfo.level === 'unreliable' || accInfo.level === 'low') {
+                    accBadge.style.display = 'inline-flex';
+                } else {
+                    accBadge.style.display = 'none';
+                }
+            }
+
+            const calibModal = document.getElementById('calib-guidance-modal');
+            if (calibModal && calibModal.style.display !== 'none') {
+                const dot = document.getElementById('calib-modal-status-dot');
+                const text = document.getElementById('calib-modal-status-text');
+                if (dot) {
+                    dot.style.background = accInfo.color;
+                    dot.style.boxShadow = `0 0 8px ${accInfo.color}`;
+                }
+                if (text) {
+                    text.textContent = `Sensor Status: ${accInfo.label}`;
+                    text.style.color = accInfo.color;
+                }
+            }
+
             requestAnimationFrame(loop);
         };
         requestAnimationFrame(loop);
@@ -366,7 +392,7 @@ export class App {
             calibSlider.addEventListener('input', (e) => {
                 const val = parseFloat(e.target.value);
                 this.arView.calibrationOffset = val;
-                document.getElementById('calib-value').textContent = `${val > 0 ? '+' : ''}${val}°`;
+                this.updateTrimUI();
             });
         }
 
@@ -425,11 +451,90 @@ export class App {
             });
         }
 
+        // Heading Trim & Alignment Event Listeners
+        const trimPanel = document.getElementById('ar-trim-panel');
+        document.getElementById('btn-toggle-trim-panel')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (trimPanel) {
+                trimPanel.style.display = (trimPanel.style.display === 'none' || !trimPanel.style.display) ? 'flex' : 'none';
+            }
+        });
+
+        // Close trim panel on outside click
+        document.addEventListener('click', (e) => {
+            const widget = document.getElementById('ar-trim-widget');
+            if (widget && trimPanel && !widget.contains(e.target)) {
+                trimPanel.style.display = 'none';
+            }
+        });
+
+        // 1-Tap Align to Sun handlers
+        const alignSunHandler = () => {
+            if (this.arView.sunPosition) {
+                const sunAz = this.arView.sunPosition.azimuth;
+                this.arView.alignToAzimuth(sunAz);
+                this.updateTrimUI();
+                this.showToast(`🎯 Aligned heading to Sun (${Math.round(sunAz)}°)`);
+            } else {
+                this.showToast("⚠ Sun position not yet computed");
+            }
+        };
+
+        document.getElementById('btn-ar-align-sun')?.addEventListener('click', alignSunHandler);
+        document.getElementById('btn-options-align-sun')?.addEventListener('click', alignSunHandler);
+        document.getElementById('btn-compass-align-sun')?.addEventListener('click', alignSunHandler);
+        document.getElementById('btn-calib-modal-align-sun')?.addEventListener('click', alignSunHandler);
+
+        // Nudge Buttons
+        document.querySelectorAll('.btn-nudge[data-nudge]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const delta = parseFloat(btn.dataset.nudge);
+                this.arView.nudgeCalibration(delta);
+                this.updateTrimUI();
+            });
+        });
+
+        // Reset Trim Buttons
+        const resetTrimHandler = () => {
+            this.arView.resetCalibration();
+            this.updateTrimUI();
+            this.showToast("Reset heading trim to 0°");
+        };
+        document.getElementById('btn-ar-trim-reset')?.addEventListener('click', resetTrimHandler);
+        document.getElementById('btn-options-reset-trim')?.addEventListener('click', resetTrimHandler);
+
+        // Figure-8 Calibration Modal Handlers
+        const calibModal = document.getElementById('calib-guidance-modal');
+        const openCalibModal = () => {
+            if (calibModal) calibModal.style.display = 'flex';
+            this.updateTrimUI();
+        };
+        const closeCalibModal = () => {
+            if (calibModal) calibModal.style.display = 'none';
+        };
+
+        document.getElementById('ar-accuracy-badge')?.addEventListener('click', openCalibModal);
+        document.getElementById('btn-open-calib-guide')?.addEventListener('click', openCalibModal);
+        document.getElementById('btn-options-open-calib')?.addEventListener('click', () => {
+            const optModal = document.getElementById('ar-options-modal');
+            if (optModal) optModal.style.display = 'none';
+            openCalibModal();
+        });
+        document.getElementById('btn-compass-calib')?.addEventListener('click', openCalibModal);
+        document.getElementById('btn-close-calib-modal')?.addEventListener('click', closeCalibModal);
+        document.getElementById('btn-done-calib-modal')?.addEventListener('click', closeCalibModal);
+        calibModal?.addEventListener('click', (e) => {
+            if (e.target === calibModal) closeCalibModal();
+        });
+
+        // Initial Trim UI sync
+        this.updateTrimUI();
+
         // View Tabs (AR Camera View vs Ephemeris Cards vs 3D Celestial Compass vs Field Kit)
         // Supports both desktop top nav-tabs and mobile bottom-nav-bar
         const tabBtns = document.querySelectorAll('.nav-tab-btn, .bottom-nav-btn');
         tabBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
+            btn.addEventListener('click', async () => {
                 const targetId = btn.dataset.tab;
                 document.querySelectorAll('.nav-tab-btn, .bottom-nav-btn').forEach(b => {
                     b.classList.toggle('active', b.dataset.tab === targetId);
@@ -437,9 +542,44 @@ export class App {
                 document.querySelectorAll('.view-tab-content').forEach(c => c.classList.remove('active'));
                 const target = document.getElementById(targetId);
                 if (target) target.classList.add('active');
-                if (targetId === 'tab-ar' && this.arView) {
-                    this.arView.resize();
-                } else if (targetId === 'tab-dial') {
+
+                // Camera Lifecycle Management:
+                // Stop live camera stream when navigating away from AR View to prevent
+                // camera OIS voice-coil electromagnets from interfering with phone magnetometer!
+                if (targetId !== 'tab-ar') {
+                    if (this.arView.cameraActive) {
+                        this._cameraPausedForTab = true;
+                        this.arView.stopCamera();
+                        const btnCam = document.getElementById('btn-toggle-camera');
+                        if (btnCam) {
+                            btnCam.innerHTML = `<span>📷 Enable Live AR Camera</span>`;
+                            btnCam.classList.remove('active');
+                        }
+                        document.getElementById('ar-badge')?.classList.remove('badge-live');
+                    }
+                } else {
+                    if (this._cameraPausedForTab) {
+                        this._cameraPausedForTab = false;
+                        const btnCam = document.getElementById('btn-toggle-camera');
+                        if (btnCam) {
+                            btnCam.innerHTML = `<span>⏳ Starting Camera...</span>`;
+                            try {
+                                await this.arView.startCamera();
+                                btnCam.innerHTML = `<span>⏹️ Stop Camera (360° Mode)</span>`;
+                                btnCam.classList.add('active');
+                                document.getElementById('ar-badge')?.classList.add('badge-live');
+                            } catch (e) {
+                                btnCam.innerHTML = `<span>📷 Enable Live AR Camera</span>`;
+                                btnCam.classList.remove('active');
+                            }
+                        }
+                    }
+                    if (this.arView) {
+                        this.arView.resize();
+                    }
+                }
+
+                if (targetId === 'tab-dial') {
                     if (this.compass3D) this.compass3D.resize();
                     this.drawSolarDial();
                 } else if (targetId === 'tab-fieldkit') {
@@ -447,6 +587,43 @@ export class App {
                     this.renderMeteorShowers();
                 }
             });
+        });
+
+        // Background Visibility Lifecycle:
+        // Pause camera when switching to another browser tab or minimizing browser
+        document.addEventListener('visibilitychange', async () => {
+            if (document.hidden) {
+                if (this.arView.cameraActive) {
+                    this._cameraPausedForBackground = true;
+                    this.arView.stopCamera();
+                    const btnCam = document.getElementById('btn-toggle-camera');
+                    if (btnCam) {
+                        btnCam.innerHTML = `<span>📷 Enable Live AR Camera</span>`;
+                        btnCam.classList.remove('active');
+                    }
+                    document.getElementById('ar-badge')?.classList.remove('badge-live');
+                }
+            } else {
+                if (this._cameraPausedForBackground) {
+                    this._cameraPausedForBackground = false;
+                    const arTab = document.getElementById('tab-ar');
+                    if (arTab && arTab.classList.contains('active')) {
+                        const btnCam = document.getElementById('btn-toggle-camera');
+                        if (btnCam) {
+                            btnCam.innerHTML = `<span>⏳ Starting Camera...</span>`;
+                            try {
+                                await this.arView.startCamera();
+                                btnCam.innerHTML = `<span>⏹️ Stop Camera (360° Mode)</span>`;
+                                btnCam.classList.add('active');
+                                document.getElementById('ar-badge')?.classList.add('badge-live');
+                            } catch (e) {
+                                btnCam.innerHTML = `<span>📷 Enable Live AR Camera</span>`;
+                                btnCam.classList.remove('active');
+                            }
+                        }
+                    }
+                }
+            }
         });
     }
 
@@ -677,6 +854,9 @@ export class App {
         // Render Moon Phase visualizer on Card
         this.renderMoonCanvas(moonPhase);
         this.drawSolarDial();
+
+        // Sync trim UI with live Sun azimuth
+        this.updateTrimUI();
     }
 
     toggleTimelapse() {
@@ -1155,6 +1335,67 @@ export class App {
             `;
             container.appendChild(card);
         });
+    }
+
+    updateTrimUI() {
+        if (!this.arView) return;
+        const rawOffset = this.arView.calibrationOffset || 0;
+        // Normalized offset between -180 and +180 for user-friendly display
+        const dispOffset = Math.round(((rawOffset + 180) % 360 + 360) % 360 - 180);
+        const sign = dispOffset > 0 ? '+' : '';
+        const offsetStr = `${sign}${dispOffset}°`;
+
+        const trimText = document.getElementById('ar-trim-text');
+        if (trimText) trimText.textContent = `🎯 Trim: ${offsetStr}`;
+
+        const calibVal = document.getElementById('calib-value');
+        if (calibVal) calibVal.textContent = offsetStr;
+
+        const calibSlider = document.getElementById('compass-calib-slider');
+        if (calibSlider && Math.abs(parseFloat(calibSlider.value) - dispOffset) > 0.5) {
+            calibSlider.value = dispOffset;
+        }
+
+        const sunAz = this.arView.sunPosition ? Math.round(this.arView.sunPosition.azimuth) : '--';
+        const btnSunAz = document.getElementById('btn-align-sun-az');
+        if (btnSunAz) btnSunAz.textContent = `${sunAz}°`;
+
+        const calibModalSunAz = document.getElementById('calib-modal-sun-az');
+        if (calibModalSunAz) calibModalSunAz.textContent = `${sunAz}°`;
+    }
+
+    showToast(msg) {
+        let toast = document.getElementById('app-toast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'app-toast';
+            toast.style.position = 'fixed';
+            toast.style.bottom = '84px';
+            toast.style.left = '50%';
+            toast.style.transform = 'translateX(-50%)';
+            toast.style.background = 'rgba(15, 23, 42, 0.95)';
+            toast.style.backdropFilter = 'blur(16px)';
+            toast.style.webkitBackdropFilter = 'blur(16px)';
+            toast.style.border = '1px solid rgba(56, 189, 248, 0.5)';
+            toast.style.color = '#ffffff';
+            toast.style.padding = '8px 18px';
+            toast.style.borderRadius = '9999px';
+            toast.style.fontSize = '0.85rem';
+            toast.style.fontWeight = '600';
+            toast.style.zIndex = '9999';
+            toast.style.boxShadow = '0 8px 32px rgba(0,0,0,0.6)';
+            toast.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+            toast.style.pointerEvents = 'none';
+            document.body.appendChild(toast);
+        }
+        toast.textContent = msg;
+        toast.style.opacity = '1';
+        toast.style.transform = 'translateX(-50%) translateY(0)';
+        if (this._toastTimer) clearTimeout(this._toastTimer);
+        this._toastTimer = setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(-50%) translateY(10px)';
+        }, 2500);
     }
 
     registerServiceWorker() {

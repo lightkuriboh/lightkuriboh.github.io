@@ -97,7 +97,23 @@ export class ARView {
     get compassUnavailable() { return !this.fusion.compassAvailable; }
 
     get calibrationOffset() { return this.fusion.calibrationOffset; }
-    set calibrationOffset(val) { this.fusion.calibrationOffset = val; }
+    set calibrationOffset(val) { this.fusion.setCalibrationOffset(val); }
+
+    alignToAzimuth(targetAzimuthDeg) {
+        this.fusion.alignToAzimuth(targetAzimuthDeg);
+    }
+
+    nudgeCalibration(deltaDeg) {
+        this.fusion.nudgeYaw(deltaDeg);
+    }
+
+    resetCalibration() {
+        this.fusion.resetCalibration();
+    }
+
+    getCompassAccuracyInfo() {
+        return this.fusion.getCompassAccuracyInfo();
+    }
 
     get showSun() { return this.showSunPath; }
     set showSun(val) { this.showSunPath = val; }

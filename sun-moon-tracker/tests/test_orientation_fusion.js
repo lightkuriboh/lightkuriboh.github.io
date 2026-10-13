@@ -341,6 +341,69 @@ fusionIOSDecl.update(25000);
 assert.ok(Math.abs(fusionIOSDecl.heading - 90.0) < 0.5, `iOS webkitCompassHeading is True North, must not add declination! Expected 90°, got ${fusionIOSDecl.heading}`);
 console.log("  ✓ iOS webkitCompassHeading Declination Isolation PASSED!");
 
+// TEST 15: alignToAzimuth, setCalibrationOffset, and resetCalibration
+console.log("[TEST 15] alignToAzimuth & Calibration Reset...");
+const fusionAlign = new OrientationFusion();
+fusionAlign.handleDeviceOrientationAbsolute({
+    alpha: 270, // heading = 90° East
+    beta: 90,
+    gamma: 0
+});
+fusionAlign.update(30000);
+assert.ok(Math.abs(fusionAlign.heading - 90.0) < 0.2);
+
+// User points camera at Sun (known azimuth 135° SE) and taps "Align to Sun"
+fusionAlign.alignToAzimuth(135.0);
+for (let t = 30050; t <= 30500; t += 50) fusionAlign.update(t);
+assert.ok(Math.abs(fusionAlign.heading - 135.0) < 0.5, `Expected aligned heading 135°, got ${fusionAlign.heading}`);
+assert.ok(Math.abs(fusionAlign.calibrationOffset - 45.0) < 0.5, `Expected calibOffset 45°, got ${fusionAlign.calibrationOffset}`);
+
+// Reset calibration back to 0°
+fusionAlign.resetCalibration();
+for (let t = 30550; t <= 31000; t += 50) fusionAlign.update(t);
+assert.ok(Math.abs(fusionAlign.heading - 90.0) < 0.5, `Expected heading back to 90°, got ${fusionAlign.heading}`);
+assert.strictEqual(fusionAlign.calibrationOffset, 0.0);
+console.log("  ✓ alignToAzimuth & Calibration Reset PASSED!");
+
+// TEST 16: Compass Accuracy Categorization
+console.log("[TEST 16] Compass Accuracy Categorization...");
+const fusionAcc = new OrientationFusion();
+assert.strictEqual(fusionAcc.getCompassAccuracyInfo().level, 'unreliable'); // no compass yet
+
+fusionAcc.compassAvailable = true;
+fusionAcc.compassAccuracy = 10;
+assert.strictEqual(fusionAcc.getCompassAccuracyInfo().level, 'high');
+
+fusionAcc.compassAccuracy = 22;
+assert.strictEqual(fusionAcc.getCompassAccuracyInfo().level, 'medium');
+
+fusionAcc.compassAccuracy = 30;
+assert.strictEqual(fusionAcc.getCompassAccuracyInfo().level, 'low');
+
+fusionAcc.compassAccuracy = 45;
+assert.strictEqual(fusionAcc.getCompassAccuracyInfo().level, 'unreliable');
+console.log("  ✓ Compass Accuracy Categorization PASSED!");
+
+// TEST 17: Flat Surface Compass Stability (Gimbal Lock & Roll Free)
+console.log("[TEST 17] Flat Surface Compass Stability & Zero Roll Singularity...");
+const fusionFlatStability = new OrientationFusion();
+// On iOS flat on table, rotating from North to East (0° -> 90°)
+for (let deg = 0; deg <= 90; deg += 30) {
+    const a = (360 - deg) % 360;
+    fusionFlatStability.handleDeviceOrientation({
+        alpha: a,
+        beta: 0.1, // slight table wobble
+        gamma: -0.1,
+        webkitCompassHeading: deg,
+        webkitCompassAccuracy: 10
+    });
+    for (let t = 0; t < 200; t += 50) fusionFlatStability.update(40000 + deg * 10 + t);
+    assert.ok(Math.abs(fusionFlatStability.compassHeading - deg) < 1.0, `Expected compassHeading ~${deg}°, got ${fusionFlatStability.compassHeading}`);
+    assert.ok(Math.abs(fusionFlatStability.roll) < 0.1, `Expected roll ≈ 0° when flat, got ${fusionFlatStability.roll}`);
+    assert.ok(Math.abs(fusionFlatStability.deviceTilt) < 2.0, `Expected deviceTilt ≈ 0°, got ${fusionFlatStability.deviceTilt}`);
+}
+console.log("  ✓ Flat Surface Compass Stability & Zero Roll Singularity PASSED!");
+
 console.log("\n>>> ALL ORIENTATION FUSION TESTS PASSED! <<<\n");
 
 

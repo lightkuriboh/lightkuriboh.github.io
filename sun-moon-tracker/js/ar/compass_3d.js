@@ -131,7 +131,11 @@ export class Compass3D {
                 const absTilt = Math.max(0.0, Math.min(85.0, Math.abs(tilt)));
                 this.pitch = absTilt;
             }
-            if (roll !== undefined) this.roll = roll;
+            // When flat on a table (pitch < 5°), lateral roll must be 0 to prevent spinning the 2D compass
+            if (roll !== undefined) {
+                const rollAtten = (this.pitch < 5.0) ? 0.0 : ((this.pitch < 20.0) ? (this.pitch - 5.0) / 15.0 : 1.0);
+                this.roll = roll * rollAtten;
+            }
             this.draw();
             this.dispatchStateChange();
         }

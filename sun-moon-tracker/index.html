@@ -131,19 +131,50 @@
             <div class="ar-hud-overlay">
                 <!-- Top HUD Info -->
                 <div class="hud-top-bar">
-                    <div class="hud-badge" id="ar-badge" role="button" tabindex="0" title="Tap to toggle debug diagnostics">
-                        <span class="badge-status-dot"></span>
-                        <span id="ar-badge-text" data-i18n="arActive">AR Active</span>
+                    <div class="hud-top-left">
+                        <div class="hud-badge" id="ar-badge" role="button" tabindex="0" title="Tap to toggle debug diagnostics">
+                            <span class="badge-status-dot"></span>
+                            <span id="ar-badge-text" data-i18n="arActive">AR Active</span>
+                        </div>
+                        <div class="hud-badge calib-warning-badge" id="ar-accuracy-badge" role="button" tabindex="0" title="Compass calibration needed. Tap for Figure-8 guide" style="display: none;">
+                            <span class="badge-status-dot warning"></span>
+                            <span>⚠ Calibrate (∞)</span>
+                        </div>
                     </div>
 
-                    <div class="hud-readouts-compact">
-                        <div class="readout-card solar compact-readout">
-                            <span class="readout-label">☀️</span>
-                            <span class="readout-value"><span id="hud-sun-az">--°</span> / <span id="hud-sun-alt">--°</span></span>
+                    <div class="hud-top-right">
+                        <div class="hud-readouts-compact">
+                            <div class="readout-card solar compact-readout">
+                                <span class="readout-label">☀️</span>
+                                <span class="readout-value"><span id="hud-sun-az">--°</span> / <span id="hud-sun-alt">--°</span></span>
+                            </div>
+                            <div class="readout-card lunar compact-readout">
+                                <span class="readout-label">🌙</span>
+                                <span class="readout-value"><span id="hud-moon-az">--°</span> / <span id="hud-moon-alt">--°</span></span>
+                            </div>
                         </div>
-                        <div class="readout-card lunar compact-readout">
-                            <span class="readout-label">🌙</span>
-                            <span class="readout-value"><span id="hud-moon-az">--°</span> / <span id="hud-moon-alt">--°</span></span>
+
+                        <!-- Heading Trim & Calibration Quick Widget -->
+                        <div class="ar-trim-widget" id="ar-trim-widget">
+                            <div class="trim-badge-group">
+                                <button class="hud-badge trim-badge" id="btn-toggle-trim-panel" title="Click to adjust heading trim or align to Sun">
+                                    <span id="ar-trim-text">🎯 Trim: 0°</span>
+                                </button>
+                                <button class="btn-icon-circle" id="btn-open-calib-guide" title="Figure-8 Compass Calibration Guide">?</button>
+                            </div>
+                            <!-- Expandable Quick Trim Panel -->
+                            <div class="ar-trim-panel" id="ar-trim-panel" style="display: none;">
+                                <button class="btn-trim-sun" id="btn-ar-align-sun" title="Align camera heading to known Sun azimuth">
+                                    ☀️ Align to Sun (<span id="btn-align-sun-az">--°</span>)
+                                </button>
+                                <div class="trim-nudge-group">
+                                    <button class="btn-nudge" data-nudge="-5">-5°</button>
+                                    <button class="btn-nudge" data-nudge="-1">-1°</button>
+                                    <button class="btn-nudge" data-nudge="1">+1°</button>
+                                    <button class="btn-nudge" data-nudge="5">+5°</button>
+                                    <button class="btn-nudge reset" id="btn-ar-trim-reset" title="Reset trim to 0°">0°</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -290,6 +321,12 @@
                     </button>
                     <button class="btn-pill active" id="btn-compass-follow-sensors" title="Toggle device orientation sensor follow" data-i18n="followSensors">
                         <span>🧭 Sensors Active</span>
+                    </button>
+                    <button class="btn-pill" id="btn-compass-align-sun" title="Align heading to Sun position">
+                        <span>🎯 Align to Sun</span>
+                    </button>
+                    <button class="btn-pill" id="btn-compass-calib" title="Compass sensor calibration guide">
+                        <span>∞ Calibrate</span>
                     </button>
                 </div>
             </div>
@@ -621,7 +658,19 @@
                 <div class="slider-group">
                     <input type="range" id="compass-calib-slider" min="-30" max="30" value="0">
                     <span id="calib-value" class="mono-badge">0°</span>
+                    <button class="btn-pill tiny" id="btn-options-reset-trim" title="Reset offset to 0°">0°</button>
                 </div>
+            </div>
+            <div class="settings-row">
+                <span>🎯 Quick Sun Alignment</span>
+                <button class="btn-pill" id="btn-options-align-sun">Align to Sun</button>
+            </div>
+            <div class="settings-row">
+                <div class="setting-desc">
+                    <span>∞ Sensor Calibration Guide</span>
+                    <small>Wave phone in Figure-8 if compass is uncalibrated</small>
+                </div>
+                <button class="btn-pill" id="btn-options-open-calib">Open Guide</button>
             </div>
             <div class="settings-row">
                 <div class="setting-desc">
@@ -636,6 +685,65 @@
             <div class="settings-row">
                 <span>🔧 Diagnostics Overlay</span>
                 <button class="btn-pill" id="btn-toggle-debug">Toggle ?debug=1</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Compass Figure-8 Calibration Modal Sheet -->
+<div id="calib-guidance-modal" class="ar-modal-backdrop" style="display: none;">
+    <div class="ar-modal-dialog calib-dialog">
+        <div class="modal-header">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 1.3rem;">🧭</span>
+                <h3>Compass Sensor Calibration</h3>
+            </div>
+            <button class="btn-pill icon-only" id="btn-close-calib-modal" aria-label="Close Calibration Modal">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="calib-graphic-box">
+                <div class="calib-figure8-container">
+                    <svg class="fig8-svg" viewBox="0 0 160 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path class="fig8-path-bg" d="M80,40 C102,14 142,14 142,40 C142,66 102,66 80,40 C58,14 18,14 18,40 C18,66 58,66 80,40 Z" stroke="rgba(255,255,255,0.15)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+                        <path class="fig8-path-loop" d="M80,40 C102,14 142,14 142,40 C142,66 102,66 80,40 C58,14 18,14 18,40 C18,66 58,66 80,40 Z" stroke="url(#fig8-grad)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+                        <defs>
+                            <linearGradient id="fig8-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" stop-color="#38bdf8" />
+                                <stop offset="50%" stop-color="#ffb703" />
+                                <stop offset="100%" stop-color="#38bdf8" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                    <div class="fig8-phone-anim">📱</div>
+                </div>
+                <h4 class="calib-headline">Wave phone in a Figure-8 (∞) pattern</h4>
+                <p class="calib-instruction">
+                    Hold your phone firmly and smoothly wave it through the air in an infinity (∞) shape for 5–10 seconds while rotating your wrist in 3D space.
+                </p>
+                <div class="calib-callout">
+                    <span class="callout-icon">💡</span>
+                    <span>Camera autofocus electromagnets and metallic phone cases temporarily distort the phone's magnetometer. Smooth 3D rotation resets the Android calibration sphere.</span>
+                </div>
+            </div>
+
+            <!-- Live Accuracy Indicator -->
+            <div class="calib-live-status-row">
+                <div class="status-indicator-dot" id="calib-modal-status-dot"></div>
+                <span id="calib-modal-status-text">Sensor Status: Checking...</span>
+            </div>
+
+            <!-- 1-Tap Align to Sun Bypass -->
+            <div class="calib-sun-bypass-box">
+                <div class="bypass-text">
+                    <strong>Visual Bypass:</strong> See the Sun right now?
+                </div>
+                <button class="btn-pill primary" id="btn-calib-modal-align-sun">
+                    <span>🎯 Align Heading to Sun (<span id="calib-modal-sun-az">--°</span>)</span>
+                </button>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; margin-top: 6px;">
+                <button class="btn-pill" id="btn-done-calib-modal" style="width: 100%;">Done</button>
             </div>
         </div>
     </div>

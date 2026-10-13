@@ -186,17 +186,6 @@ export function quatGetHeadingPitchRoll(qCamToWorld) {
     const right = quatRotate(qCamToWorld, [1, 0, 0]);
     const up = quatRotate(qCamToWorld, [0, -1, 0]);
 
-    // Heading (Azimuth): in ENU, X is East, Y is North. Clockwise from North:
-    const heading = (Math.atan2(fwd[0], fwd[1]) * RAD2DEG + 360.0) % 360.0;
-
-    // Pitch: angle above horizon in [-90, +90]
-    const clampedZ = Math.max(-1.0, Math.min(1.0, fwd[2]));
-    const pitch = Math.asin(clampedZ) * RAD2DEG;
-
-    // Roll: bank rotation around optical axis
-    // When right vector's Z component tilts down/up:
-    const roll = Math.atan2(right[2], up[2]) * RAD2DEG;
-
     // Device physical tilt relative to the horizontal surface:
     // Screen normal is out of screen (-fwd in camera coordinates, because camera is out back).
     // When phone lies flat face up on surface: screen normal is [0, 0, 1], deviceTilt = 0°
@@ -204,13 +193,46 @@ export function quatGetHeadingPitchRoll(qCamToWorld) {
     const screenNormalZ = Math.max(-1.0, Math.min(1.0, -fwd[2]));
     const deviceTilt = Math.acos(screenNormalZ) * RAD2DEG;
 
+    // Pitch: angle of camera optical axis above horizon in [-90, +90]
+    const clampedZ = Math.max(-1.0, Math.min(1.0, fwd[2]));
+    const pitch = Math.asin(clampedZ) * RAD2DEG;
+
     // Compass heading:
     // When phone is flat on table (deviceTilt ≈ 0°): top of phone (up vector) defines heading.
     // When phone is held upright (deviceTilt ≈ 90°): forward camera axis (fwd vector) defines heading.
-    const tTilt = Math.max(0.0, Math.min(1.0, deviceTilt / 90.0));
+    // Blend smoothly across [0°, 45°] to eliminate singularity/gimbal lock when flat:
+    const tTilt = Math.max(0.0, Math.min(1.0, deviceTilt / 45.0));
     const aimX = (1.0 - tTilt) * up[0] + tTilt * fwd[0];
     const aimY = (1.0 - tTilt) * up[1] + tTilt * fwd[1];
     const compassHeading = (Math.atan2(aimX, aimY) * RAD2DEG + 360.0) % 360.0;
+
+    // Camera heading (boresight azimuth):
+    // When upright, defined by fwd. When flat (deviceTilt < 20°), fwd points into ground
+    // (fwd[0] and fwd[1] near zero), so blend to compassHeading to prevent atan2(0,0) singularity.
+    let heading;
+    if (deviceTilt < 15.0) {
+        heading = compassHeading;
+    } else {
+        const rawCamH = (Math.atan2(fwd[0], fwd[1]) * RAD2DEG + 360.0) % 360.0;
+        if (deviceTilt < 35.0) {
+            const blend = (deviceTilt - 15.0) / 20.0; // 0 at 15°, 1 at 35°
+            const diff = shortestAngleDeg(rawCamH, compassHeading);
+            heading = (compassHeading + diff * blend + 360.0) % 360.0;
+        } else {
+            heading = rawCamH;
+        }
+    }
+
+    // Roll: bank rotation around optical axis.
+    // When deviceTilt < 25° (phone flat on table), right[2] and up[2] are both near zero
+    // (gimbal lock: roll around vertical axis is undefined and corrupts compass).
+    // Smoothly attenuate roll to 0.0 when flat:
+    let roll = 0.0;
+    if (deviceTilt > 5.0) {
+        const rawRoll = Math.atan2(right[2], up[2]) * RAD2DEG;
+        const rollWeight = Math.min(1.0, (deviceTilt - 5.0) / 20.0);
+        roll = rawRoll * rollWeight;
+    }
 
     return { heading, pitch, roll, fwd, right, up, deviceTilt, compassHeading };
 }

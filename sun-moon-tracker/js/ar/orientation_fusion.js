@@ -281,11 +281,12 @@ export class OrientationFusion {
             const qScreen = quatFromAxisAngle([0, 0, 1], -this._screenAngle * DEG2RAD);
             const qRawCam = quatMultiply(quatMultiply(qW3C, qScreen), [1, 0, 0, 0]);
             const relEuler = quatGetHeadingPitchRoll(qRawCam);
-            const relCamHeading = relEuler.heading;
+            // Seamless relative heading reference: matches webkitCompassHeading whether phone is held upright or flat
+            const relRefHeading = relEuler.compassHeading;
 
             // Track angular velocity of camera rotation
-            const dH = shortestAngleDeg(this.heading, this._prevHeading);
-            this._prevHeading = this.heading;
+            const dH = shortestAngleDeg(this.compassHeading, this._prevHeading);
+            this._prevHeading = this.compassHeading;
             const instantSpeed = Math.abs(dH) / dt;
             this._angularVelocityH = this._angularVelocityH * 0.8 + instantSpeed * 0.2;
 
@@ -294,9 +295,8 @@ export class OrientationFusion {
             // Do NOT add this.declination here to prevent double-correcting magnetic declination!
             const measCompassHeading = (e.webkitCompassHeading + this._screenAngle + this.calibrationOffset + 3600.0) % 360.0;
             
-            // True yaw offset is the angular difference between measured heading and relative camera heading
-            // Note: heading is clockwise from North, so a rotation around Z counter-clockwise needs negative sign
-            const currentDelta = shortestAngleDeg(measCompassHeading, relCamHeading);
+            // True yaw offset is the angular difference between measured heading and relative reference heading
+            const currentDelta = shortestAngleDeg(measCompassHeading, relRefHeading);
 
             if (!this._yawOffsetInitialized) {
                 // Initial sample snaps to compass
@@ -305,12 +305,14 @@ export class OrientationFusion {
                 this._yawInitTime = now;
             } else {
                 // Strict Gating:
-                // Magnetometer tilt compensation is only reliable when phone is reasonably level.
-                // When looking high up into sky or down, FREEZE yawOffset and rely entirely on gyroscope!
-                const pitchModerate = (Math.abs(this.pitch) <= 35.0);
-                const rollModerate = (Math.abs(this.roll) <= 20.0);
-                const motionStable = (this._angularVelocityH < 15.0);
-                const accuracyGood = (this.compassAccuracy <= 25.0);
+                // When phone is flat (deviceTilt < 35°), phone acts as a classic horizontal compass disc.
+                // Magnetometer tilt compensation is in its optimal state, so ALWAYS allow calibration update!
+                // When phone is upright, gate if user pitches high up into sky (>35°) or rolls heavily (>25°).
+                const isFlat = (this.deviceTilt < 35.0);
+                const pitchModerate = isFlat || (Math.abs(this.pitch) <= 35.0);
+                const rollModerate = isFlat || (Math.abs(this.roll) <= 25.0);
+                const motionStable = (this._angularVelocityH < 25.0);
+                const accuracyGood = (this.compassAccuracy <= 30.0);
 
                 if (pitchModerate && rollModerate && motionStable && accuracyGood) {
                     const diff = shortestAngleDeg(currentDelta, this._yawOffset);
@@ -448,14 +450,73 @@ export class OrientationFusion {
      * Nudge yaw offset manually (e.g. from user drag or calibration slider).
      */
     nudgeYaw(deltaHeadingDeg) {
+        if (typeof deltaHeadingDeg !== 'number' || isNaN(deltaHeadingDeg)) return;
         if (this.gyroAvailable) {
             this.calibrationOffset = (this.calibrationOffset + deltaHeadingDeg + 3600.0) % 360.0;
-            this._yawOffset = this.declination + this.calibrationOffset;
+            if (this.activeSource === 'ios-compass') {
+                this._yawOffset = (this._yawOffset + deltaHeadingDeg + 3600.0) % 360.0;
+            } else {
+                this._yawOffset = this.declination + this.calibrationOffset;
+            }
             this._computeTargetQuat();
         } else {
             this.manualHeading = (this.manualHeading + deltaHeadingDeg + 360.0) % 360.0;
             this._computeTargetQuat();
         }
+    }
+
+    /**
+     * Explicitly set manual calibration trim offset (in degrees).
+     */
+    setCalibrationOffset(offsetDeg) {
+        if (typeof offsetDeg !== 'number' || isNaN(offsetDeg)) return;
+        const clamped = ((offsetDeg % 360.0) + 360.0) % 360.0;
+        const diff = shortestAngleDeg(clamped, this.calibrationOffset);
+        this.calibrationOffset = clamped;
+        if (this.activeSource === 'ios-compass') {
+            this._yawOffset = ((this._yawOffset + diff + 3600.0) % 360.0);
+        } else {
+            this._yawOffset = this.declination + this.calibrationOffset;
+        }
+        this._computeTargetQuat();
+    }
+
+    /**
+     * Resets manual calibration trim offset to 0°.
+     */
+    resetCalibration() {
+        this.setCalibrationOffset(0.0);
+    }
+
+    /**
+     * One-tap manual alignment: aligns camera heading to a known celestial azimuth (e.g. Sun or Moon).
+     */
+    alignToAzimuth(targetAzimuthDeg) {
+        if (typeof targetAzimuthDeg !== 'number' || isNaN(targetAzimuthDeg)) return;
+        const diff = shortestAngleDeg(targetAzimuthDeg, this.heading);
+        this.nudgeYaw(diff);
+    }
+
+    /**
+     * Returns categorized compass accuracy status and metadata.
+     */
+    getCompassAccuracyInfo() {
+        if (!this.compassAvailable) {
+            return { level: 'unreliable', label: 'Uncalibrated / Unavailable', color: '#ef4444' };
+        }
+        if (this.compassAccuracy === null) {
+            return { level: 'unknown', label: 'Unknown Accuracy', color: '#94a3b8' };
+        }
+        if (this.compassAccuracy <= 15) {
+            return { level: 'high', label: 'High Accuracy (Calibrated)', color: '#10b981' };
+        }
+        if (this.compassAccuracy <= 25) {
+            return { level: 'medium', label: 'Medium Accuracy', color: '#f59e0b' };
+        }
+        if (this.compassAccuracy <= 35) {
+            return { level: 'low', label: 'Low Accuracy (Needs calibration)', color: '#fb923c' };
+        }
+        return { level: 'unreliable', label: 'Unreliable (Wave phone in figure-8)', color: '#ef4444' };
     }
 
     setManualPose(headingDeg, pitchDeg) {
