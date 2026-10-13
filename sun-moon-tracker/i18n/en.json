@@ -113,5 +113,10 @@
   "groundDistance": "Ground Distance",
   "compassBearing": "Compass Bearing",
   "calculateBtn": "Calculate",
-  "resultsTitle": "Results"
+  "resultsTitle": "Results",
+  "launchArTitle": "Start Live AR Sky View",
+  "launchArDesc": "Project Sun & Moon trajectories directly onto your real landscape camera",
+  "launchArBtn": "Launch AR Camera",
+  "launchArConnecting": "Starting Camera & Sensors...",
+  "explore3dOnly": "Continue in 3D Sky Mode"
 }

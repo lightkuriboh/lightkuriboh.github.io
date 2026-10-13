@@ -113,5 +113,10 @@
   "groundDistance": "地面直線距離",
   "compassBearing": "羅盤航向方位",
   "calculateBtn": "立即計算",
-  "resultsTitle": "計算結果"
+  "resultsTitle": "計算結果",
+  "launchArTitle": "啟動實時 AR 相機",
+  "launchArDesc": "將太陽和月亮運行軌跡直接投影到實景相機視野中",
+  "launchArBtn": "開啟 AR 相機",
+  "launchArConnecting": "正在啟動相機與感測器...",
+  "explore3dOnly": "繼續使用 3D 天空模式"
 }

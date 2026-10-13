@@ -113,5 +113,10 @@
   "groundDistance": "Khoảng cách mặt đất",
   "compassBearing": "Phương vị la bàn",
   "calculateBtn": "Tính toán",
-  "resultsTitle": "Kết quả"
+  "resultsTitle": "Kết quả",
+  "launchArTitle": "Bật chế độ Camera AR",
+  "launchArDesc": "Chiếu đường đi Mặt Trời & Mặt Trăng trực tiếp lên bầu trời cảnh quan qua camera",
+  "launchArBtn": "Khởi động Camera AR",
+  "launchArConnecting": "Đang bật Camera & Cảm biến...",
+  "explore3dOnly": "Tiếp tục xem vòm trời 3D"
 }

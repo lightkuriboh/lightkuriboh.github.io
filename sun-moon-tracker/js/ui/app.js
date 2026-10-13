@@ -169,6 +169,9 @@ export class App {
                 btnSensors.style.display = 'inline-flex';
             }
         }
+
+        // Automatically trigger or prompt camera AR mode on load
+        this.tryAutoStartCamera();
     }
 
     initDOM() {
@@ -304,51 +307,46 @@ export class App {
             }
         });
 
-        // Camera Toggle
+        // AR Launch Hero Card & Buttons
+        const heroLaunchBtn = document.getElementById('btn-hero-launch-camera');
+        if (heroLaunchBtn) {
+            heroLaunchBtn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                await this.startARCameraFlow(false);
+            });
+        }
+
+        const heroDismissBtn = document.getElementById('btn-hero-dismiss-camera');
+        if (heroDismissBtn) {
+            heroDismissBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const heroOverlay = document.getElementById('ar-launch-hero');
+                if (heroOverlay) {
+                    heroOverlay.classList.add('fade-out');
+                    setTimeout(() => { heroOverlay.style.display = 'none'; }, 300);
+                }
+            });
+        }
+
+        // Tapping anywhere on the hero card launches AR camera
+        const heroCard = document.querySelector('.ar-launch-card');
+        if (heroCard) {
+            heroCard.addEventListener('click', async (e) => {
+                if (e.target.closest('#btn-hero-dismiss-camera')) return;
+                if (!this.arView.cameraActive) {
+                    await this.startARCameraFlow(false);
+                }
+            });
+        }
+
+        // Camera Toggle Pill (Bottom Bar)
         const btnCamera = document.getElementById('btn-toggle-camera');
         if (btnCamera) {
             btnCamera.addEventListener('click', async () => {
                 if (this.arView.cameraActive) {
-                    this.arView.stopCamera();
-                    btnCamera.innerHTML = `<span>📷 Enable Live AR Camera</span>`;
-                    btnCamera.classList.remove('active');
-                    document.getElementById('ar-badge')?.classList.remove('badge-live');
+                    this.stopARCameraFlow();
                 } else {
-                    try {
-                        // CRITICAL FOR IOS: Request orientation permission FIRST while transient user gesture is active!
-                        // Calling getUserMedia() first causes an async roundtrip that invalidates the gesture token,
-                        // causing DeviceOrientationEvent.requestPermission() to be rejected with NotAllowedError.
-                        let sensorGranted = false;
-                        if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-                            try {
-                                sensorGranted = await this.arView.requestDeviceOrientation();
-                                if (sensorGranted) {
-                                    const btnSensors = document.getElementById('btn-enable-sensors');
-                                    if (btnSensors) btnSensors.style.display = 'none';
-                                }
-                            } catch (e) {
-                                console.warn("Sensor request on camera start:", e);
-                            }
-                        } else {
-                            await this.arView.requestDeviceOrientation();
-                        }
-
-                        btnCamera.innerHTML = `<span>⏳ Starting Camera...</span>`;
-                        await this.arView.startCamera();
-                        btnCamera.innerHTML = `<span>⏹️ Stop Camera (360° Mode)</span>`;
-                        btnCamera.classList.add('active');
-                        document.getElementById('ar-badge')?.classList.add('badge-live');
-
-                        // If sensors weren't granted yet on iOS, ensure sensor button is visible
-                        if (!this.arView.gyroAvailable && typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-                            const btnSensors = document.getElementById('btn-enable-sensors');
-                            if (btnSensors) btnSensors.style.display = 'inline-flex';
-                        }
-                    } catch (err) {
-                        alert("Camera access denied or unavailable: " + (err.message || err));
-                        btnCamera.innerHTML = `<span>📷 Enable Live AR Camera</span>`;
-                        btnCamera.classList.remove('active');
-                    }
+                    await this.startARCameraFlow(false);
                 }
             });
         }
@@ -549,30 +547,12 @@ export class App {
                 if (targetId !== 'tab-ar') {
                     if (this.arView.cameraActive) {
                         this._cameraPausedForTab = true;
-                        this.arView.stopCamera();
-                        const btnCam = document.getElementById('btn-toggle-camera');
-                        if (btnCam) {
-                            btnCam.innerHTML = `<span>📷 Enable Live AR Camera</span>`;
-                            btnCam.classList.remove('active');
-                        }
-                        document.getElementById('ar-badge')?.classList.remove('badge-live');
+                        this.stopARCameraFlow();
                     }
                 } else {
                     if (this._cameraPausedForTab) {
                         this._cameraPausedForTab = false;
-                        const btnCam = document.getElementById('btn-toggle-camera');
-                        if (btnCam) {
-                            btnCam.innerHTML = `<span>⏳ Starting Camera...</span>`;
-                            try {
-                                await this.arView.startCamera();
-                                btnCam.innerHTML = `<span>⏹️ Stop Camera (360° Mode)</span>`;
-                                btnCam.classList.add('active');
-                                document.getElementById('ar-badge')?.classList.add('badge-live');
-                            } catch (e) {
-                                btnCam.innerHTML = `<span>📷 Enable Live AR Camera</span>`;
-                                btnCam.classList.remove('active');
-                            }
-                        }
+                        await this.startARCameraFlow(true);
                     }
                     if (this.arView) {
                         this.arView.resize();
@@ -595,36 +575,151 @@ export class App {
             if (document.hidden) {
                 if (this.arView.cameraActive) {
                     this._cameraPausedForBackground = true;
-                    this.arView.stopCamera();
-                    const btnCam = document.getElementById('btn-toggle-camera');
-                    if (btnCam) {
-                        btnCam.innerHTML = `<span>📷 Enable Live AR Camera</span>`;
-                        btnCam.classList.remove('active');
-                    }
-                    document.getElementById('ar-badge')?.classList.remove('badge-live');
+                    this.stopARCameraFlow();
                 }
             } else {
                 if (this._cameraPausedForBackground) {
                     this._cameraPausedForBackground = false;
                     const arTab = document.getElementById('tab-ar');
                     if (arTab && arTab.classList.contains('active')) {
-                        const btnCam = document.getElementById('btn-toggle-camera');
-                        if (btnCam) {
-                            btnCam.innerHTML = `<span>⏳ Starting Camera...</span>`;
-                            try {
-                                await this.arView.startCamera();
-                                btnCam.innerHTML = `<span>⏹️ Stop Camera (360° Mode)</span>`;
-                                btnCam.classList.add('active');
-                                document.getElementById('ar-badge')?.classList.add('badge-live');
-                            } catch (e) {
-                                btnCam.innerHTML = `<span>📷 Enable Live AR Camera</span>`;
-                                btnCam.classList.remove('active');
-                            }
-                        }
+                        await this.startARCameraFlow(true);
                     }
                 }
             }
         });
+    }
+
+    /**
+     * Unified, resilient AR camera start flow.
+     * Handles iOS transient sensor permissions, getUserMedia stream binding,
+     * UI button state synchronization, and smooth prompt dismissals.
+     * @param {boolean} isAuto - whether triggered automatically or by explicit user gesture
+     * @returns {Promise<boolean>}
+     */
+    async startARCameraFlow(isAuto = false) {
+        if (!this.arView) return false;
+        if (this.arView.cameraActive) return true;
+
+        const btnCamera = document.getElementById('btn-toggle-camera');
+        const heroBtn = document.getElementById('btn-hero-launch-camera');
+        const heroOverlay = document.getElementById('ar-launch-hero');
+        const heroBtnText = document.getElementById('btn-hero-launch-text');
+
+        try {
+            if (heroBtn) {
+                heroBtn.classList.add('loading');
+                if (heroBtnText) {
+                    heroBtnText.textContent = this.i18n ? this.i18n.t('launchArConnecting') : "Starting Camera & Sensors...";
+                }
+            }
+            if (btnCamera) {
+                btnCamera.innerHTML = `<span>⏳ Starting Camera...</span>`;
+            }
+
+            // CRITICAL FOR IOS: Request orientation permission FIRST while transient user gesture is active!
+            let sensorGranted = false;
+            if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                try {
+                    sensorGranted = await this.arView.requestDeviceOrientation();
+                    if (sensorGranted) {
+                        const btnSensors = document.getElementById('btn-enable-sensors');
+                        if (btnSensors) btnSensors.style.display = 'none';
+                    }
+                } catch (e) {
+                    console.warn("Sensor request on camera start:", e);
+                }
+            } else {
+                await this.arView.requestDeviceOrientation();
+            }
+
+            await this.arView.startCamera();
+
+            if (btnCamera) {
+                const stopLabel = this.i18n ? this.i18n.t('stopCamera') : "Stop Camera";
+                btnCamera.innerHTML = `<span>⏹️ <span class="btn-text" data-i18n="stopCamera">${stopLabel}</span></span>`;
+                btnCamera.classList.add('active');
+            }
+            document.getElementById('ar-badge')?.classList.add('badge-live');
+
+            // Hide the hero launch card with smooth fade-out
+            if (heroOverlay) {
+                heroOverlay.classList.add('fade-out');
+                setTimeout(() => {
+                    heroOverlay.style.display = 'none';
+                    heroOverlay.classList.remove('fade-out');
+                }, 350);
+            }
+
+            if (!this.arView.gyroAvailable && typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                const btnSensors = document.getElementById('btn-enable-sensors');
+                if (btnSensors) btnSensors.style.display = 'inline-flex';
+            }
+
+            return true;
+        } catch (err) {
+            console.warn("Camera start exception:", err);
+            if (heroBtn) {
+                heroBtn.classList.remove('loading');
+                if (heroBtnText) {
+                    heroBtnText.textContent = this.i18n ? this.i18n.t('launchArBtn') : "Launch AR Camera";
+                }
+            }
+            if (btnCamera) {
+                const liveLabel = this.i18n ? this.i18n.t('liveCamera') : "Live Camera";
+                btnCamera.innerHTML = `<span>📷 <span class="btn-text" data-i18n="liveCamera">${liveLabel}</span></span>`;
+                btnCamera.classList.remove('active');
+            }
+            if (!isAuto) {
+                alert("Camera access was denied or is unavailable: " + (err.message || err));
+            }
+            return false;
+        }
+    }
+
+    /**
+     * Stops the camera stream and updates UI buttons to inactive states.
+     */
+    stopARCameraFlow() {
+        if (!this.arView) return;
+        this.arView.stopCamera();
+        const btnCamera = document.getElementById('btn-toggle-camera');
+        if (btnCamera) {
+            const liveLabel = this.i18n ? this.i18n.t('liveCamera') : "Live Camera";
+            btnCamera.innerHTML = `<span>📷 <span class="btn-text" data-i18n="liveCamera">${liveLabel}</span></span>`;
+            btnCamera.classList.remove('active');
+        }
+        document.getElementById('ar-badge')?.classList.remove('badge-live');
+    }
+
+    /**
+     * Proactively attempts to auto-trigger the AR camera on launch.
+     * If permissions are already granted or browser permits unprompted start,
+     * immediately begins camera video streaming without requiring button clicks.
+     */
+    async tryAutoStartCamera() {
+        if (!this.arView || this.arView.cameraActive) return;
+
+        let hasGrantedPermission = false;
+        if (typeof navigator !== 'undefined' && navigator.permissions && navigator.permissions.query) {
+            try {
+                const status = await navigator.permissions.query({ name: 'camera' });
+                if (status && status.state === 'granted') {
+                    hasGrantedPermission = true;
+                }
+            } catch (_) {}
+        }
+
+        const isIOS = typeof navigator !== 'undefined' && (
+            /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+            (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+        );
+
+        // Auto-start if permission was previously granted or on non-iOS browsers
+        if (hasGrantedPermission || !isIOS) {
+            try {
+                await this.startARCameraFlow(true);
+            } catch (_) {}
+        }
     }
 
     setCelestialVisibility(showSun, showMoon) {

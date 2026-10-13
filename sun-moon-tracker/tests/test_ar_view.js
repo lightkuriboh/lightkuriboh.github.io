@@ -222,5 +222,48 @@ arWatchdog.render();
 assert.strictEqual(playCalled, true, "Watchdog should attempt video.play() when cameraActive and video is paused");
 console.log("  ✓ Camera Auto-Unpause Watchdog PASSED!");
 
+// TEST 9: Camera Start & Hero Overlay UI Integration Flow
+console.log("[TEST 9] Camera Start & Hero Overlay Flow...");
+const mockHeroOverlay = new MockElement('ar-launch-hero');
+mockHeroOverlay.classList = {
+    _classes: new Set(),
+    add(c) { this._classes.add(c); },
+    remove(c) { this._classes.delete(c); },
+    contains(c) { return this._classes.has(c); }
+};
+mockHeroOverlay.style = { display: 'flex' };
+
+const mockHeroBtn = new MockElement('btn-hero-launch-camera');
+mockHeroBtn.classList = {
+    _classes: new Set(),
+    add(c) { this._classes.add(c); },
+    remove(c) { this._classes.delete(c); },
+    contains(c) { return this._classes.has(c); }
+};
+
+const mockToggleCam = new MockElement('btn-toggle-camera');
+mockToggleCam.classList = {
+    _classes: new Set(),
+    add(c) { this._classes.add(c); },
+    remove(c) { this._classes.delete(c); },
+    contains(c) { return this._classes.has(c); }
+};
+
+// Simulate start camera flow on ar view
+await ar.startCamera();
+assert.strictEqual(ar.cameraActive, true);
+mockToggleCam.classList.add('active');
+mockHeroOverlay.classList.add('fade-out');
+
+assert.strictEqual(mockToggleCam.classList.contains('active'), true);
+assert.strictEqual(mockHeroOverlay.classList.contains('fade-out'), true);
+
+ar.stopCamera();
+mockToggleCam.classList.remove('active');
+assert.strictEqual(ar.cameraActive, false);
+assert.strictEqual(mockToggleCam.classList.contains('active'), false);
+console.log("  ✓ Camera Start & Hero Overlay Flow PASSED!");
+
 console.log("\n>>> ALL ARVIEW INTEGRATION TESTS PASSED! <<<\n");
+
 

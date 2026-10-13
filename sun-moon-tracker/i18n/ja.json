@@ -113,5 +113,10 @@
   "groundDistance": "地上距離",
   "compassBearing": "コンパス方位角",
   "calculateBtn": "計算する",
-  "resultsTitle": "計算結果"
+  "resultsTitle": "計算結果",
+  "launchArTitle": "ARカメラビューを開始",
+  "launchArDesc": "実際の空のカメラ映像の上に太陽と月の軌道を直接重ねて表示します",
+  "launchArBtn": "ARカメラを起動",
+  "launchArConnecting": "カメラとセンサーを起動中...",
+  "explore3dOnly": "3Dスカイモードのまま続ける"
 }

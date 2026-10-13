@@ -127,6 +127,23 @@
             <!-- 3D Celestial Projection Canvas -->
             <canvas id="ar-canvas"></canvas>
 
+            <!-- Prominent AR Camera Launch Overlay (Displayed when camera is inactive) -->
+            <div class="ar-launch-hero" id="ar-launch-hero">
+                <div class="ar-launch-card">
+                    <div class="ar-launch-icon-wrapper">
+                        <div class="ar-launch-pulse-ring"></div>
+                        <div class="ar-launch-icon">📷</div>
+                    </div>
+                    <h2 class="ar-launch-title" data-i18n="launchArTitle">Start Live AR Sky View</h2>
+                    <p class="ar-launch-desc" data-i18n="launchArDesc">Project Sun & Moon trajectories directly onto your real landscape camera</p>
+                    <button class="btn-hero-launch" id="btn-hero-launch-camera">
+                        <span class="btn-hero-icon">🚀</span>
+                        <span id="btn-hero-launch-text" data-i18n="launchArBtn">Launch AR Camera</span>
+                    </button>
+                    <button class="btn-hero-dismiss" id="btn-hero-dismiss-camera" data-i18n="explore3dOnly">Continue in 3D Sky Mode</button>
+                </div>
+            </div>
+
             <!-- Floating AR HUD -->
             <div class="ar-hud-overlay">
                 <!-- Top HUD Info -->
