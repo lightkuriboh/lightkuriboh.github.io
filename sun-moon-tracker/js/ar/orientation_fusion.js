@@ -143,50 +143,14 @@ export class OrientationFusion {
                 return false;
             }
         } else {
-            // Android / Standard Browsers
-            await this._tryInitGenericSensors();
+            // Android / Standard Browsers: attach deviceorientationabsolute and deviceorientation
             this.attachListeners();
             return true;
         }
     }
 
     async _tryInitGenericSensors() {
-        if (typeof window === 'undefined' || !('AbsoluteOrientationSensor' in window)) {
-            return false;
-        }
-
-        try {
-            // Check permissions if Permissions API is supported
-            if (navigator.permissions) {
-                const results = await Promise.allSettled([
-                    navigator.permissions.query({ name: 'accelerometer' }),
-                    navigator.permissions.query({ name: 'magnetometer' }),
-                    navigator.permissions.query({ name: 'gyroscope' })
-                ]);
-                const anyDenied = results.some(r => r.status === 'fulfilled' && r.value.state === 'denied');
-                if (anyDenied) return false;
-            }
-
-            const sensor = new window.AbsoluteOrientationSensor({ frequency: 60, referenceFrame: 'screen' });
-            sensor.addEventListener('reading', () => {
-                this.activeSource = 'generic-sensor';
-                this.gyroAvailable = true;
-                this.compassAvailable = true;
-                this.compassAccuracy = 5.0; // Hardware-fused sensor accuracy
-                this._onGenericSensorReading(sensor.quaternion);
-            });
-            sensor.addEventListener('error', (e) => {
-                console.warn("AbsoluteOrientationSensor error:", e.error);
-                this._stopGenericSensor();
-            });
-
-            sensor.start();
-            this._absoluteSensor = sensor;
-            return true;
-        } catch (e) {
-            console.warn("Generic Sensor API init failed, using standard events:", e);
-            return false;
-        }
+        return false;
     }
 
     _stopGenericSensor() {
@@ -230,13 +194,8 @@ export class OrientationFusion {
         if (this._listenersAttached || typeof window === 'undefined') return;
         this._listenersAttached = true;
 
-        // If AbsoluteOrientationSensor is already running, skip attaching conflicting listeners
-        if (this._absoluteSensor) return;
-
-        // Check if deviceorientationabsolute is available (Standard Android Chrome for absolute North)
-        if ('ondeviceorientationabsolute' in window) {
-            window.addEventListener('deviceorientationabsolute', this._boundOrientationAbsoluteHandler, true);
-        }
+        // Listen for deviceorientationabsolute (Standard on Android Chrome for absolute North)
+        window.addEventListener('deviceorientationabsolute', this._boundOrientationAbsoluteHandler, true);
         // General deviceorientation (iOS or relative fallback)
         window.addEventListener('deviceorientation', this._boundOrientationHandler, true);
     }
@@ -271,10 +230,10 @@ export class OrientationFusion {
         this.compassAvailable = true;
         this.compassAccuracy = 10.0;
 
-        // In Chrome on Android, e.alpha is clockwise compass heading (0° = North, 90° = East, 270° = West).
-        // quatFromW3CEuler expects counter-clockwise angle around +Z (Earth Up).
-        // To align clockwise compass heading with right-handed ENU coordinates:
-        this._rawAlpha = (360.0 - (e.alpha % 360.0) + 360.0) % 360.0;
+        // In W3C DeviceOrientation / deviceorientationabsolute:
+        // e.alpha represents counter-clockwise rotation around +Z (0°=North, 90°=West, 180°=South, 270°=East).
+        // quatFromW3CEuler natively expects counter-clockwise rotation around +Z.
+        this._rawAlpha = (e.alpha % 360.0 + 360.0) % 360.0;
         this._rawBeta = e.beta;
         this._rawGamma = e.gamma;
 
@@ -366,7 +325,7 @@ export class OrientationFusion {
             this.activeSource = 'dev-orient-absolute';
             this.compassAvailable = true;
             this.compassAccuracy = 10.0;
-            this._rawAlpha = (360.0 - (e.alpha % 360.0) + 360.0) % 360.0;
+            this._rawAlpha = (e.alpha % 360.0 + 360.0) % 360.0;
             this._rawBeta = e.beta;
             this._rawGamma = e.gamma;
             this._yawOffset = this.declination + this.calibrationOffset;

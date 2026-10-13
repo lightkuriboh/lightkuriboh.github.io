@@ -18,9 +18,9 @@ console.log("  ✓ Manual Desktop Drag Mode PASSED!");
 // TEST 2: Android Absolute Orientation Mode
 console.log("[TEST 2] Android Absolute Orientation Mode...");
 const fusionAndroid = new OrientationFusion();
-// Upright device facing East (Clockwise compass heading Alpha = 90°, Beta = 90°, Gamma = 0°)
+// Upright device facing East in W3C coordinates (counter-clockwise from North: Alpha = 270°, Beta = 90°, Gamma = 0°)
 fusionAndroid.handleDeviceOrientation({
-    alpha: 90,
+    alpha: 270,
     beta: 90,
     gamma: 0,
     absolute: true,
@@ -118,9 +118,9 @@ console.log("  ✓ Continuous Euler Flip PASSED!");
 // TEST 5: Android Stream Immunity (Interleaving relative events must be ignored)
 console.log("[TEST 5] Android Stream Immunity (Ignore relative events when absolute is active)...");
 const fusionInterleave = new OrientationFusion();
-// 1. Android absolute event arrives (Heading 120°)
+// 1. Android absolute event arrives (Facing azimuth 120° East-South-East -> W3C Alpha = 360 - 120 = 240°)
 fusionInterleave.handleDeviceOrientationAbsolute({
-    alpha: 120, // Clockwise compass heading 120°
+    alpha: 240, // W3C alpha for azimuth 120°
     beta: 90,
     gamma: 0
 });
@@ -175,7 +175,7 @@ console.log("[TEST 7] Magnetic Declination True North Alignment...");
 const fusionDecl = new OrientationFusion();
 fusionDecl.setDeclination(15.0); // +15° East declination (e.g. Seattle)
 fusionDecl.handleDeviceOrientationAbsolute({
-    alpha: 90, // Magnetic 90° East
+    alpha: 270, // Magnetic 90° East in W3C (alpha = 270°)
     beta: 90,
     gamma: 0
 });
@@ -187,9 +187,9 @@ console.log("  ✓ Magnetic Declination PASSED!");
 // TEST 8: Phone Flat on Surface (3D Compass Face-Up Parity)
 console.log("[TEST 8] Phone Flat on Surface (Compass Disc Face-Up Parity)...");
 const fusionFlat = new OrientationFusion();
-// Placed flat face up on table pointing East (Beta = 0, Gamma = 0, Alpha = 90)
+// Placed flat face up on table pointing East in W3C (Beta = 0, Gamma = 0, Alpha = 270)
 fusionFlat.handleDeviceOrientationAbsolute({
-    alpha: 90,
+    alpha: 270,
     beta: 0,
     gamma: 0
 });
@@ -207,7 +207,7 @@ console.log("  ✓ Phone Flat on Surface PASSED!");
 console.log("[TEST 9] Manual Drag and Nudge Yaw Trim...");
 const fusionTrim = new OrientationFusion();
 fusionTrim.handleDeviceOrientationAbsolute({
-    alpha: 90,
+    alpha: 270, // East in W3C (heading = 90)
     beta: 90,
     gamma: 0
 });
@@ -305,24 +305,24 @@ console.log("  ✓ iOS Gyro-Compass Continuous Pan Simulation PASSED!");
 // TEST 13: Android deviceorientationabsolute East-West Correct Orientation
 console.log("[TEST 13] Android deviceorientationabsolute East-West Orientation Test...");
 const fusionAndroidEast = new OrientationFusion();
-// When Android device points East, Chrome sends alpha = 90° (clockwise compass heading)
+// When Android device points East, W3C specification alpha is 270° (counter-clockwise from North)
 fusionAndroidEast.handleDeviceOrientationAbsolute({
-    alpha: 90,
-    beta: 90,
-    gamma: 0
-});
-fusionAndroidEast.update(20000);
-assert.ok(Math.abs(fusionAndroidEast.heading - 90.0) < 0.5, `Facing East with alpha=90 should yield heading 90°, got ${fusionAndroidEast.heading}`);
-
-const fusionAndroidWest = new OrientationFusion();
-// When Android device points West, Chrome sends alpha = 270°
-fusionAndroidWest.handleDeviceOrientationAbsolute({
     alpha: 270,
     beta: 90,
     gamma: 0
 });
+fusionAndroidEast.update(20000);
+assert.ok(Math.abs(fusionAndroidEast.heading - 90.0) < 0.5, `Facing East with alpha=270 should yield heading 90°, got ${fusionAndroidEast.heading}`);
+
+const fusionAndroidWest = new OrientationFusion();
+// When Android device points West, W3C specification alpha is 90° (counter-clockwise from North)
+fusionAndroidWest.handleDeviceOrientationAbsolute({
+    alpha: 90,
+    beta: 90,
+    gamma: 0
+});
 fusionAndroidWest.update(20000);
-assert.ok(Math.abs(fusionAndroidWest.heading - 270.0) < 0.5, `Facing West with alpha=270 should yield heading 270°, got ${fusionAndroidWest.heading}`);
+assert.ok(Math.abs(fusionAndroidWest.heading - 270.0) < 0.5, `Facing West with alpha=90 should yield heading 270°, got ${fusionAndroidWest.heading}`);
 console.log("  ✓ Android deviceorientationabsolute East-West Orientation PASSED!");
 
 // TEST 14: iOS webkitCompassHeading does not double-add declination after GPS
