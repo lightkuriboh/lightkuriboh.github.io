@@ -183,6 +183,9 @@ export class App {
         // On Android (NOT iOS), default to 3D Celestial Compass tab (tab-dial) instead of AR screen
         if (isAndroidPlatform()) {
             this.switchTab('tab-dial');
+            if (this.arView) {
+                this.arView.requestDeviceOrientation();
+            }
         } else {
             // Automatically trigger or prompt camera AR mode on load (iOS / desktop)
             this.tryAutoStartCamera();
@@ -382,10 +385,17 @@ export class App {
 
         // 3D Celestial Compass Controls
         document.getElementById('btn-compass-snap-flat')?.addEventListener('click', () => {
+            if (this.arView) this.arView.requestDeviceOrientation();
             if (this.compass3D) this.compass3D.snapFlat();
         });
         document.getElementById('btn-compass-follow-sensors')?.addEventListener('click', () => {
+            if (this.arView) this.arView.requestDeviceOrientation();
             if (this.compass3D) this.compass3D.toggleSensorFollow();
+        });
+        document.getElementById('tab-dial')?.addEventListener('pointerdown', () => {
+            if (this.arView && !this.arView.gyroAvailable) {
+                this.arView.requestDeviceOrientation();
+            }
         });
 
         // Layer toggles checkboxes
@@ -603,6 +613,9 @@ export class App {
         }
 
         if (targetId === 'tab-dial') {
+            if (this.arView) {
+                this.arView.requestDeviceOrientation();
+            }
             if (this.compass3D) this.compass3D.resize();
             this.drawSolarDial();
         } else if (targetId === 'tab-ephem' || targetId === 'tab-ephemeris') {

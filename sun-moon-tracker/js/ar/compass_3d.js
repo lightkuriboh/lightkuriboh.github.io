@@ -12,7 +12,9 @@
 
 export class Compass3D {
     constructor(canvasId = 'compass-3d-canvas', fusion = null) {
-        this.canvas = (typeof document !== 'undefined' && canvasId) ? document.getElementById(canvasId) : null;
+        this.canvas = (typeof canvasId === 'string')
+            ? ((typeof document !== 'undefined') ? document.getElementById(canvasId) : null)
+            : canvasId;
         this.ctx = this.canvas ? this.canvas.getContext('2d') : null;
         this.fusion = fusion;
 
@@ -55,6 +57,9 @@ export class Compass3D {
 
         // Pointer / touch drag interaction
         this.canvas.addEventListener('pointerdown', (e) => {
+            if (this.fusion && typeof this.fusion.requestPermission === 'function') {
+                this.fusion.requestPermission();
+            }
             this.isDragging = true;
             this.followSensors = false;
             this._dragStartX = e.clientX;
