@@ -10,6 +10,15 @@ import { I18n } from './i18n.js';
 import { FeatureGate } from './feature_gate.js';
 import { FieldKitMath, SensorPresets } from './field_kit.js';
 import { MeteorShowerEngine } from '../engine/meteor_shower.js';
+import { COMETS_CATALOG, CometEngine } from '../engine/comets.js';
+import { BRIGHT_STARS_CATALOG, StellarEngine } from '../engine/stellars.js';
+
+export function isAndroidPlatform(userAgentString = null) {
+    if (userAgentString !== null) return /android/i.test(userAgentString);
+    if (typeof navigator === 'undefined') return false;
+    const ua = navigator.userAgent || '';
+    return /android/i.test(ua);
+}
 
 export class App {
     constructor() {
@@ -170,8 +179,14 @@ export class App {
             }
         }
 
-        // Automatically trigger or prompt camera AR mode on load
-        this.tryAutoStartCamera();
+        // Tab default & camera launch behavior:
+        // On Android (NOT iOS), default to 3D Celestial Compass tab (tab-dial) instead of AR screen
+        if (isAndroidPlatform()) {
+            this.switchTab('tab-dial');
+        } else {
+            // Automatically trigger or prompt camera AR mode on load (iOS / desktop)
+            this.tryAutoStartCamera();
+        }
     }
 
     initDOM() {
@@ -534,38 +549,7 @@ export class App {
         tabBtns.forEach(btn => {
             btn.addEventListener('click', async () => {
                 const targetId = btn.dataset.tab;
-                document.querySelectorAll('.nav-tab-btn, .bottom-nav-btn').forEach(b => {
-                    b.classList.toggle('active', b.dataset.tab === targetId);
-                });
-                document.querySelectorAll('.view-tab-content').forEach(c => c.classList.remove('active'));
-                const target = document.getElementById(targetId);
-                if (target) target.classList.add('active');
-
-                // Camera Lifecycle Management:
-                // Stop live camera stream when navigating away from AR View to prevent
-                // camera OIS voice-coil electromagnets from interfering with phone magnetometer!
-                if (targetId !== 'tab-ar') {
-                    if (this.arView.cameraActive) {
-                        this._cameraPausedForTab = true;
-                        this.stopARCameraFlow();
-                    }
-                } else {
-                    if (this._cameraPausedForTab) {
-                        this._cameraPausedForTab = false;
-                        await this.startARCameraFlow(true);
-                    }
-                    if (this.arView) {
-                        this.arView.resize();
-                    }
-                }
-
-                if (targetId === 'tab-dial') {
-                    if (this.compass3D) this.compass3D.resize();
-                    this.drawSolarDial();
-                } else if (targetId === 'tab-fieldkit') {
-                    this.updateFieldKitCalculations();
-                    this.renderMeteorShowers();
-                }
+                await this.switchTab(targetId);
             });
         });
 
@@ -587,6 +571,47 @@ export class App {
                 }
             }
         });
+    }
+
+    /**
+     * Programmatically switches to a designated tab and synchronizes UI & camera lifecycle.
+     */
+    async switchTab(targetId) {
+        document.querySelectorAll('.nav-tab-btn, .bottom-nav-btn').forEach(b => {
+            b.classList.toggle('active', b.dataset.tab === targetId);
+        });
+        document.querySelectorAll('.view-tab-content').forEach(c => c.classList.remove('active'));
+        const target = document.getElementById(targetId);
+        if (target) target.classList.add('active');
+
+        // Camera Lifecycle Management:
+        // Stop live camera stream when navigating away from AR View to prevent
+        // camera OIS voice-coil electromagnets from interfering with phone magnetometer!
+        if (targetId !== 'tab-ar') {
+            if (this.arView && this.arView.cameraActive) {
+                this._cameraPausedForTab = true;
+                this.stopARCameraFlow();
+            }
+        } else {
+            if (this._cameraPausedForTab) {
+                this._cameraPausedForTab = false;
+                await this.startARCameraFlow(true);
+            }
+            if (this.arView) {
+                this.arView.resize();
+            }
+        }
+
+        if (targetId === 'tab-dial') {
+            if (this.compass3D) this.compass3D.resize();
+            this.drawSolarDial();
+        } else if (targetId === 'tab-ephem' || targetId === 'tab-ephemeris') {
+            this.renderMeteorShowers();
+            this.renderComets();
+            this.renderStellars();
+        } else if (targetId === 'tab-fieldkit') {
+            this.updateFieldKitCalculations();
+        }
     }
 
     /**
@@ -698,6 +723,7 @@ export class App {
      */
     async tryAutoStartCamera() {
         if (!this.arView || this.arView.cameraActive) return;
+        if (isAndroidPlatform()) return;
 
         let hasGrantedPermission = false;
         if (typeof navigator !== 'undefined' && navigator.permissions && navigator.permissions.query) {
@@ -851,6 +877,8 @@ export class App {
         this.renderEphemerisCards();
         this.drawSolarDial();
         this.renderMeteorShowers();
+        this.renderComets();
+        this.renderStellars();
         this.updateFieldKitCalculations();
     }
 
@@ -949,6 +977,9 @@ export class App {
         // Render Moon Phase visualizer on Card
         this.renderMoonCanvas(moonPhase);
         this.drawSolarDial();
+        this.renderMeteorShowers();
+        this.renderComets();
+        this.renderStellars();
 
         // Sync trim UI with live Sun azimuth
         this.updateTrimUI();
@@ -1401,15 +1432,16 @@ export class App {
             card.style.flexDirection = 'column';
             card.style.gap = '6px';
 
+            const t = (k, p) => (this.i18n ? this.i18n.t(k, p) : k);
             const statusBadge = s.isPeakToday
-                ? '<span style="background: #f59e0b; color: #000; font-weight: 700; font-size: 0.68rem; padding: 2px 6px; border-radius: 4px;">🔥 PEAK TONIGHT</span>'
+                ? `<span style="background: #f59e0b; color: #000; font-weight: 700; font-size: 0.68rem; padding: 2px 6px; border-radius: 4px;">${t('peakTonight')}</span>`
                 : (s.isCurrentlyActive
-                    ? '<span style="background: rgba(56, 189, 248, 0.3); color: #38bdf8; font-weight: 700; font-size: 0.68rem; padding: 2px 6px; border-radius: 4px;">✨ ACTIVE</span>'
-                    : '<span style="color: var(--text-muted); font-size: 0.68rem;">Inactive</span>');
+                    ? `<span style="background: rgba(56, 189, 248, 0.3); color: #38bdf8; font-weight: 700; font-size: 0.68rem; padding: 2px 6px; border-radius: 4px;">${t('active')}</span>`
+                    : `<span style="color: var(--text-muted); font-size: 0.68rem;">${t('inactive')}</span>`);
 
             const horizonBadge = s.isRadiantAboveHorizon
-                ? '<span style="color: #4ade80;">Above Horizon</span>'
-                : '<span style="color: var(--text-muted);">Below Horizon</span>';
+                ? `<span style="color: #4ade80;">${t('aboveHorizon')}</span>`
+                : `<span style="color: var(--text-muted);">${t('belowHorizon')}</span>`;
 
             card.innerHTML = `
                 <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -1417,16 +1449,116 @@ export class App {
                     ${statusBadge}
                 </div>
                 <div style="font-size: 0.75rem; color: var(--text-secondary);">
-                    Peak: ${s.info.peakMonth}/${s.info.peakDay} • Peak ZHR: ${s.info.peakZhr}/hr
+                    ${t('peakTonight').replace('🔥 ', '')}: ${s.info.peakMonth}/${s.info.peakDay} • ${t('peakZhr')}: ${s.info.peakZhr}/hr
                 </div>
                 <div style="font-size: 0.75rem; font-family: var(--font-mono); color: var(--text-muted); display: flex; justify-content: space-between;">
-                    <span>Radiant: Az ${s.radiantAzimuth.toFixed(0)}° Alt ${s.radiantAltitude.toFixed(0)}°</span>
+                    <span>${t('radiant')}: Az ${s.radiantAzimuth.toFixed(0)}° Alt ${s.radiantAltitude.toFixed(0)}°</span>
                     <span>${horizonBadge}</span>
                 </div>
                 ${s.isCurrentlyActive ? `
                 <div style="font-size: 0.78rem; font-weight: 600; color: ${s.isPeakToday ? 'var(--solar-gold)' : 'var(--lunar-cyan)'}; margin-top: 2px;">
-                    Est. Rate: ~${Math.round(s.estimatedVisibleRate)} meteors/hr
+                    ${t('estRate', { rate: Math.round(s.estimatedVisibleRate) })}
                 </div>` : ''}
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    renderComets() {
+        const container = document.getElementById('comet-list');
+        if (!container) return;
+
+        const h = Math.floor(this.currentMinuteOfDay / 60);
+        const m = this.currentMinuteOfDay % 60;
+        const comets = CometEngine.calculateAll(
+            this.selectedDate,
+            h,
+            m,
+            this.location.utcOffset,
+            this.location.lat,
+            this.location.lon
+        );
+
+        container.innerHTML = '';
+        comets.forEach(c => {
+            const card = document.createElement('div');
+            card.style.background = c.isAboveHorizon ? 'rgba(255, 183, 3, 0.08)' : 'rgba(255, 255, 255, 0.03)';
+            card.style.border = c.isAboveHorizon ? '1px solid rgba(255, 183, 3, 0.4)' : '1px solid var(--border-glass)';
+            card.style.borderRadius = 'var(--radius-md)';
+            card.style.padding = '12px 14px';
+            card.style.display = 'flex';
+            card.style.flexDirection = 'column';
+            card.style.gap = '6px';
+
+            const horizonBadge = c.isAboveHorizon
+                ? `<span style="color: #4ade80;">${this.i18n ? this.i18n.t('aboveHorizon') : 'Above Horizon'}</span>`
+                : `<span style="color: var(--text-muted);">${this.i18n ? this.i18n.t('belowHorizon') : 'Below Horizon'}</span>`;
+
+            card.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div style="font-weight: 700; font-size: 0.9rem; color: var(--solar-gold);">${c.info.name}</div>
+                    <span style="background: rgba(255, 183, 3, 0.2); color: #ffb703; font-weight: 700; font-size: 0.68rem; padding: 2px 6px; border-radius: 4px;">Mag ${c.info.peakMagnitude}</span>
+                </div>
+                <div style="font-size: 0.75rem; color: var(--text-secondary);">
+                    ${c.info.type} • ${c.info.constellation}
+                </div>
+                <div style="font-size: 0.75rem; font-family: var(--font-mono); color: var(--text-muted); display: flex; justify-content: space-between;">
+                    <span>Az ${c.azimuth.toFixed(0)}° Alt ${c.altitude.toFixed(0)}°</span>
+                    <span>${horizonBadge}</span>
+                </div>
+                <div style="font-size: 0.73rem; color: var(--text-muted); line-height: 1.3; margin-top: 2px;">
+                    ${c.info.observabilityWindow} (${c.info.notes})
+                </div>
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    renderStellars() {
+        const container = document.getElementById('stellar-list');
+        if (!container) return;
+
+        const h = Math.floor(this.currentMinuteOfDay / 60);
+        const m = this.currentMinuteOfDay % 60;
+        const stars = StellarEngine.calculateAll(
+            this.selectedDate,
+            h,
+            m,
+            this.location.utcOffset,
+            this.location.lat,
+            this.location.lon
+        );
+
+        container.innerHTML = '';
+        stars.forEach(s => {
+            const card = document.createElement('div');
+            card.style.background = s.isAboveHorizon ? 'rgba(56, 189, 248, 0.08)' : 'rgba(255, 255, 255, 0.03)';
+            card.style.border = s.isAboveHorizon ? '1px solid rgba(56, 189, 248, 0.35)' : '1px solid var(--border-glass)';
+            card.style.borderRadius = 'var(--radius-md)';
+            card.style.padding = '12px 14px';
+            card.style.display = 'flex';
+            card.style.flexDirection = 'column';
+            card.style.gap = '6px';
+
+            const horizonBadge = s.isAboveHorizon
+                ? `<span style="color: #4ade80;">${this.i18n ? this.i18n.t('aboveHorizon') : 'Above Horizon'}</span>`
+                : `<span style="color: var(--text-muted);">${this.i18n ? this.i18n.t('belowHorizon') : 'Below Horizon'}</span>`;
+
+            card.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div style="font-weight: 700; font-size: 0.9rem; color: #38bdf8;">${s.info.name}</div>
+                    <span style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; font-weight: 700; font-size: 0.68rem; padding: 2px 6px; border-radius: 4px;">Mag ${s.info.magnitude}</span>
+                </div>
+                <div style="font-size: 0.75rem; color: var(--text-secondary);">
+                    ${s.info.constellation}
+                </div>
+                <div style="font-size: 0.75rem; font-family: var(--font-mono); color: var(--text-muted); display: flex; justify-content: space-between;">
+                    <span>Az ${s.azimuth.toFixed(0)}° Alt ${s.altitude.toFixed(0)}°</span>
+                    <span>${horizonBadge}</span>
+                </div>
+                <div style="font-size: 0.73rem; color: var(--text-muted); line-height: 1.3; margin-top: 2px;">
+                    ${s.info.description}
+                </div>
             `;
             container.appendChild(card);
         });
@@ -1504,8 +1636,10 @@ export class App {
     }
 }
 
-// Bootstrap application on DOM load
-window.addEventListener('DOMContentLoaded', () => {
-    window.app = new App();
-    window.app.init();
-});
+// Bootstrap application on DOM load in browser environment
+if (typeof window !== 'undefined') {
+    window.addEventListener('DOMContentLoaded', () => {
+        window.app = new App();
+        window.app.init();
+    });
+}

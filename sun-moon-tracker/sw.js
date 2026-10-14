@@ -22,6 +22,8 @@ const ASSETS_TO_CACHE = [
   './js/engine/astronomy.js',
   './js/engine/declination.js',
   './js/engine/meteor_shower.js',
+  './js/engine/comets.js',
+  './js/engine/stellars.js',
   './js/ar/quat.js',
   './js/ar/math3d.js',
   './js/ar/sky_sphere.js',

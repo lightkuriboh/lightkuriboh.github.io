@@ -316,9 +316,42 @@
                         <span class="metric-value" id="val-nautical-twilight">--:-- / --:--</span>
                     </div>
                     <div class="metric-item">
-                        <span class="metric-label">Astronomical Twilight (-18°)</span>
+                        <span class="metric-label" data-i18n="astroTwilight">Astronomical Twilight (-18°)</span>
                         <span class="metric-value" id="val-astro-twilight">--:-- / --:--</span>
                     </div>
+                </div>
+            </article>
+
+            <!-- 5. Active Meteor Showers Radar -->
+            <article class="ephem-card" style="grid-column: 1 / -1;">
+                <div class="card-header">
+                    <h2 class="card-title lunar" data-i18n="meteorRadarTitle">☄️ Annual Meteor Showers Status</h2>
+                    <span class="brand-subtitle" data-i18n="meteorRadarSubtitle">IMO Meteor Radar</span>
+                </div>
+                <div id="meteor-shower-list" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin-top: 6px;">
+                    <!-- Populated dynamically by app.js -->
+                </div>
+            </article>
+
+            <!-- 6. Observable & Periodic Comets -->
+            <article class="ephem-card" style="grid-column: 1 / -1;">
+                <div class="card-header">
+                    <h2 class="card-title golden" data-i18n="cometsTitle">💫 Observable & Periodic Comets</h2>
+                    <span class="brand-subtitle" data-i18n="cometsSubtitle">Ephemeris, Perihelion & Magnitude</span>
+                </div>
+                <div id="comet-list" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin-top: 6px;">
+                    <!-- Populated dynamically by app.js -->
+                </div>
+            </article>
+
+            <!-- 7. Bright Stars & Constellations Ephemeris -->
+            <article class="ephem-card" style="grid-column: 1 / -1;">
+                <div class="card-header">
+                    <h2 class="card-title solar" data-i18n="stellarsTitle">✨ Bright Stars & Constellations</h2>
+                    <span class="brand-subtitle" data-i18n="stellarsSubtitle">Photographic & Navigational Asterisms</span>
+                </div>
+                <div id="stellar-list" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin-top: 6px;">
+                    <!-- Populated dynamically by app.js -->
                 </div>
             </article>
         </div>
@@ -394,29 +427,29 @@
             <article class="ephem-card">
                 <div class="card-header">
                     <h2 class="card-title golden" data-i18n="fovCalcTitle">📐 Field of View Calculator</h2>
-                    <span class="brand-subtitle">Sensor & Focal Length</span>
+                    <span class="brand-subtitle" data-i18n="sensorFocalSubtitle">Sensor & Focal Length</span>
                 </div>
                 <div class="fk-form-row">
                     <div class="fk-input-group">
-                        <label class="fk-label" for="fk-fov-sensor">Sensor Size</label>
+                        <label class="fk-label" for="fk-fov-sensor" data-i18n="sensorSize">Sensor Size</label>
                         <select id="fk-fov-sensor" class="fk-select"></select>
                     </div>
                     <div class="fk-input-group">
-                        <label class="fk-label" for="fk-fov-fl">Focal Length (mm)</label>
+                        <label class="fk-label" for="fk-fov-fl" data-i18n="focalLength">Focal Length (mm)</label>
                         <input type="number" id="fk-fov-fl" class="fk-input" value="24" min="1" max="1200" step="1">
                     </div>
                 </div>
                 <div class="card-metrics">
                     <div class="metric-item">
-                        <span class="metric-label">Horizontal FOV</span>
+                        <span class="metric-label" data-i18n="horizontalFov">Horizontal FOV</span>
                         <span class="metric-value" id="val-fk-hfov">--°</span>
                     </div>
                     <div class="metric-item">
-                        <span class="metric-label">Vertical FOV</span>
+                        <span class="metric-label" data-i18n="verticalFov">Vertical FOV</span>
                         <span class="metric-value" id="val-fk-vfov">--°</span>
                     </div>
                     <div class="metric-item">
-                        <span class="metric-label">Diagonal FOV</span>
+                        <span class="metric-label" data-i18n="diagonalFov">Diagonal FOV</span>
                         <span class="metric-value" id="val-fk-dfov">--°</span>
                     </div>
                 </div>
@@ -426,33 +459,33 @@
             <article class="ephem-card">
                 <div class="card-header">
                     <h2 class="card-title solar" data-i18n="focusStackCalcTitle">🔍 Focus Stacking & Hyperfocal</h2>
-                    <span class="brand-subtitle">Depth of Field Range</span>
+                    <span class="brand-subtitle" data-i18n="dofRangeSubtitle">Depth of Field Range</span>
                 </div>
                 <div class="fk-form-row">
                     <div class="fk-input-group">
-                        <label class="fk-label" for="fk-fs-fl">Focal Length (mm)</label>
+                        <label class="fk-label" for="fk-fs-fl" data-i18n="focalLength">Focal Length (mm)</label>
                         <input type="number" id="fk-fs-fl" class="fk-input" value="35" min="1" max="1200">
                     </div>
                     <div class="fk-input-group">
-                        <label class="fk-label" for="fk-fs-ap">Aperture f/</label>
+                        <label class="fk-label" for="fk-fs-ap" data-i18n="apertureF">Aperture f/</label>
                         <input type="number" id="fk-fs-ap" class="fk-input" value="8" min="0.7" max="64" step="0.1">
                     </div>
                     <div class="fk-input-group">
-                        <label class="fk-label" for="fk-fs-near">Subject Near (m)</label>
+                        <label class="fk-label" for="fk-fs-near" data-i18n="subjectNear">Subject Near (m)</label>
                         <input type="number" id="fk-fs-near" class="fk-input" value="1.5" min="0.1" step="0.1">
                     </div>
                 </div>
                 <div class="card-metrics">
                     <div class="metric-item">
-                        <span class="metric-label">Hyperfocal Distance</span>
+                        <span class="metric-label" data-i18n="hyperfocalDistance">Hyperfocal Distance</span>
                         <span class="metric-value" id="val-fk-hfd">-- m</span>
                     </div>
                     <div class="metric-item">
-                        <span class="metric-label">Recommended Shots</span>
+                        <span class="metric-label" data-i18n="recommendedShots">Recommended Shots</span>
                         <span class="metric-value" id="val-fk-fs-shots">-- shots</span>
                     </div>
                     <div class="metric-item">
-                        <span class="metric-label">Far Focus Limit</span>
+                        <span class="metric-label" data-i18n="farFocusLimit">Far Focus Limit</span>
                         <span class="metric-value" id="val-fk-fs-far">-- m</span>
                     </div>
                 </div>
@@ -462,33 +495,33 @@
             <article class="ephem-card">
                 <div class="card-header">
                     <h2 class="card-title lunar" data-i18n="nightExposureCalcTitle">🌌 Night Sky Exposure Calculator</h2>
-                    <span class="brand-subtitle">Pinpoint Star Sharpness</span>
+                    <span class="brand-subtitle" data-i18n="starSharpnessSubtitle">Pinpoint Star Sharpness</span>
                 </div>
                 <div class="fk-form-row">
                     <div class="fk-input-group">
-                        <label class="fk-label" for="fk-ne-fl">Focal Length (mm)</label>
+                        <label class="fk-label" for="fk-ne-fl" data-i18n="focalLength">Focal Length (mm)</label>
                         <input type="number" id="fk-ne-fl" class="fk-input" value="14" min="1">
                     </div>
                     <div class="fk-input-group">
-                        <label class="fk-label" for="fk-ne-ap">Aperture f/</label>
+                        <label class="fk-label" for="fk-ne-ap" data-i18n="apertureF">Aperture f/</label>
                         <input type="number" id="fk-ne-ap" class="fk-input" value="2.8" min="0.7" step="0.1">
                     </div>
                     <div class="fk-input-group">
-                        <label class="fk-label" for="fk-ne-pitch">Pixel Pitch (µm)</label>
+                        <label class="fk-label" for="fk-ne-pitch" data-i18n="pixelPitch">Pixel Pitch (µm)</label>
                         <input type="number" id="fk-ne-pitch" class="fk-input" value="4.2" min="1" step="0.1">
                     </div>
                 </div>
                 <div class="card-metrics">
                     <div class="metric-item">
-                        <span class="metric-label">NPF Rule Max Shutter</span>
+                        <span class="metric-label" data-i18n="npfRuleShutter">NPF Rule Max Shutter</span>
                         <span class="metric-value" id="val-fk-ne-npf" style="color: var(--lunar-cyan);">--s</span>
                     </div>
                     <div class="metric-item">
-                        <span class="metric-label">500 Rule Classic</span>
+                        <span class="metric-label" data-i18n="rule500Classic">500 Rule Classic</span>
                         <span class="metric-value" id="val-fk-ne-500">--s</span>
                     </div>
                     <div class="metric-item">
-                        <span class="metric-label">Recommended ISO</span>
+                        <span class="metric-label" data-i18n="recommendedIso">Recommended ISO</span>
                         <span class="metric-value" id="val-fk-ne-iso">--</span>
                     </div>
                 </div>
@@ -498,15 +531,15 @@
             <article class="ephem-card">
                 <div class="card-header">
                     <h2 class="card-title" data-i18n="ndFilterCalcTitle">🔆 Neutral Density (ND) Filter</h2>
-                    <span class="brand-subtitle">Long Exposure Time</span>
+                    <span class="brand-subtitle" data-i18n="longExposureSubtitle">Long Exposure Time</span>
                 </div>
                 <div class="fk-form-row">
                     <div class="fk-input-group">
-                        <label class="fk-label" for="fk-nd-base">Base Shutter (seconds)</label>
+                        <label class="fk-label" for="fk-nd-base" data-i18n="baseShutterSec">Base Shutter (seconds)</label>
                         <input type="number" id="fk-nd-base" class="fk-input" value="0.008" min="0.0001" step="0.001">
                     </div>
                     <div class="fk-input-group">
-                        <label class="fk-label" for="fk-nd-stops">Filter Density</label>
+                        <label class="fk-label" for="fk-nd-stops" data-i18n="filterDensity">Filter Density</label>
                         <select id="fk-nd-stops" class="fk-select">
                             <option value="3">ND8 (3 stops)</option>
                             <option value="6">ND64 (6 stops)</option>
@@ -518,11 +551,11 @@
                 </div>
                 <div class="card-metrics">
                     <div class="metric-item">
-                        <span class="metric-label">Adjusted Shutter</span>
+                        <span class="metric-label" data-i18n="adjustedShutter">Adjusted Shutter</span>
                         <span class="metric-value" id="val-fk-nd-result" style="color: var(--solar-gold);">--</span>
                     </div>
                     <div class="metric-item">
-                        <span class="metric-label">Bulb Mode Required?</span>
+                        <span class="metric-label" data-i18n="bulbModeRequired">Bulb Mode Required?</span>
                         <span class="metric-value" id="val-fk-nd-bulb">No</span>
                     </div>
                 </div>
@@ -532,25 +565,25 @@
             <article class="ephem-card">
                 <div class="card-header">
                     <h2 class="card-title lunar" data-i18n="apparentSizeCalcTitle">🌙 Moon / Sun Apparent Size</h2>
-                    <span class="brand-subtitle">Sensor Frame Coverage</span>
+                    <span class="brand-subtitle" data-i18n="frameCoverageSubtitle">Sensor Frame Coverage</span>
                 </div>
                 <div class="fk-form-row">
                     <div class="fk-input-group">
-                        <label class="fk-label" for="fk-moon-fl">Telephoto Focal Length (mm)</label>
+                        <label class="fk-label" for="fk-moon-fl" data-i18n="telephotoFocalLength">Telephoto Focal Length (mm)</label>
                         <input type="number" id="fk-moon-fl" class="fk-input" value="400" min="10" max="3000">
                     </div>
                 </div>
                 <div class="card-metrics">
                     <div class="metric-item">
-                        <span class="metric-label">Disk Diameter on Sensor</span>
+                        <span class="metric-label" data-i18n="diskDiameterSensor">Disk Diameter on Sensor</span>
                         <span class="metric-value" id="val-fk-moon-size">-- mm</span>
                     </div>
                     <div class="metric-item">
-                        <span class="metric-label">Frame Vertical Coverage</span>
+                        <span class="metric-label" data-i18n="frameVerticalCoverage">Frame Vertical Coverage</span>
                         <span class="metric-value" id="val-fk-moon-percent">--%</span>
                     </div>
                     <div class="metric-item">
-                        <span class="metric-label">Focal Length for 50% Frame</span>
+                        <span class="metric-label" data-i18n="focalLength50Percent">Focal Length for 50% Frame</span>
                         <span class="metric-value" id="val-fk-moon-req">-- mm</span>
                     </div>
                 </div>
@@ -560,38 +593,27 @@
             <article class="ephem-card">
                 <div class="card-header">
                     <h2 class="card-title" data-i18n="distanceBearingCalcTitle">🧭 Distance & Bearing Calculator</h2>
-                    <span class="brand-subtitle">Geodesic Line of Sight</span>
+                    <span class="brand-subtitle" data-i18n="geodesicSubtitle">Geodesic Line of Sight</span>
                 </div>
                 <div class="fk-form-row">
                     <div class="fk-input-group">
-                        <label class="fk-label" for="fk-db-lat2">Target Latitude (°)</label>
+                        <label class="fk-label" for="fk-db-lat2" data-i18n="targetLatitude">Target Latitude (°)</label>
                         <input type="number" id="fk-db-lat2" class="fk-input" value="21.033" step="0.001">
                     </div>
                     <div class="fk-input-group">
-                        <label class="fk-label" for="fk-db-lon2">Target Longitude (°)</label>
+                        <label class="fk-label" for="fk-db-lon2" data-i18n="targetLongitude">Target Longitude (°)</label>
                         <input type="number" id="fk-db-lon2" class="fk-input" value="105.845" step="0.001">
                     </div>
                 </div>
                 <div class="card-metrics">
                     <div class="metric-item">
-                        <span class="metric-label">Geodesic Distance</span>
+                        <span class="metric-label" data-i18n="geodesicDistance">Geodesic Distance</span>
                         <span class="metric-value" id="val-fk-db-dist">-- km</span>
                     </div>
                     <div class="metric-item">
-                        <span class="metric-label">Compass Bearing</span>
+                        <span class="metric-label" data-i18n="compassBearing">Compass Bearing</span>
                         <span class="metric-value" id="val-fk-db-bearing">--°</span>
                     </div>
-                </div>
-            </article>
-
-            <!-- 7. Active Meteor Showers Radar -->
-            <article class="ephem-card" style="grid-column: 1 / -1;">
-                <div class="card-header">
-                    <h2 class="card-title lunar">☄️ Annual Meteor Showers Status</h2>
-                    <span class="brand-subtitle">IMO Meteor Radar</span>
-                </div>
-                <div id="meteor-shower-list" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin-top: 6px;">
-                    <!-- Populated dynamically by app.js -->
                 </div>
             </article>
         </div>
@@ -651,26 +673,26 @@
 <div id="ar-options-modal" class="ar-modal-backdrop" style="display: none;">
     <div class="ar-modal-dialog">
         <div class="modal-header">
-            <h3>⚙️ AR Calibration & Options</h3>
+            <h3 data-i18n="arOptionsTitle">⚙️ AR Calibration & Options</h3>
             <button class="btn-pill icon-only" id="btn-close-ar-options" aria-label="Close Options">✕</button>
         </div>
         <div class="modal-body">
             <div class="settings-row">
-                <span>📐 Altitude & Horizon Grid</span>
+                <span data-i18n="altitudeGrid">📐 Altitude & Horizon Grid</span>
                 <input type="checkbox" id="toggle-grid" checked>
             </div>
             <div class="settings-row">
-                <span>☀️ Sun Trajectory Path</span>
+                <span data-i18n="sunTrajectoryPath">☀️ Sun Trajectory Path</span>
                 <input type="checkbox" id="toggle-sun" checked>
             </div>
             <div class="settings-row">
-                <span>🌙 Moon Trajectory Path</span>
+                <span data-i18n="moonTrajectoryPath">🌙 Moon Trajectory Path</span>
                 <input type="checkbox" id="toggle-moon" checked>
             </div>
             <div class="settings-row">
                 <div class="setting-desc">
-                    <span>🧭 Compass Calibration Offset</span>
-                    <small>Adjust heading trim if nearby magnetic interference</small>
+                    <span data-i18n="compassCalibration">🧭 Compass Calibration Offset</span>
+                    <small data-i18n="compassCalibDesc">Adjust heading trim if nearby magnetic interference</small>
                 </div>
                 <div class="slider-group">
                     <input type="range" id="compass-calib-slider" min="-30" max="30" value="0">
@@ -679,20 +701,20 @@
                 </div>
             </div>
             <div class="settings-row">
-                <span>🎯 Quick Sun Alignment</span>
-                <button class="btn-pill" id="btn-options-align-sun">Align to Sun</button>
+                <span data-i18n="quickSunAlignment">🎯 Quick Sun Alignment</span>
+                <button class="btn-pill" id="btn-options-align-sun" data-i18n="alignToSun">Align to Sun</button>
             </div>
             <div class="settings-row">
                 <div class="setting-desc">
-                    <span>∞ Sensor Calibration Guide</span>
-                    <small>Wave phone in Figure-8 if compass is uncalibrated</small>
+                    <span data-i18n="sensorCalibGuide">∞ Sensor Calibration Guide</span>
+                    <small data-i18n="waveFigure8Desc">Wave phone in Figure-8 if compass is uncalibrated</small>
                 </div>
-                <button class="btn-pill" id="btn-options-open-calib">Open Guide</button>
+                <button class="btn-pill" id="btn-options-open-calib" data-i18n="openGuide">Open Guide</button>
             </div>
             <div class="settings-row">
                 <div class="setting-desc">
-                    <span>📷 Camera Wide FOV (Calibration)</span>
-                    <small>Tune physical lens angle (Default: 66°)</small>
+                    <span data-i18n="cameraFov">📷 Camera Wide FOV (Calibration)</span>
+                    <small data-i18n="cameraFovDesc">Tune physical lens angle (Default: 66°)</small>
                 </div>
                 <div class="slider-group">
                     <input type="range" id="camera-fov-slider" min="50" max="80" value="66">
@@ -700,8 +722,8 @@
                 </div>
             </div>
             <div class="settings-row">
-                <span>🔧 Diagnostics Overlay</span>
-                <button class="btn-pill" id="btn-toggle-debug">Toggle ?debug=1</button>
+                <span data-i18n="diagnosticsOverlay">🔧 Diagnostics Overlay</span>
+                <button class="btn-pill" id="btn-toggle-debug" data-i18n="toggleDebugBtn">Toggle ?debug=1</button>
             </div>
         </div>
     </div>
@@ -713,7 +735,7 @@
         <div class="modal-header">
             <div style="display: flex; align-items: center; gap: 10px;">
                 <span style="font-size: 1.3rem;">🧭</span>
-                <h3>Compass Sensor Calibration</h3>
+                <h3 data-i18n="compassSensorCalibration">Compass Sensor Calibration</h3>
             </div>
             <button class="btn-pill icon-only" id="btn-close-calib-modal" aria-label="Close Calibration Modal">✕</button>
         </div>
@@ -733,34 +755,34 @@
                     </svg>
                     <div class="fig8-phone-anim">📱</div>
                 </div>
-                <h4 class="calib-headline">Wave phone in a Figure-8 (∞) pattern</h4>
-                <p class="calib-instruction">
+                <h4 class="calib-headline" data-i18n="wavePhoneFigure8">Wave phone in a Figure-8 (∞) pattern</h4>
+                <p class="calib-instruction" data-i18n="figure8Instruction">
                     Hold your phone firmly and smoothly wave it through the air in an infinity (∞) shape for 5–10 seconds while rotating your wrist in 3D space.
                 </p>
                 <div class="calib-callout">
                     <span class="callout-icon">💡</span>
-                    <span>Camera autofocus electromagnets and metallic phone cases temporarily distort the phone's magnetometer. Smooth 3D rotation resets the Android calibration sphere.</span>
+                    <span data-i18n="figure8Note">Camera autofocus electromagnets and metallic phone cases temporarily distort the phone's magnetometer. Smooth 3D rotation resets the Android calibration sphere.</span>
                 </div>
             </div>
 
             <!-- Live Accuracy Indicator -->
             <div class="calib-live-status-row">
                 <div class="status-indicator-dot" id="calib-modal-status-dot"></div>
-                <span id="calib-modal-status-text">Sensor Status: Checking...</span>
+                <span id="calib-modal-status-text" data-i18n="sensorStatusChecking">Sensor Status: Checking...</span>
             </div>
 
             <!-- 1-Tap Align to Sun Bypass -->
             <div class="calib-sun-bypass-box">
                 <div class="bypass-text">
-                    <strong>Visual Bypass:</strong> See the Sun right now?
+                    <strong data-i18n="visualBypass">Visual Bypass:</strong> <span data-i18n="seeSunRightNow">See the Sun right now?</span>
                 </div>
                 <button class="btn-pill primary" id="btn-calib-modal-align-sun">
-                    <span>🎯 Align Heading to Sun (<span id="calib-modal-sun-az">--°</span>)</span>
+                    <span>🎯 <span data-i18n="alignHeadingToSun">Align Heading to Sun</span> (<span id="calib-modal-sun-az">--°</span>)</span>
                 </button>
             </div>
 
             <div style="display: flex; justify-content: flex-end; margin-top: 6px;">
-                <button class="btn-pill" id="btn-done-calib-modal" style="width: 100%;">Done</button>
+                <button class="btn-pill" id="btn-done-calib-modal" style="width: 100%;" data-i18n="calibDoneBtn">Done</button>
             </div>
         </div>
     </div>
@@ -770,21 +792,21 @@
 <div id="custom-coords-modal" class="ar-modal-backdrop" style="display: none;">
     <div class="ar-modal-dialog" style="max-width: 400px; border-radius: var(--radius-lg); margin: auto;">
         <div class="modal-header">
-            <h3>📍 Custom Coordinates</h3>
+            <h3 data-i18n="customCoordsTitle">📍 Custom Coordinates</h3>
             <button class="btn-pill icon-only" id="btn-close-coords-modal" aria-label="Close Coordinates Modal">✕</button>
         </div>
         <div class="modal-body">
             <div style="display: flex; flex-direction: column; gap: 6px;">
-                <label for="input-custom-lat" style="font-size: 0.85rem; font-weight: 600; color: var(--text-secondary);">Latitude (-90° to +90°)</label>
+                <label for="input-custom-lat" style="font-size: 0.85rem; font-weight: 600; color: var(--text-secondary);" data-i18n="latitudeRange">Latitude (-90° to +90°)</label>
                 <input type="number" id="input-custom-lat" step="any" min="-90" max="90" style="padding: 10px 14px; border-radius: var(--radius-sm); background: rgba(255,255,255,0.06); border: 1px solid var(--border-glass); color: #fff; font-size: 1rem; font-family: var(--font-mono);">
             </div>
             <div style="display: flex; flex-direction: column; gap: 6px;">
-                <label for="input-custom-lon" style="font-size: 0.85rem; font-weight: 600; color: var(--text-secondary);">Longitude (-180° to +180°)</label>
+                <label for="input-custom-lon" style="font-size: 0.85rem; font-weight: 600; color: var(--text-secondary);" data-i18n="longitudeRange">Longitude (-180° to +180°)</label>
                 <input type="number" id="input-custom-lon" step="any" min="-180" max="180" style="padding: 10px 14px; border-radius: var(--radius-sm); background: rgba(255,255,255,0.06); border: 1px solid var(--border-glass); color: #fff; font-size: 1rem; font-family: var(--font-mono);">
             </div>
             <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px;">
-                <button class="btn-pill" id="btn-cancel-custom-coords">Cancel</button>
-                <button class="btn-pill primary" id="btn-save-custom-coords">Apply Coordinates</button>
+                <button class="btn-pill" id="btn-cancel-custom-coords" data-i18n="cancelBtn">Cancel</button>
+                <button class="btn-pill primary" id="btn-save-custom-coords" data-i18n="applyCoordinatesBtn">Apply Coordinates</button>
             </div>
         </div>
     </div>
