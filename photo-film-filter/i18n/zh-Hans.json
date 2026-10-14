@@ -46,5 +46,10 @@
   "sortRecent": "最新",
   "sortFilterName": "滤镜名称",
   "sortSize": "文件大小",
-  "noFavoritesTitle": "暂无收藏的胶片"
+  "noFavoritesTitle": "暂无收藏的胶片",
+  "allFilmsAndEffects": "全部胶片与效果",
+  "systemDefault": "系统默认",
+  "autoLanguage": "自动",
+  "language": "语言",
+  "selectLanguage": "选择语言"
 }

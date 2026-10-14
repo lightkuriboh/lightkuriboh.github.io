@@ -46,5 +46,10 @@
   "sortRecent": "Gần đây",
   "sortFilterName": "Tên bộ lọc",
   "sortSize": "Kích thước",
-  "noFavoritesTitle": "Chưa có phim yêu thích"
+  "noFavoritesTitle": "Chưa có phim yêu thích",
+  "allFilmsAndEffects": "Tất cả phim & hiệu ứng",
+  "systemDefault": "Mặc định hệ thống",
+  "autoLanguage": "Tự động",
+  "language": "Ngôn ngữ",
+  "selectLanguage": "Chọn ngôn ngữ"
 }

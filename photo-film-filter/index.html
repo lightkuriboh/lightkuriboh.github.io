@@ -51,7 +51,8 @@
       </div>
 
       <div class="header-actions">
-        <select id="langSelect" class="lang-select" aria-label="Select Language" title="Language">
+        <select id="langSelect" class="lang-select" aria-label="Select Language" title="Language" data-i18n-title="language">
+          <option value="auto" data-i18n="autoLanguage">Auto</option>
           <option value="en">EN</option>
           <option value="zh-Hans">简</option>
           <option value="zh-Hant">繁</option>
@@ -246,6 +247,9 @@
           <button class="lib-chip" data-category="Film" data-i18n="categoryFilm">Film</button>
           <button class="lib-chip" data-category="Effect" data-i18n="categoryEffect">Effect</button>
         </div>
+        <select id="libFilterSelect" class="lib-sort-select" title="Filter by Film or Effect">
+          <option value="" data-i18n="allFilmsAndEffects">All Films & Effects</option>
+        </select>
         <select id="libSortSelect" class="lib-sort-select">
           <option value="createdAt" data-i18n="sortRecent">Recent</option>
           <option value="filterName" data-i18n="sortFilterName">Filter Name</option>

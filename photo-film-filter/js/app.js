@@ -77,9 +77,9 @@ class FilmApp {
     // Favorites persistence
     try {
       const stored = localStorage.getItem('film_magic_favorites');
-      this.favorites = stored ? new Set(JSON.parse(stored)) : new Set([1, 3]);
+      this.favorites = stored ? new Set(JSON.parse(stored)) : new Set();
     } catch (_) {
-      this.favorites = new Set([1, 3]);
+      this.favorites = new Set();
     }
 
     this.i18n = typeof I18n !== 'undefined' ? new I18n() : null;
@@ -170,13 +170,35 @@ class FilmApp {
       this.i18n.applyToDOM();
       const langSelect = document.getElementById('langSelect');
       if (langSelect) {
-        langSelect.value = this.i18n.locale;
+        let stored = null;
+        try {
+          stored = localStorage.getItem('film_magic_locale');
+        } catch (_) {}
+        langSelect.value = (stored === 'auto' || !stored) ? 'auto' : this.i18n.locale;
         langSelect.addEventListener('change', async (e) => {
           await this.i18n.setLocale(e.target.value);
           this.updateTabLabels();
           this.selectFilter(this.selectedFilterId);
           if (this.activeCategory === 'Favorites') {
             this.renderCarousel();
+          }
+          const libModal = document.getElementById('libraryModal');
+          if (libModal && libModal.style.display !== 'none') {
+            this.renderLibraryGrid();
+          }
+        });
+      }
+
+      if (typeof document !== 'undefined' && typeof document.addEventListener === 'function') {
+        document.addEventListener('localechange', () => {
+          this.updateTabLabels();
+          this.selectFilter(this.selectedFilterId);
+          if (this.activeCategory === 'Favorites') {
+            this.renderCarousel();
+          }
+          const libModal = document.getElementById('libraryModal');
+          if (libModal && libModal.style.display !== 'none') {
+            this.renderLibraryGrid();
           }
         });
       }
@@ -226,6 +248,10 @@ class FilmApp {
     const libSort = document.getElementById('libSortSelect');
     if (libSort) {
       libSort.addEventListener('change', () => this.renderLibraryGrid());
+    }
+    const libFilter = document.getElementById('libFilterSelect');
+    if (libFilter) {
+      libFilter.addEventListener('change', () => this.renderLibraryGrid());
     }
     document.querySelectorAll('.lib-chip').forEach(chip => {
       chip.addEventListener('click', (e) => {
@@ -960,10 +986,23 @@ class FilmApp {
     const category = activeChip ? activeChip.dataset.category : 'All';
     const sortSelect = document.getElementById('libSortSelect');
     const sortBy = sortSelect ? sortSelect.value : 'createdAt';
+    const filterSelect = document.getElementById('libFilterSelect');
+    const filterId = filterSelect && filterSelect.value !== '' ? filterSelect.value : null;
+
+    // Populate filterSelect options once if empty
+    const optionsLen = filterSelect.options ? filterSelect.options.length : filterSelect.children.length;
+    if (filterSelect && optionsLen <= 1 && Array.isArray(this.filterPresets)) {
+      this.filterPresets.forEach((p) => {
+        const opt = document.createElement('option');
+        opt.value = p.id;
+        opt.textContent = `${p.name} (${p.category})`;
+        filterSelect.appendChild(opt);
+      });
+    }
 
     grid.innerHTML = '<div style="color: #888; padding: 24px; text-align: center;">Loading...</div>';
 
-    const entries = await this.libraryDb.getEntries({ sortBy, category });
+    const entries = await this.libraryDb.getEntries({ sortBy, category, filterId });
     grid.innerHTML = '';
 
     if (!entries || entries.length === 0) {

@@ -86,7 +86,7 @@ class LibraryDB {
     return entry;
   }
 
-  async getEntries({ sortBy = 'createdAt', category = null, descending = true } = {}) {
+  async getEntries({ sortBy = 'createdAt', category = null, filterId = null, descending = true } = {}) {
     await this.open();
     if (!this.db) return [];
 
@@ -101,6 +101,10 @@ class LibraryDB {
     let filtered = entries;
     if (category && category !== 'All') {
       filtered = filtered.filter((e) => e.filterCategory === category);
+    }
+    if (filterId !== null && filterId !== undefined && filterId !== '') {
+      const targetId = Number(filterId);
+      filtered = filtered.filter((e) => Number(e.filterId) === targetId);
     }
 
     filtered.sort((a, b) => {

@@ -46,5 +46,10 @@
   "sortRecent": "Recent",
   "sortFilterName": "Filter Name",
   "sortSize": "Size",
-  "noFavoritesTitle": "No favorite films yet"
+  "noFavoritesTitle": "No favorite films yet",
+  "allFilmsAndEffects": "All Films & Effects",
+  "systemDefault": "System Default",
+  "autoLanguage": "Auto",
+  "language": "Language",
+  "selectLanguage": "Select Language"
 }

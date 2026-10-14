@@ -46,5 +46,10 @@
   "sortRecent": "最新",
   "sortFilterName": "濾鏡名稱",
   "sortSize": "檔案大小",
-  "noFavoritesTitle": "尚無收藏的膠片"
+  "noFavoritesTitle": "尚無收藏的膠片",
+  "allFilmsAndEffects": "全部底片與效果",
+  "systemDefault": "系統預設",
+  "autoLanguage": "自動",
+  "language": "語言",
+  "selectLanguage": "選擇語言"
 }

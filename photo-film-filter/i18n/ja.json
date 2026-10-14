@@ -46,5 +46,10 @@
   "sortRecent": "最新",
   "sortFilterName": "フィルター名",
   "sortSize": "ファイルサイズ",
-  "noFavoritesTitle": "お気に入りのフィルムがありません"
+  "noFavoritesTitle": "お気に入りのフィルムがありません",
+  "allFilmsAndEffects": "すべてのフィルム＆効果",
+  "systemDefault": "システム標準",
+  "autoLanguage": "自動",
+  "language": "言語",
+  "selectLanguage": "言語を選択"
 }
