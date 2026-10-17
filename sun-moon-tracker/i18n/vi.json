@@ -125,7 +125,7 @@
   "sensorCalibGuide": "Hướng dẫn hiệu chuẩn cảm biến",
   "waveFigure8Desc": "Vẫy điện thoại hình số 8 nếu la bàn chưa chuẩn",
   "openGuide": "Mở hướng dẫn",
-  "cameraFovDesc": "Điều chỉnh góc ống kính quang học (Mặc định: 66°)",
+  "cameraFovDesc": "Điều chỉnh góc ống kính quang học (Mặc định: 80°)",
   "toggleDebugBtn": "Bật/Tắt ?debug=1",
   "compassSensorCalibration": "Hiệu chuẩn cảm biến la bàn",
   "wavePhoneFigure8": "Vẫy điện thoại theo quỹ đạo số 8 (∞)",

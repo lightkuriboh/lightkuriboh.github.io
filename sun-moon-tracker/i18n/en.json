@@ -125,7 +125,7 @@
   "sensorCalibGuide": "Sensor Calibration Guide",
   "waveFigure8Desc": "Wave phone in Figure-8 if compass is uncalibrated",
   "openGuide": "Open Guide",
-  "cameraFovDesc": "Tune physical lens angle (Default: 66°)",
+  "cameraFovDesc": "Tune physical lens angle (Default: 80°)",
   "toggleDebugBtn": "Toggle ?debug=1",
   "compassSensorCalibration": "Compass Sensor Calibration",
   "wavePhoneFigure8": "Wave phone in a Figure-8 (∞) pattern",

@@ -22,11 +22,15 @@ export class ARView {
         this.fusion = new OrientationFusion();
 
         // Base Camera Field of View (horizontal degrees for virtual 360° mode & long edge for camera)
-        this.fovH = 65.0;
-        let savedFov = 66.0;
+        // Default to the widest angle view (80.0°)
+        this.fovH = 80.0;
+        let savedFov = 80.0;
         if (typeof localStorage !== 'undefined') {
             const stored = parseFloat(localStorage.getItem('ar_fov_long'));
-            if (!isNaN(stored) && stored >= 45 && stored <= 90) savedFov = stored;
+            // If stored value is valid, migrate legacy 66° default to 80° widest default, otherwise keep custom setting
+            if (!isNaN(stored) && stored >= 45 && stored <= 90) {
+                savedFov = (stored === 66.0) ? 80.0 : stored;
+            }
         }
         this.fovLong = savedFov;
 
@@ -205,18 +209,50 @@ export class ARView {
         }
 
         try {
-            const constraints = {
-                video: {
-                    facingMode: { ideal: this.facingMode },
-                    width: { ideal: 1280, max: 1920 },
-                    height: { ideal: 720, max: 1080 }
-                },
-                audio: false
+            const videoConstraints = {
+                facingMode: { ideal: this.facingMode },
+                width: { ideal: 1280, max: 1920 },
+                height: { ideal: 720, max: 1080 }
             };
-            this.stream = await navigator.mediaDevices.getUserMedia(constraints);
+
+            // On multi-camera devices, prioritize the ultra-wide/wide camera
+            if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
+                try {
+                    const devices = await navigator.mediaDevices.enumerateDevices();
+                    const videoDevices = devices.filter(d => d.kind === 'videoinput');
+                    const ultrawide = videoDevices.find(d => {
+                        const lbl = (d.label || '').toLowerCase();
+                        return (lbl.includes('ultra') || lbl.includes('0.5') || lbl.includes('wide')) &&
+                               (lbl.includes('back') || lbl.includes('rear') || lbl.includes('environment') || !lbl.includes('front'));
+                    });
+                    if (ultrawide && ultrawide.deviceId) {
+                        videoConstraints.deviceId = { ideal: ultrawide.deviceId };
+                    }
+                } catch (_) {}
+            }
+
+            this.stream = await navigator.mediaDevices.getUserMedia({
+                video: videoConstraints,
+                audio: false
+            });
             this.video.srcObject = this.stream;
             await this.video.play();
             this.cameraActive = true;
+
+            // Default hardware zoom to the widest angle (minimum zoom level, e.g. 0.5x)
+            try {
+                const track = this.stream.getVideoTracks ? this.stream.getVideoTracks()[0] : null;
+                if (track && track.getCapabilities) {
+                    const caps = track.getCapabilities();
+                    if (caps && caps.zoom) {
+                        const minZoom = caps.zoom.min !== undefined ? caps.zoom.min : 1.0;
+                        await track.applyConstraints({
+                            advanced: [{ zoom: minZoom }]
+                        });
+                    }
+                }
+            } catch (_) {}
+
             return true;
         } catch (err) {
             console.warn("Camera start failed:", err);

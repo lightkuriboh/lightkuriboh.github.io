@@ -125,7 +125,7 @@
   "sensorCalibGuide": "传感器校准指南",
   "waveFigure8Desc": "若指南针未校准，请以 8 字形挥动手机",
   "openGuide": "打开指南",
-  "cameraFovDesc": "调整实体镜头视角（默认：66°）",
+  "cameraFovDesc": "调整实体镜头视角（默认：80°）",
   "toggleDebugBtn": "切换 ?debug=1",
   "compassSensorCalibration": "指南针传感器校准",
   "wavePhoneFigure8": "以 8 字形（∞）旋转挥动手机",

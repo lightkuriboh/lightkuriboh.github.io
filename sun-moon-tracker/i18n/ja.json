@@ -125,7 +125,7 @@
   "sensorCalibGuide": "センサーキャリブレーションガイド",
   "waveFigure8Desc": "コンパスが未調整の場合は8の字を描くように振ってください",
   "openGuide": "ガイドを開く",
-  "cameraFovDesc": "実際のレンズ画角を微調整（デフォルト：66°）",
+  "cameraFovDesc": "実際のレンズ画角を微調整（デフォルト：80°）",
   "toggleDebugBtn": "デバッグ表示切替 (?debug=1)",
   "compassSensorCalibration": "コンパスセンサーキャリブレーション",
   "wavePhoneFigure8": "スマートフォンを8の字（∞）に振ってください",

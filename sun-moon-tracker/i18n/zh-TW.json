@@ -125,7 +125,7 @@
   "sensorCalibGuide": "感測器校準指南",
   "waveFigure8Desc": "若指南針未校準，請以 8 字形揮動手機",
   "openGuide": "開啟指南",
-  "cameraFovDesc": "調整實體鏡頭視角（預設：66°）",
+  "cameraFovDesc": "調整實體鏡頭視角（預設：80°）",
   "toggleDebugBtn": "切換 ?debug=1",
   "compassSensorCalibration": "指南針感測器校準",
   "wavePhoneFigure8": "以 8 字形（∞）旋轉揮動手機",
