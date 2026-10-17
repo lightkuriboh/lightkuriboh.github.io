@@ -56,7 +56,13 @@ const FALLBACK_STRINGS = {
     systemDefault: "System Default",
     autoLanguage: "Auto",
     language: "Language",
-    selectLanguage: "Select Language"
+    selectLanguage: "Select Language",
+    backToLibrary: "Back to Library",
+    openInEditor: "Open in Editor",
+    zoomIn: "Zoom In",
+    zoomOut: "Zoom Out",
+    resetZoom: "Reset Zoom",
+    clickToInspect: "Click to inspect"
   },
   vi: {
     appTitle: "FILM MAGIC",
@@ -111,7 +117,13 @@ const FALLBACK_STRINGS = {
     systemDefault: "Mặc định hệ thống",
     autoLanguage: "Tự động",
     language: "Ngôn ngữ",
-    selectLanguage: "Chọn ngôn ngữ"
+    selectLanguage: "Chọn ngôn ngữ",
+    backToLibrary: "Quay lại Thư viện",
+    openInEditor: "Mở trong Trình chỉnh sửa",
+    zoomIn: "Phóng to",
+    zoomOut: "Thu nhỏ",
+    resetZoom: "Đặt lại thu phóng",
+    clickToInspect: "Nhấn để xem chi tiết"
   },
   ja: {
     appTitle: "フィルムマジック",
@@ -166,7 +178,13 @@ const FALLBACK_STRINGS = {
     systemDefault: "システム標準",
     autoLanguage: "自動",
     language: "言語",
-    selectLanguage: "言語を選択"
+    selectLanguage: "言語を選択",
+    backToLibrary: "ライブラリに戻る",
+    openInEditor: "エディターで開く",
+    zoomIn: "拡大",
+    zoomOut: "縮小",
+    resetZoom: "ズームリセット",
+    clickToInspect: "クリックして詳細表示"
   },
   'zh-Hans': {
     appTitle: "胶片魔法",
@@ -221,7 +239,13 @@ const FALLBACK_STRINGS = {
     systemDefault: "系统默认",
     autoLanguage: "自动",
     language: "语言",
-    selectLanguage: "选择语言"
+    selectLanguage: "选择语言",
+    backToLibrary: "返回图库",
+    openInEditor: "在编辑器中打开",
+    zoomIn: "放大",
+    zoomOut: "缩小",
+    resetZoom: "重置缩放",
+    clickToInspect: "点击查看大图"
   },
   'zh-Hant': {
     appTitle: "膠片魔法",
@@ -276,7 +300,13 @@ const FALLBACK_STRINGS = {
     systemDefault: "系統預設",
     autoLanguage: "自動",
     language: "語言",
-    selectLanguage: "選擇語言"
+    selectLanguage: "選擇語言",
+    backToLibrary: "返回圖庫",
+    openInEditor: "在編輯器中開啟",
+    zoomIn: "放大",
+    zoomOut: "縮小",
+    resetZoom: "重設縮放",
+    clickToInspect: "點擊查看大圖"
   }
 };
 

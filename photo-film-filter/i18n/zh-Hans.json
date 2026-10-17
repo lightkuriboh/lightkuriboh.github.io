@@ -51,5 +51,11 @@
   "systemDefault": "系统默认",
   "autoLanguage": "自动",
   "language": "语言",
-  "selectLanguage": "选择语言"
+  "selectLanguage": "选择语言",
+  "backToLibrary": "返回图库",
+  "openInEditor": "在编辑器中打开",
+  "zoomIn": "放大",
+  "zoomOut": "缩小",
+  "resetZoom": "重置缩放",
+  "clickToInspect": "点击查看大图"
 }

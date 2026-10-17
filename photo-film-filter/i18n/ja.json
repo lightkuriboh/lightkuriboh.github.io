@@ -51,5 +51,11 @@
   "systemDefault": "システム標準",
   "autoLanguage": "自動",
   "language": "言語",
-  "selectLanguage": "言語を選択"
+  "selectLanguage": "言語を選択",
+  "backToLibrary": "ライブラリに戻る",
+  "openInEditor": "エディターで開く",
+  "zoomIn": "拡大",
+  "zoomOut": "縮小",
+  "resetZoom": "ズームリセット",
+  "clickToInspect": "クリックして詳細表示"
 }

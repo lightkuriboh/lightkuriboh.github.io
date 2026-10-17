@@ -85,6 +85,21 @@ class FilmApp {
     this.i18n = typeof I18n !== 'undefined' ? new I18n() : null;
     this.libraryDb = typeof LibraryDB !== 'undefined' ? new LibraryDB() : null;
 
+    this.fsState = {
+      active: false,
+      scale: 1.0,
+      minScale: 0.8,
+      maxScale: 6.0,
+      panX: 0,
+      panY: 0,
+      isDragging: false,
+      startX: 0,
+      startY: 0,
+      currentEntry: null,
+      currentImageUrl: null,
+      lastTouchDist: 0,
+    };
+
     this.initWorker();
     this.initSlider();
     this.initUI();
@@ -333,6 +348,8 @@ class FilmApp {
         this.loadFile(e.dataTransfer.files[0]);
       }
     });
+
+    this.initFullScreenViewer();
   }
 
   bindSlider(id, valId, formatFn) {
@@ -1015,6 +1032,9 @@ class FilmApp {
       const card = document.createElement('div');
       card.className = 'library-item';
 
+      const thumbWrap = document.createElement('div');
+      thumbWrap.className = 'library-thumb-wrap';
+
       const img = document.createElement('img');
       img.className = 'library-thumb';
       img.alt = entry.filterName;
@@ -1023,11 +1043,25 @@ class FilmApp {
           img.src = imgData.thumbnail || imgData.fullRes;
         }
       });
+      thumbWrap.appendChild(img);
+
+      const zoomBadge = document.createElement('div');
+      zoomBadge.className = 'library-zoom-badge';
+      zoomBadge.innerHTML = `
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          <line x1="11" y1="8" x2="11" y2="14"></line>
+          <line x1="8" y1="11" x2="14" y2="11"></line>
+        </svg>
+        <span>${this.i18n ? this.i18n.t('clickToInspect') : 'Inspect'}</span>
+      `;
+      thumbWrap.appendChild(zoomBadge);
 
       const info = document.createElement('div');
       info.className = 'library-info';
       const date = new Date(entry.createdAt);
-      const dateStr = `${date.getMonth() + 1}/${date.getDate()} ${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`;
+      const dateStr = !isNaN(date.getTime()) ? `${date.getMonth() + 1}/${date.getDate()} ${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}` : '';
       info.innerHTML = `
         <div class="library-name">${entry.filterName}</div>
         <div class="library-meta">${entry.width}×${entry.height} • ${dateStr}</div>
@@ -1047,25 +1081,325 @@ class FilmApp {
       });
       actions.appendChild(delBtn);
 
-      card.appendChild(img);
+      const editBtn = document.createElement('button');
+      editBtn.className = 'library-del-btn';
+      editBtn.style.color = 'var(--accent-gold)';
+      editBtn.style.marginLeft = '8px';
+      editBtn.textContent = 'Edit';
+      editBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        await this.loadEntryIntoEditor(entry);
+      });
+      actions.appendChild(editBtn);
+
+      card.appendChild(thumbWrap);
       card.appendChild(info);
       card.appendChild(actions);
 
       card.addEventListener('click', async () => {
         const imgData = await this.libraryDb.getImage(entry.id);
-        if (imgData && imgData.fullRes) {
-          const imageObj = new Image();
-          imageObj.onload = () => {
-            this.handleLoadedImage(imageObj);
-            this.selectFilter(entry.filterId);
-            this.closeLibraryModal();
-            this.showToast(`Loaded ${entry.filterName} from Library`);
-          };
-          imageObj.src = imgData.fullRes;
+        if (imgData && (imgData.fullRes || imgData.thumbnail)) {
+          this.openFullScreenViewer(entry, imgData.fullRes || imgData.thumbnail);
         }
       });
 
       grid.appendChild(card);
+    }
+  }
+
+  // --- Full Screen Photo Viewer & Zoom ---
+  ensureFsState() {
+    if (!this.fsState) {
+      this.fsState = {
+        active: false,
+        scale: 1.0,
+        minScale: 0.8,
+        maxScale: 6.0,
+        panX: 0,
+        panY: 0,
+        isDragging: false,
+        startX: 0,
+        startY: 0,
+        currentEntry: null,
+        currentImageUrl: null,
+        lastTouchDist: 0,
+      };
+    }
+    return this.fsState;
+  }
+
+  initFullScreenViewer() {
+    this.ensureFsState();
+    const viewer = document.getElementById('fullScreenViewer');
+    if (!viewer) return;
+
+    const btnBack = document.getElementById('btnFullScreenBack');
+    if (btnBack) btnBack.addEventListener('click', () => this.closeFullScreenViewer());
+
+    const btnClose = document.getElementById('btnCloseFullScreen');
+    if (btnClose) btnClose.addEventListener('click', () => this.closeFullScreenViewer());
+
+    const btnZoomIn = document.getElementById('btnFsZoomIn');
+    if (btnZoomIn) btnZoomIn.addEventListener('click', () => this.zoomFsBy(1.25));
+
+    const btnZoomOut = document.getElementById('btnFsZoomOut');
+    if (btnZoomOut) btnZoomOut.addEventListener('click', () => this.zoomFsBy(0.8));
+
+    const btnReset = document.getElementById('btnFsResetZoom');
+    if (btnReset) btnReset.addEventListener('click', () => this.resetFsZoom());
+
+    const btnOpenEditor = document.getElementById('btnFsOpenEditor');
+    if (btnOpenEditor) {
+      btnOpenEditor.addEventListener('click', () => {
+        if (this.fsState.currentEntry) {
+          this.loadEntryIntoEditor(this.fsState.currentEntry);
+          this.closeFullScreenViewer(true);
+        }
+      });
+    }
+
+    const btnDownload = document.getElementById('btnFsDownload');
+    if (btnDownload) {
+      btnDownload.addEventListener('click', () => {
+        if (this.fsState.currentImageUrl) {
+          const a = document.createElement('a');
+          a.href = this.fsState.currentImageUrl;
+          const cleanName = this.fsState.currentEntry?.filterName ? this.fsState.currentEntry.filterName.replace(/\s+/g, '_') : 'photo';
+          const name = `film_magic_${cleanName}.png`;
+          a.download = name;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          this.showToast(this.i18n ? this.i18n.t('savedToDevice', { fileName: name }) : `Downloaded ${name}`);
+        }
+      });
+    }
+
+    const viewport = document.getElementById('fsViewport');
+    if (!viewport) return;
+
+    // Mouse wheel zooming centered at cursor
+    viewport.addEventListener('wheel', (e) => {
+      this.ensureFsState();
+      if (!this.fsState.active) return;
+      e.preventDefault();
+      const rect = viewport.getBoundingClientRect ? viewport.getBoundingClientRect() : { left: 0, top: 0, width: 800, height: 600 };
+      const cursorX = e.clientX - rect.left - rect.width / 2;
+      const cursorY = e.clientY - rect.top - rect.height / 2;
+      const delta = e.deltaY < 0 ? 1.15 : 0.87;
+      this.setFsScale(this.fsState.scale * delta, cursorX, cursorY);
+    }, { passive: false });
+
+    // Pointer events for smooth drag/pan
+    viewport.addEventListener('pointerdown', (e) => {
+      this.ensureFsState();
+      if (!this.fsState.active || (e.button !== undefined && e.button !== 0)) return;
+      this.fsState.isDragging = true;
+      this.fsState.startX = e.clientX - this.fsState.panX;
+      this.fsState.startY = e.clientY - this.fsState.panY;
+      if (viewport.classList) viewport.classList.add('is-panning');
+      try { if (viewport.setPointerCapture) viewport.setPointerCapture(e.pointerId); } catch (_) {}
+    });
+
+    viewport.addEventListener('pointermove', (e) => {
+      this.ensureFsState();
+      if (!this.fsState.isDragging) return;
+      this.fsState.panX = e.clientX - this.fsState.startX;
+      this.fsState.panY = e.clientY - this.fsState.startY;
+      this.applyFsTransform(false);
+    });
+
+    const stopDragging = (e) => {
+      this.ensureFsState();
+      if (!this.fsState.isDragging) return;
+      this.fsState.isDragging = false;
+      if (viewport.classList) viewport.classList.remove('is-panning');
+      try { if (e && e.pointerId && viewport.releasePointerCapture) viewport.releasePointerCapture(e.pointerId); } catch (_) {}
+    };
+
+    viewport.addEventListener('pointerup', stopDragging);
+    viewport.addEventListener('pointercancel', stopDragging);
+
+    // Double-click to zoom in/out
+    viewport.addEventListener('dblclick', (e) => {
+      this.ensureFsState();
+      if (!this.fsState.active) return;
+      e.preventDefault();
+      if (this.fsState.scale > 1.2) {
+        this.resetFsZoom();
+      } else {
+        const rect = viewport.getBoundingClientRect ? viewport.getBoundingClientRect() : { left: 0, top: 0, width: 800, height: 600 };
+        const focalX = e.clientX - rect.left - rect.width / 2;
+        const focalY = e.clientY - rect.top - rect.height / 2;
+        this.setFsScale(2.5, focalX, focalY, true);
+      }
+    });
+
+    // Touch pinch gesture for mobile browsers
+    viewport.addEventListener('touchstart', (e) => {
+      this.ensureFsState();
+      if (e.touches && e.touches.length === 2) {
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        this.fsState.lastTouchDist = Math.hypot(dx, dy);
+      }
+    }, { passive: true });
+
+    viewport.addEventListener('touchmove', (e) => {
+      this.ensureFsState();
+      if (e.touches && e.touches.length === 2) {
+        e.preventDefault();
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        const dist = Math.hypot(dx, dy);
+        if (this.fsState.lastTouchDist > 0) {
+          const ratio = dist / this.fsState.lastTouchDist;
+          const rect = viewport.getBoundingClientRect ? viewport.getBoundingClientRect() : { left: 0, top: 0, width: 800, height: 600 };
+          const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left - rect.width / 2;
+          const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top - rect.height / 2;
+          this.setFsScale(this.fsState.scale * ratio, midX, midY);
+        }
+        this.fsState.lastTouchDist = dist;
+      }
+    }, { passive: false });
+
+    viewport.addEventListener('touchend', (e) => {
+      this.ensureFsState();
+      if (!e.touches || e.touches.length < 2) {
+        this.fsState.lastTouchDist = 0;
+      }
+    }, { passive: true });
+
+    // Keyboard support
+    window.addEventListener('keydown', (e) => {
+      this.ensureFsState();
+      if (!this.fsState.active) return;
+      if (e.key === 'Escape') {
+        this.closeFullScreenViewer();
+      } else if (e.key === '+' || e.key === '=') {
+        this.zoomFsBy(1.25);
+      } else if (e.key === '-' || e.key === '_') {
+        this.zoomFsBy(0.8);
+      } else if (e.key === '0') {
+        this.resetFsZoom();
+      }
+    });
+  }
+
+  openFullScreenViewer(entry, imageUrl) {
+    this.ensureFsState();
+    const viewer = document.getElementById('fullScreenViewer');
+    const img = document.getElementById('fsImage');
+    const title = document.getElementById('fsPhotoTitle');
+    const meta = document.getElementById('fsPhotoMeta');
+    const modal = document.getElementById('libraryModal');
+
+    if (!viewer || !img) return;
+
+    this.fsState.active = true;
+    this.fsState.currentEntry = entry;
+    this.fsState.currentImageUrl = imageUrl;
+
+    img.src = imageUrl;
+    if (title) title.textContent = entry.filterName || 'Film Photo';
+    if (meta) {
+      const date = new Date(entry.createdAt);
+      const dateStr = !isNaN(date.getTime()) ? `${date.getMonth() + 1}/${date.getDate()}` : '';
+      meta.textContent = `${entry.width} × ${entry.height} • ${entry.filterCategory || 'Film'} ${dateStr ? '• ' + dateStr : ''}`;
+    }
+
+    if (modal) modal.style.display = 'none';
+    viewer.style.display = 'flex';
+
+    this.resetFsZoom();
+  }
+
+  closeFullScreenViewer(skipRestoreLibrary = false) {
+    this.ensureFsState();
+    const viewer = document.getElementById('fullScreenViewer');
+    const modal = document.getElementById('libraryModal');
+
+    if (viewer) viewer.style.display = 'none';
+    this.fsState.active = false;
+    this.resetFsZoom();
+
+    if (!skipRestoreLibrary && modal) {
+      modal.style.display = 'flex';
+    }
+  }
+
+  setFsScale(newScale, focalX = 0, focalY = 0, smooth = false) {
+    this.ensureFsState();
+    const clampedScale = Math.max(this.fsState.minScale, Math.min(this.fsState.maxScale, newScale));
+    const factor = clampedScale / this.fsState.scale;
+
+    this.fsState.panX = focalX - (focalX - this.fsState.panX) * factor;
+    this.fsState.panY = focalY - (focalY - this.fsState.panY) * factor;
+    this.fsState.scale = clampedScale;
+
+    this.applyFsTransform(smooth);
+  }
+
+  zoomFsBy(factor) {
+    this.ensureFsState();
+    this.setFsScale(this.fsState.scale * factor, 0, 0, true);
+  }
+
+  resetFsZoom() {
+    this.ensureFsState();
+    this.fsState.scale = 1.0;
+    this.fsState.panX = 0;
+    this.fsState.panY = 0;
+    this.applyFsTransform(true);
+  }
+
+  applyFsTransform(smooth = false) {
+    this.ensureFsState();
+    const container = document.getElementById('fsImageContainer');
+    const badge = document.getElementById('fsZoomBadge');
+    const viewport = document.getElementById('fsViewport');
+    const resetBtn = document.getElementById('btnFsResetZoom');
+
+    if (container) {
+      if (smooth && container.classList) {
+        container.classList.add('smooth-transition');
+        setTimeout(() => container.classList && container.classList.remove('smooth-transition'), 260);
+      }
+      container.style.transform = `translate(${this.fsState.panX}px, ${this.fsState.panY}px) scale(${this.fsState.scale})`;
+    }
+
+    if (badge) {
+      badge.textContent = `${this.fsState.scale.toFixed(1)}x`;
+    }
+
+    if (viewport && viewport.classList) {
+      if (this.fsState.scale > 1.05) {
+        viewport.classList.add('can-pan');
+      } else {
+        viewport.classList.remove('can-pan');
+      }
+    }
+
+    if (resetBtn && resetBtn.classList) {
+      if (this.fsState.scale > 1.05 || Math.abs(this.fsState.panX) > 5 || Math.abs(this.fsState.panY) > 5) {
+        resetBtn.classList.add('is-active');
+      } else {
+        resetBtn.classList.remove('is-active');
+      }
+    }
+  }
+
+  async loadEntryIntoEditor(entry) {
+    const imgData = await this.libraryDb.getImage(entry.id);
+    if (imgData && imgData.fullRes) {
+      const imageObj = new Image();
+      imageObj.onload = () => {
+        this.handleLoadedImage(imageObj);
+        this.selectFilter(entry.filterId);
+        this.closeLibraryModal();
+        this.showToast(`Loaded ${entry.filterName} from Library`);
+      };
+      imageObj.src = imgData.fullRes;
     }
   }
 

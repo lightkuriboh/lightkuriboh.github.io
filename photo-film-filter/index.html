@@ -281,6 +281,77 @@
     </div>
   </div>
 
+  <!-- Full Screen Photo Viewer Modal -->
+  <div id="fullScreenViewer" class="fullscreen-viewer" style="display: none;">
+    <!-- Top HUD Toolbar -->
+    <div class="fullscreen-header">
+      <button id="btnFullScreenBack" class="btn btn-secondary fs-back-btn" title="Back to Library" data-i18n-title="backToLibrary">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+        <span data-i18n="backToLibrary">Back to Library</span>
+      </button>
+
+      <div class="fs-meta-info">
+        <span id="fsPhotoTitle" class="fs-title">Film Photo</span>
+        <span id="fsPhotoMeta" class="fs-subtitle">1920 × 1080</span>
+      </div>
+
+      <div class="fs-header-actions">
+        <button id="btnFsOpenEditor" class="btn btn-primary fs-action-btn" title="Open in Editor" data-i18n-title="openInEditor">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 20h9"></path>
+            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+          </svg>
+          <span data-i18n="openInEditor">Open in Editor</span>
+        </button>
+        <button id="btnFsDownload" class="btn btn-secondary fs-action-btn" title="Download Photo" data-i18n-title="saveToDevice">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+        </button>
+        <button id="btnCloseFullScreen" class="close-btn" aria-label="Close">&times;</button>
+      </div>
+    </div>
+
+    <!-- Interactive Viewport for zoom & pan -->
+    <div id="fsViewport" class="fullscreen-viewport">
+      <div id="fsImageContainer" class="fullscreen-image-container">
+        <img id="fsImage" class="fullscreen-image" alt="Full Screen Inspection" draggable="false" />
+      </div>
+    </div>
+
+    <!-- Floating Bottom Zoom & Pan HUD Toolbar -->
+    <div id="fsBottomBar" class="fullscreen-bottom-bar">
+      <div class="fs-zoom-controls">
+        <button id="btnFsZoomOut" class="fs-hud-btn" title="Zoom Out" data-i18n-title="zoomOut" aria-label="Zoom Out">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+        </button>
+        <span id="fsZoomBadge" class="fs-zoom-badge">1.0x</span>
+        <button id="btnFsZoomIn" class="fs-hud-btn" title="Zoom In" data-i18n-title="zoomIn" aria-label="Zoom In">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+        </button>
+        <button id="btnFsResetZoom" class="fs-hud-btn" title="Reset Zoom (1.0x)" data-i18n-title="resetZoom" aria-label="Reset Zoom">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="1 4 1 10 7 10"></polyline>
+            <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+          </svg>
+        </button>
+      </div>
+      <div class="fs-hint-text">
+        <span>Scroll / Pinch to zoom • Drag to pan • Double-click to inspect</span>
+      </div>
+    </div>
+  </div>
+
   <script src="js/filter_worker.js"></script>
   <script src="js/split_slider.js"></script>
   <script src="js/i18n.js"></script>

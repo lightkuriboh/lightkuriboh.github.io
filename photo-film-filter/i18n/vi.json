@@ -51,5 +51,11 @@
   "systemDefault": "Mặc định hệ thống",
   "autoLanguage": "Tự động",
   "language": "Ngôn ngữ",
-  "selectLanguage": "Chọn ngôn ngữ"
+  "selectLanguage": "Chọn ngôn ngữ",
+  "backToLibrary": "Quay lại Thư viện",
+  "openInEditor": "Mở trong Trình chỉnh sửa",
+  "zoomIn": "Phóng to",
+  "zoomOut": "Thu nhỏ",
+  "resetZoom": "Đặt lại thu phóng",
+  "clickToInspect": "Nhấn để xem chi tiết"
 }

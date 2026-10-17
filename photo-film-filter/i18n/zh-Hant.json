@@ -51,5 +51,11 @@
   "systemDefault": "系統預設",
   "autoLanguage": "自動",
   "language": "語言",
-  "selectLanguage": "選擇語言"
+  "selectLanguage": "選擇語言",
+  "backToLibrary": "返回圖庫",
+  "openInEditor": "在編輯器中開啟",
+  "zoomIn": "放大",
+  "zoomOut": "縮小",
+  "resetZoom": "重設縮放",
+  "clickToInspect": "點擊查看大圖"
 }
