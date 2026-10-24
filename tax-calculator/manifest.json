@@ -1,0 +1,17 @@
+{
+  "short_name": "ExpatTax",
+  "name": "Global Expat Tax & Income Breakdown Calculator",
+  "icons": [
+    {
+      "src": "./favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "192x192 512x512"
+    }
+  ],
+  "start_url": "./",
+  "background_color": "#0a0e17",
+  "theme_color": "#0a0e17",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "categories": ["finance", "productivity", "utilities"]
+}

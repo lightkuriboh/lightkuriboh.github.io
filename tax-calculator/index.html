@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#0a0e17" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="manifest" href="./manifest.json" />
+    <meta
+      name="description"
+      content="Accurately calculate net take-home salary, tax rates, and contributions for tech expats across Taiwan (Gold Card & LPA), Japan, Hong Kong, Singapore, USA, UK, Germany, France, Vietnam, and more."
+    />
+    <title>Global Expat Tax & Income Breakdown Calculator | 14 Tech Economies</title>
+    <script type="module" crossorigin src="./assets/index-BWg5B2B0.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-BGv7yJ4C.css">
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('./sw.js').catch(() => {});
+        });
+      }
+    </script>
+  </body>
+</html>
