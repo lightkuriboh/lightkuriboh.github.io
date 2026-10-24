@@ -1,0 +1,2684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Anatomical Homology & Morphological Differentiation of Human External Genitalia</title>
+  <meta name="description" content="Interactive 3D biomedical visualization demonstrating the morphological differentiation and anatomical homology of human external genitalia during embryonic organogenesis from gestational Week 7 bipotential tissue.">
+  
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <style>
+    /* ==========================================================================
+       1. CSS VARIABLES & DESIGN TOKENS (Dark Medical Lab Aesthetic)
+       ========================================================================== */
+    :root {
+      --bg-dark: #070a13;
+      --bg-canvas-clay: radial-gradient(circle at 50% 40%, #151c33 0%, #0a0e1c 65%, #05070f 100%);
+      --bg-canvas-atlas: radial-gradient(circle at 50% 40%, #ded7cc 0%, #c4baa9 65%, #9e9381 100%);
+      
+      --panel-bg: rgba(13, 19, 36, 0.72);
+      --panel-border: rgba(148, 163, 184, 0.16);
+      --panel-hover-border: rgba(148, 163, 184, 0.32);
+      
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      
+      /* Homology Tissue Palette (Style A - Sculpted Clay) */
+      --color-tubercle: #8B5CF6;
+      --color-folds: #F59E0B;
+      --color-swellings: #10B981;
+      --color-sinus: #64748B;
+      --color-accent: #38bdf8;
+      
+      /* Style B - Clinical Atlas Skin Tones */
+      --atlas-tubercle: #E8BAA0;
+      --atlas-folds: #D4887D;
+      --atlas-swellings: #E2B296;
+      --atlas-sinus: #7A3640;
+
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 18px;
+      
+      --shadow-glass: 0 12px 36px 0 rgba(0, 0, 0, 0.45);
+      --shadow-glow: 0 0 20px rgba(139, 92, 246, 0.25);
+      --transition-base: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* ==========================================================================
+       2. RESET & BASE TYPOGRAPHY
+       ========================================================================== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+      display: flex;
+      flex-direction: column;
+      user-select: none;
+    }
+
+    button, input, select {
+      font-family: inherit;
+      color: inherit;
+    }
+
+    /* Accessibility focus */
+    button:focus-visible, input:focus-visible {
+      outline: 2px solid var(--color-accent);
+      outline-offset: 2px;
+    }
+
+    /* ==========================================================================
+       3. TOP NAVIGATION HEADER
+       ========================================================================== */
+    header#app-header {
+      height: 58px;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(7, 10, 19, 0.85);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--panel-border);
+      z-index: 40;
+      flex-shrink: 0;
+    }
+
+    .header-branding {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .badge-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #8B5CF6, #38BDF8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 10px rgba(139, 92, 246, 0.4);
+    }
+
+    .badge-icon svg {
+      width: 18px;
+      height: 18px;
+      fill: #ffffff;
+    }
+
+    .header-titles {
+      display: flex;
+      flex-direction: column;
+    }
+
+    h1.app-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .app-subtitle {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-weight: 400;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* Style segmented control */
+    .segmented-control {
+      display: flex;
+      background: rgba(15, 23, 42, 0.75);
+      border: 1px solid var(--panel-border);
+      border-radius: 30px;
+      padding: 3px;
+      gap: 2px;
+    }
+
+    .segment-btn {
+      background: transparent;
+      border: none;
+      font-size: 0.74rem;
+      font-weight: 500;
+      padding: 5px 14px;
+      border-radius: 24px;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: var(--transition-base);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .segment-btn.active {
+      background: rgba(255, 255, 255, 0.12);
+      color: #ffffff;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .header-btn {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--panel-border);
+      border-radius: var(--radius-sm);
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      padding: 6px 12px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: var(--transition-base);
+    }
+
+    .header-btn:hover {
+      background: rgba(30, 41, 59, 0.8);
+      color: var(--text-main);
+      border-color: var(--panel-hover-border);
+    }
+
+    /* ==========================================================================
+       4. MAIN WORKSPACE LAYOUT (Viewport + Collapsible Side Panel)
+       ========================================================================== */
+    #workspace {
+      display: flex;
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      height: calc(100vh - 58px);
+    }
+
+    #viewport-container {
+      flex: 1;
+      position: relative;
+      height: 100%;
+      background: var(--bg-canvas-clay);
+      transition: background 0.6s ease;
+      overflow: hidden;
+    }
+
+    #viewport-container.atlas-mode {
+      background: var(--bg-canvas-atlas);
+    }
+
+    canvas#webgl-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      cursor: grab;
+    }
+
+    canvas#webgl-canvas:active {
+      cursor: grabbing;
+    }
+
+    /* ==========================================================================
+       5. VIEWPORT OVERLAYS (HUD & STAGE BADGE)
+       ========================================================================== */
+    .viewport-overlay-topleft {
+      position: absolute;
+      top: 18px;
+      left: 20px;
+      z-index: 20;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .stage-status-card {
+      pointer-events: auto;
+      background: var(--panel-bg);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--panel-border);
+      border-radius: var(--radius-md);
+      padding: 10px 16px;
+      box-shadow: var(--shadow-glass);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      max-width: 480px;
+      transition: var(--transition-base);
+    }
+
+    .status-pulse-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--color-tubercle);
+      box-shadow: 0 0 10px var(--color-tubercle);
+      flex-shrink: 0;
+      transition: background 0.4s ease, box-shadow 0.4s ease;
+    }
+
+    .stage-label-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .stage-main-title {
+      font-size: 0.84rem;
+      font-weight: 600;
+      color: #ffffff;
+      line-height: 1.25;
+    }
+
+    .stage-sub-details {
+      font-size: 0.70rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .stage-timeline-badge {
+      font-size: 0.66rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 2px 8px;
+      border-radius: 12px;
+      color: var(--color-accent);
+      margin-left: auto;
+      flex-shrink: 0;
+    }
+
+    /* Inspection HUD card for hovered/clicked tissue */
+    .tissue-inspection-hud {
+      pointer-events: auto;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--color-accent);
+      border-radius: var(--radius-sm);
+      padding: 8px 14px;
+      font-size: 0.72rem;
+      display: none;
+      animation: fadeIn 0.2s ease forwards;
+      max-width: 380px;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4);
+    }
+
+    .tissue-inspection-hud.active {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .hud-title {
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #ffffff;
+    }
+
+    .hud-derivatives {
+      color: var(--text-muted);
+      line-height: 1.35;
+    }
+
+    .hud-derivatives strong {
+      color: var(--text-main);
+    }
+
+    /* Depth scale ruler in Style B */
+    .depth-ruler {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      height: 220px;
+      width: 24px;
+      border-right: 1px solid rgba(148, 163, 184, 0.3);
+      display: none;
+      flex-direction: column;
+      justify-content: space-between;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.62rem;
+      color: rgba(71, 85, 105, 0.8);
+      pointer-events: none;
+      padding-right: 4px;
+      text-align: right;
+    }
+
+    .depth-ruler.visible {
+      display: flex;
+    }
+
+    /* ==========================================================================
+       6. INTERACTIVE HOMOLOGY LEGEND (Bottom-Left)
+       ========================================================================== */
+    .viewport-overlay-bottomleft {
+      position: absolute;
+      bottom: 96px;
+      left: 20px;
+      z-index: 20;
+      pointer-events: auto;
+    }
+
+    .homology-legend-card {
+      background: var(--panel-bg);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--panel-border);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      box-shadow: var(--shadow-glass);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: 320px;
+      transition: var(--transition-base);
+    }
+
+    .legend-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 6px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+    }
+
+    .legend-header-title {
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .legend-hint {
+      font-size: 0.64rem;
+      color: var(--text-dim);
+    }
+
+    .legend-items-list {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .legend-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 8px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: var(--transition-base);
+      border: 1px solid transparent;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .legend-row:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: var(--panel-hover-border);
+    }
+
+    .legend-row.active {
+      background: rgba(139, 92, 246, 0.18);
+      border-color: var(--color-accent);
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.25);
+    }
+
+    .color-swatch-group {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      flex-shrink: 0;
+    }
+
+    .color-chip {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+    }
+
+    .color-chip.atlas-chip {
+      display: none;
+      width: 8px;
+      height: 12px;
+      border-radius: 2px;
+    }
+
+    .atlas-mode-active .color-chip.atlas-chip {
+      display: block;
+    }
+
+    .legend-labels {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .legend-primary-name {
+      font-size: 0.74rem;
+      font-weight: 600;
+      color: #ffffff;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+
+    .legend-derivative-name {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      transition: color 0.2s ease;
+    }
+
+    .legend-row.active .legend-derivative-name {
+      color: var(--color-accent);
+    }
+
+    /* ==========================================================================
+       7. SVG & HTML ANNOTATION LABELS OVERLAY (Style B Leader Lines)
+       ========================================================================== */
+    #labels-overlay-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 15;
+      overflow: hidden;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    #labels-overlay-container.visible {
+      opacity: 1;
+    }
+
+    svg#leader-lines-svg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .leader-line {
+      stroke: rgba(46, 24, 24, 0.65);
+      stroke-width: 1.2;
+      stroke-dasharray: 3 3;
+    }
+
+    .leader-dot {
+      fill: #2e1818;
+    }
+
+    .viewport-label-tag {
+      position: absolute;
+      pointer-events: auto;
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(46, 24, 24, 0.4);
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 0.68rem;
+      font-weight: 600;
+      color: #2e1818;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      cursor: pointer;
+      transition: transform 0.15s ease, background 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .viewport-label-tag:hover {
+      background: #ffffff;
+      transform: scale(1.05);
+      border-color: #8B5CF6;
+    }
+
+    /* ==========================================================================
+       8. BOTTOM FLOATING PLAYBACK CONTROLLER (Glassmorphic Bar)
+       ========================================================================== */
+    .viewport-overlay-bottom {
+      position: absolute;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 25;
+      width: min(860px, calc(100% - 32px));
+      pointer-events: auto;
+    }
+
+    .playback-dock {
+      background: var(--panel-bg);
+      backdrop-filter: blur(18px);
+      border: 1px solid var(--panel-border);
+      border-radius: var(--radius-lg);
+      padding: 10px 18px;
+      box-shadow: var(--shadow-glass);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .dock-top-controls {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .play-pause-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #8B5CF6, #6366F1);
+      border: none;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
+      transition: var(--transition-base);
+      flex-shrink: 0;
+    }
+
+    .play-pause-btn:hover {
+      transform: scale(1.06);
+      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.6);
+    }
+
+    .play-pause-btn svg {
+      width: 16px;
+      height: 16px;
+      fill: currentColor;
+    }
+
+    .loop-toggle-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--panel-border);
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: var(--transition-base);
+      flex-shrink: 0;
+    }
+
+    .loop-toggle-btn.active {
+      background: rgba(56, 189, 248, 0.18);
+      color: var(--color-accent);
+      border-color: var(--color-accent);
+    }
+
+    .loop-toggle-btn svg {
+      width: 15px;
+      height: 15px;
+      fill: currentColor;
+    }
+
+    /* Scrubber container */
+    .scrubber-track-wrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      position: relative;
+    }
+
+    .scrubber-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: rgba(255, 255, 255, 0.15);
+      outline: none;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .scrubber-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 2px solid var(--color-tubercle);
+      box-shadow: 0 0 10px rgba(139, 92, 246, 0.8);
+      cursor: pointer;
+      transition: transform 0.15s ease;
+    }
+
+    .scrubber-slider::-webkit-slider-thumb:hover {
+      transform: scale(1.25);
+    }
+
+    .scrubber-markers {
+      display: flex;
+      justify-content: space-between;
+      position: relative;
+      font-size: 0.64rem;
+      font-weight: 500;
+      color: var(--text-dim);
+      padding: 0 2px;
+    }
+
+    .marker-tick {
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+
+    .marker-tick:hover, .marker-tick.active {
+      color: var(--text-main);
+      font-weight: 600;
+    }
+
+    /* Quick jump stage buttons row */
+    .dock-bottom-stages {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding-top: 6px;
+      border-top: 1px solid rgba(148, 163, 184, 0.1);
+    }
+
+    .stage-jump-btn {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--panel-border);
+      border-radius: var(--radius-sm);
+      padding: 6px 10px;
+      font-size: 0.72rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      color: var(--text-muted);
+      transition: var(--transition-base);
+    }
+
+    .stage-jump-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-main);
+      border-color: var(--panel-hover-border);
+    }
+
+    .stage-jump-btn.active {
+      background: rgba(139, 92, 246, 0.18);
+      color: #ffffff;
+      border-color: var(--color-tubercle);
+      box-shadow: 0 0 10px rgba(139, 92, 246, 0.3);
+    }
+
+    .stage-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    /* ==========================================================================
+       9. COLLAPSIBLE EDUCATIONAL SIDE PANEL
+       ========================================================================== */
+    aside#educational-panel {
+      width: 380px;
+      height: 100%;
+      background: rgba(11, 16, 32, 0.94);
+      backdrop-filter: blur(20px);
+      border-left: 1px solid var(--panel-border);
+      display: flex;
+      flex-direction: column;
+      z-index: 30;
+      transition: width 0.35s cubic-bezier(0.16, 1, 0.3, 1), transform 0.35s ease;
+      flex-shrink: 0;
+      position: relative;
+    }
+
+    aside#educational-panel.collapsed {
+      width: 0;
+      border-left-color: transparent;
+      overflow: hidden;
+    }
+
+    .panel-toggle-tab {
+      position: absolute;
+      top: 50%;
+      left: -32px;
+      transform: translateY(-50%);
+      width: 32px;
+      height: 54px;
+      background: rgba(11, 16, 32, 0.94);
+      border: 1px solid var(--panel-border);
+      border-right: none;
+      border-radius: 8px 0 0 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      cursor: pointer;
+      z-index: 35;
+      transition: var(--transition-base);
+    }
+
+    .panel-toggle-tab:hover {
+      color: #ffffff;
+      background: rgba(20, 28, 55, 0.98);
+    }
+
+    .panel-toggle-tab svg {
+      width: 16px;
+      height: 16px;
+      transition: transform 0.3s ease;
+    }
+
+    aside#educational-panel.collapsed .panel-toggle-tab svg {
+      transform: rotate(180deg);
+    }
+
+    .panel-inner-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 22px 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    /* Scrollbar styling */
+    .panel-inner-scroll::-webkit-scrollbar {
+      width: 5px;
+    }
+    .panel-inner-scroll::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .panel-inner-scroll::-webkit-scrollbar-thumb {
+      background: rgba(148, 163, 184, 0.2);
+      border-radius: 3px;
+    }
+
+    .panel-header-section {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--panel-border);
+    }
+
+    .panel-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: -0.01em;
+    }
+
+    .panel-desc {
+      font-size: 0.76rem;
+      color: var(--text-muted);
+      line-height: 1.45;
+    }
+
+    /* Accordion Components */
+    .accordion-item {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--panel-border);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      transition: border-color 0.2s ease;
+    }
+
+    .accordion-item:hover {
+      border-color: var(--panel-hover-border);
+    }
+
+    .accordion-header {
+      width: 100%;
+      padding: 10px 14px;
+      background: transparent;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      font-size: 0.80rem;
+      font-weight: 600;
+      color: #ffffff;
+      text-align: left;
+    }
+
+    .accordion-header-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .accordion-header svg.chevron {
+      width: 14px;
+      height: 14px;
+      fill: var(--text-muted);
+      transition: transform 0.25s ease;
+    }
+
+    .accordion-item.open .accordion-header svg.chevron {
+      transform: rotate(180deg);
+    }
+
+    .accordion-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      padding: 0 14px;
+      font-size: 0.74rem;
+      line-height: 1.5;
+      color: var(--text-muted);
+    }
+
+    .accordion-item.open .accordion-content {
+      max-height: 480px;
+      padding: 6px 14px 14px;
+    }
+
+    /* Homology Matrix Table */
+    .matrix-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.68rem;
+      margin-top: 8px;
+    }
+
+    .matrix-table th {
+      text-align: left;
+      padding: 6px 4px;
+      border-bottom: 1px solid var(--panel-border);
+      color: var(--text-dim);
+      font-weight: 600;
+    }
+
+    .matrix-table td {
+      padding: 6px 4px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+      color: var(--text-main);
+    }
+
+    .matrix-table tr.active-highlight td {
+      background: rgba(139, 92, 246, 0.15);
+      color: #ffffff;
+    }
+
+    /* Endocrine diagram pills */
+    .endocrine-pathway {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .pathway-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.02);
+      border-left: 2px solid var(--color-accent);
+      padding: 6px 10px;
+      border-radius: 0 4px 4px 0;
+    }
+
+    .pathway-step strong {
+      color: var(--text-main);
+    }
+
+    .clinical-callout {
+      background: rgba(239, 68, 68, 0.08);
+      border: 1px solid rgba(239, 68, 68, 0.25);
+      border-radius: var(--radius-sm);
+      padding: 8px 10px;
+      margin-top: 8px;
+    }
+
+    .clinical-callout h5 {
+      color: #f87171;
+      font-size: 0.72rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .pedagogical-disclaimer {
+      font-size: 0.66rem;
+      color: var(--text-dim);
+      line-height: 1.4;
+      padding: 10px;
+      border-radius: var(--radius-sm);
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px dashed rgba(148, 163, 184, 0.15);
+    }
+
+    /* ==========================================================================
+       10. RESPONSIVE DESIGN (Tablets & Mobile)
+       ========================================================================== */
+    @media (max-width: 900px) {
+      aside#educational-panel {
+        position: absolute;
+        right: 0;
+        top: 0;
+        height: 100%;
+        box-shadow: -8px 0 28px rgba(0, 0, 0, 0.6);
+      }
+
+      aside#educational-panel.collapsed {
+        transform: translateX(100%);
+        width: 340px;
+      }
+
+      .viewport-overlay-bottom {
+        width: calc(100% - 20px);
+      }
+
+      .dock-bottom-stages {
+        flex-wrap: wrap;
+      }
+
+      .homology-legend-card {
+        width: 260px;
+      }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+
+  <!-- External Libraries via Verified CDNs -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+</head>
+<body>
+
+  <!-- ==========================================================================
+       TOP NAVIGATION BAR
+       ========================================================================== -->
+  <header id="app-header">
+    <div class="header-branding">
+      <div class="badge-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+        </svg>
+      </div>
+      <div class="header-titles">
+        <h1 class="app-title">External Genital Morphogenesis & Anatomical Homology</h1>
+        <div class="app-subtitle">Gestational Week 7 Bipotential Primordium &harr; 46,XX & 46,XY Morphological Divergence</div>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <!-- Style switch segmented control -->
+      <div class="segmented-control" role="group" aria-label="Visual Rendering Style">
+        <button id="btn-style-clay" class="segment-btn active" title="Sculpted Clay (Stylized/Tactile)" aria-pressed="true">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/></svg>
+          Sculpted Clay
+        </button>
+        <button id="btn-style-atlas" class="segment-btn" title="Clinical Atlas (Realistic/Medical Diagram)" aria-pressed="false">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Clinical Atlas
+        </button>
+      </div>
+
+      <button id="btn-toggle-labels" class="header-btn" title="Toggle Anatomical Leader Line Labels">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></svg>
+        <span>Labels</span>
+      </button>
+
+      <button id="btn-reset-cam" class="header-btn" title="Reset Viewport Camera to Anatomic Standard">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+        <span>Reset View</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ==========================================================================
+       MAIN WORKSPACE (3D Canvas + Overlays + Side Panel)
+       ========================================================================== -->
+  <main id="workspace">
+
+    <!-- 3D Viewport Canvas Container -->
+    <section id="viewport-container" aria-label="3D Anatomical Morphing Viewer">
+      <canvas id="webgl-canvas"></canvas>
+
+      <!-- SVG Leader Lines & HTML Labels Overlay -->
+      <div id="labels-overlay-container">
+        <svg id="leader-lines-svg">
+          <line id="line-tubercle" class="leader-line" />
+          <circle id="dot-tubercle" class="leader-dot" r="3" />
+          <line id="line-folds" class="leader-line" />
+          <circle id="dot-folds" class="leader-dot" r="3" />
+          <line id="line-swellings" class="leader-line" />
+          <circle id="dot-swellings" class="leader-dot" r="3" />
+          <line id="line-sinus" class="leader-line" />
+          <circle id="dot-sinus" class="leader-dot" r="3" />
+        </svg>
+
+        <div id="lbl-tubercle" class="viewport-label-tag">Genital Tubercle</div>
+        <div id="lbl-folds" class="viewport-label-tag">Urogenital Folds</div>
+        <div id="lbl-swellings" class="viewport-label-tag">Labioscrotal Swellings</div>
+        <div id="lbl-sinus" class="viewport-label-tag">Urogenital Sinus</div>
+      </div>
+
+      <!-- Depth ruler (Style B) -->
+      <div id="depth-ruler" class="depth-ruler">
+        <span>+10mm</span>
+        <span>+05mm</span>
+        <span>00mm</span>
+        <span>-05mm</span>
+        <span>-10mm</span>
+      </div>
+
+      <!-- Top-Left Status Badge & Active HUD -->
+      <div class="viewport-overlay-topleft">
+        <div class="stage-status-card">
+          <div id="status-dot" class="status-pulse-dot"></div>
+          <div class="stage-label-group">
+            <span id="stage-title" class="stage-main-title">Bipotential Primordial Genitalia</span>
+            <span id="stage-details" class="stage-sub-details">Gestational Week 7 &bull; Neutral Phenotype</span>
+          </div>
+          <span id="stage-percentage" class="stage-timeline-badge">0% CYCLE</span>
+        </div>
+
+        <!-- Interactive hover/selection HUD -->
+        <div id="tissue-hud" class="tissue-inspection-hud">
+          <div class="hud-title">
+            <span id="hud-chip" class="color-chip"></span>
+            <span id="hud-tissue-name">Genital Tubercle</span>
+          </div>
+          <div class="hud-derivatives" id="hud-derivatives-text">
+            Female: <strong>Glans clitoridis</strong> | Male: <strong>Glans penis</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom-Left Persistent Homology Legend -->
+      <div class="viewport-overlay-bottomleft">
+        <div class="homology-legend-card">
+          <div class="legend-header">
+            <span class="legend-header-title">Primordial Germ Layers</span>
+            <span class="legend-hint">Hover / Click to isolate</span>
+          </div>
+          <div class="legend-items-list" id="legend-list">
+            <!-- Row 1: Tubercle -->
+            <div class="legend-row" data-tissue="genitalTubercle">
+              <div class="color-swatch-group">
+                <span class="color-chip" style="background-color: var(--color-tubercle);"></span>
+                <span class="color-chip atlas-chip" style="background-color: var(--atlas-tubercle);"></span>
+              </div>
+              <div class="legend-labels">
+                <span class="legend-primary-name">Genital Tubercle</span>
+                <span class="legend-derivative-name" id="deriv-tubercle">&rarr; Primordial phallus</span>
+              </div>
+            </div>
+
+            <!-- Row 2: Folds -->
+            <div class="legend-row" data-tissue="urogenitalFolds">
+              <div class="color-swatch-group">
+                <span class="color-chip" style="background-color: var(--color-folds);"></span>
+                <span class="color-chip atlas-chip" style="background-color: var(--atlas-folds);"></span>
+              </div>
+              <div class="legend-labels">
+                <span class="legend-primary-name">Urogenital / Urethral Folds</span>
+                <span class="legend-derivative-name" id="deriv-folds">&rarr; Unfused medial margins</span>
+              </div>
+            </div>
+
+            <!-- Row 3: Swellings -->
+            <div class="legend-row" data-tissue="labioscrotalSwellings">
+              <div class="color-swatch-group">
+                <span class="color-chip" style="background-color: var(--color-swellings);"></span>
+                <span class="color-chip atlas-chip" style="background-color: var(--atlas-swellings);"></span>
+              </div>
+              <div class="legend-labels">
+                <span class="legend-primary-name">Labioscrotal Swellings</span>
+                <span class="legend-derivative-name" id="deriv-swellings">&rarr; Lateral genital eminences</span>
+              </div>
+            </div>
+
+            <!-- Row 4: Sinus -->
+            <div class="legend-row" data-tissue="urogenitalSinus">
+              <div class="color-swatch-group">
+                <span class="color-chip" style="background-color: var(--color-sinus);"></span>
+                <span class="color-chip atlas-chip" style="background-color: var(--atlas-sinus);"></span>
+              </div>
+              <div class="legend-labels">
+                <span class="legend-primary-name">Urogenital Sinus / Groove</span>
+                <span class="legend-derivative-name" id="deriv-sinus">&rarr; Urethral groove opening</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Floating Playback & Scrubber Dock -->
+      <div class="viewport-overlay-bottom">
+        <div class="playback-dock">
+          <div class="dock-top-controls">
+            <!-- Play/Pause -->
+            <button id="btn-play-pause" class="play-pause-btn" aria-label="Play or Pause Morphing Cycle" title="Toggle Play / Pause (Space)">
+              <svg id="icon-play" viewBox="0 0 24 24"><polygon points="6 4 20 12 6 20 6 4"/></svg>
+              <svg id="icon-pause" viewBox="0 0 24 24" style="display:none;"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+            </button>
+
+            <!-- Loop toggle -->
+            <button id="btn-loop-toggle" class="loop-toggle-btn active" aria-label="Toggle Continuous Loop" title="Continuous Loop On/Off">
+              <svg viewBox="0 0 24 24"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg>
+            </button>
+
+            <!-- Scrubber Track & Markers -->
+            <div class="scrubber-track-wrapper">
+              <input type="range" id="morph-scrubber" class="scrubber-slider" min="0" max="1000" value="0" aria-label="Morphing Progress Scrubber">
+              <div class="scrubber-markers">
+                <span class="marker-tick" data-target="0.0">Week 7 Primordium</span>
+                <span class="marker-tick" data-target="0.3333">&female; 46,XX Pathway</span>
+                <span class="marker-tick" data-target="0.6666">&male; 46,XY Pathway</span>
+                <span class="marker-tick" data-target="1.0">Loop Return</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Discrete Stage Jump Buttons -->
+          <div class="dock-bottom-stages">
+            <button class="stage-jump-btn active" data-target="0.0" id="jump-s0">
+              <span class="stage-dot"></span>
+              Week 7 Bipotential
+            </button>
+            <button class="stage-jump-btn" data-target="0.3333" id="jump-female">
+              <span class="stage-dot"></span>
+              Female Homology (46,XX)
+            </button>
+            <button class="stage-jump-btn" data-target="0.6666" id="jump-male">
+              <span class="stage-dot"></span>
+              Male Homology (46,XY)
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Collapsible Educational Side Panel -->
+    <aside id="educational-panel" aria-label="Educational Curriculum & Homology Matrix">
+      <!-- Collapse toggle tab -->
+      <button id="btn-toggle-panel" class="panel-toggle-tab" aria-label="Expand or Collapse Educational Panel" title="Toggle Side Panel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+
+      <div class="panel-inner-scroll">
+        <div class="panel-header-section">
+          <h2 class="panel-title">Embryological Organogenesis</h2>
+          <p class="panel-desc">External genitalia homology reference guide based on Langman's Medical Embryology and Netter's Clinical Anatomy.</p>
+        </div>
+
+        <!-- Homology Matrix Accordion -->
+        <div class="accordion-item open">
+          <button class="accordion-header">
+            <div class="accordion-header-left">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+              <span>Anatomical Homology Matrix</span>
+            </div>
+            <svg class="chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="accordion-content">
+            <p>During the bipotential stage (Weeks 4&ndash;7), morphologically indistinguishable precursor tissues arise around the cloacal membrane. Subsequent sexual dimorphism is mediated entirely by hormonal signaling.</p>
+            <table class="matrix-table" id="homology-matrix">
+              <thead>
+                <tr>
+                  <th>Primordial Origin</th>
+                  <th>Female (46,XX)</th>
+                  <th>Male (46,XY)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr data-tissue="genitalTubercle">
+                  <td><strong>Genital Tubercle</strong></td>
+                  <td>Glans clitoridis &amp; corpora cavernosa</td>
+                  <td>Glans penis &amp; corpora cavernosa</td>
+                </tr>
+                <tr data-tissue="urogenitalFolds">
+                  <td><strong>Urogenital Folds</strong></td>
+                  <td>Labia minora (unfused)</td>
+                  <td>Ventral penile shaft &amp; spongy urethra</td>
+                </tr>
+                <tr data-tissue="labioscrotalSwellings">
+                  <td><strong>Labioscrotal Swellings</strong></td>
+                  <td>Labia majora</td>
+                  <td>Scrotal sac &amp; scrotal raphe</td>
+                </tr>
+                <tr data-tissue="urogenitalSinus">
+                  <td><strong>Urogenital Sinus</strong></td>
+                  <td>Vestibule (urethral &amp; vaginal orifices)</td>
+                  <td>Spongy urethra &amp; prostate gland</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Endocrine Drivers Accordion -->
+        <div class="accordion-item open">
+          <button class="accordion-header">
+            <div class="accordion-header-left">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              <span>Endocrine Drivers &amp; DHT Cascades</span>
+            </div>
+            <svg class="chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="accordion-content">
+            <p>Divergence from the default female phenotype requires active, timed androgenic stimulation starting in Week 8:</p>
+            <div class="endocrine-pathway">
+              <div class="pathway-step">
+                <div>
+                  <strong>1. SRY Gene Activation (Yp11.2)</strong><br>
+                  Expression of SRY (Sex-determining Region Y) drives primitive sex cords to differentiate into Sertoli and Leydig cells in the embryonic testis.
+                </div>
+              </div>
+              <div class="pathway-step">
+                <div>
+                  <strong>2. Testosterone Synthesis</strong><br>
+                  Leydig cells produce testosterone by gestational Week 8. Testosterone stabilises the mesonephric (Wolffian) internal ducts.
+                </div>
+              </div>
+              <div class="pathway-step">
+                <div>
+                  <strong>3. 5&alpha;-Reductase Type 2 &amp; DHT Conversion</strong><br>
+                  In external genital target mesenchyme, enzyme <strong>5&alpha;-reductase type 2</strong> reduces testosterone to <strong>Dihydrotestosterone (DHT)</strong>, which has ~5&times; higher affinity for the Androgen Receptor (AR).
+                </div>
+              </div>
+              <div class="pathway-step">
+                <div>
+                  <strong>4. Ventral Midline Fusion</strong><br>
+                  DHT stimulates rapid phallic elongation, medial migration and fusion of the urethral folds to enclose the penile urethra, and inferomedial migration and scrotal fusion of the labioscrotal swellings.
+                </div>
+              </div>
+              <div class="pathway-step" style="border-left-color: #EC4899;">
+                <div>
+                  <strong>5. Absence of Androgens (Female Pathway)</strong><br>
+                  Without DHT stimulation, the genital tubercle ceases rapid elongation (forming the clitoris), urethral folds remain unfused as labia minora, and labioscrotal swellings form labia majora bordering the open vestibule.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Clinical Correlates Accordion -->
+        <div class="accordion-item">
+          <button class="accordion-header">
+            <div class="accordion-header-left">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+              <span>Clinical Pathology Correlates</span>
+            </div>
+            <svg class="chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="accordion-content">
+            <div class="clinical-callout">
+              <h5>Hypospadias (1 in 250 male live births)</h5>
+              <p>Incomplete ventral fusion of the urogenital (urethral) folds results in an abnormally positioned external urethral meatus along the ventral aspect of the penis (glandular, penile shaft, or perineal).</p>
+            </div>
+            <div class="clinical-callout">
+              <h5>Androgen Insensitivity Syndrome (CAIS / PAIS)</h5>
+              <p>46,XY karyotype with loss-of-function mutations in the <em>AR</em> gene. Despite high circulating testosterone and DHT, external tissues fail to respond, developing an anatomically female external phenotype with blind-ending vagina.</p>
+            </div>
+            <div class="clinical-callout">
+              <h5>5&alpha;-Reductase Type 2 Deficiency (46,XY DSD)</h5>
+              <p>Impaired conversion of testosterone to DHT causes under-virilization at birth (pseudovaginal perineoscrotal hypospadias). At puberty, surging testosterone levels can trigger virilization.</p>
+            </div>
+            <div class="clinical-callout">
+              <h5>Congenital Adrenal Hyperplasia (CAH, 46,XX)</h5>
+              <p>Deficiency of 21-hydroxylase results in cortisol deficit and compensatory adrenal androgen hypersecretion, causing virilization of female genitalia (clitoromegaly, partial labioscrotal fusion).</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="pedagogical-disclaimer">
+          <strong>Pedagogical Model Notice:</strong> This visualization uses a continuously parameterized mathematical surface model to illustrate anatomical homology and morphological transitions between stages. The transition from Female (46,XX) to Male (46,XY) is a comparative homology morph for educational contrast, not an in-vivo biological pathway.
+        </div>
+      </div>
+    </aside>
+
+  </main>
+
+  <!-- ==========================================================================
+       JAVASCRIPT APPLICATION LOGIC
+       ========================================================================== -->
+  <script>
+  (function() {
+    'use strict';
+
+    // ===== 1. CONSTANTS & TERMINOLOGY =====
+    const TERMS = {
+      s0: "Bipotential primordial genitalia (Gestational Week 7)",
+      female: "Female Phenotypic Differentiation (46,XX pathway)",
+      male: "Male Phenotypic Differentiation (46,XY / Androgen-mediated pathway)",
+      tissues: {
+        genitalTubercle: {
+          name: "Genital Tubercle",
+          color: "#8B5CF6",
+          atlasColor: "#E8BAA0",
+          s0: "Primordial phallus",
+          female: "Glans clitoridis & hood",
+          male: "Glans penis & penile shaft"
+        },
+        urogenitalFolds: {
+          name: "Urogenital / Urethral Folds",
+          color: "#F59E0B",
+          atlasColor: "#D4887D",
+          s0: "Unfused medial margins",
+          female: "Labia minora",
+          male: "Ventral penile raphe & spongy urethra"
+        },
+        labioscrotalSwellings: {
+          name: "Labioscrotal / Genital Swellings",
+          color: "#10B981",
+          atlasColor: "#E2B296",
+          s0: "Lateral genital eminences",
+          female: "Labia majora",
+          male: "Scrotum & scrotal raphe"
+        },
+        urogenitalSinus: {
+          name: "Urogenital Sinus / Groove",
+          color: "#64748B",
+          atlasColor: "#7A3640",
+          s0: "Urethral groove aperture",
+          female: "Vestibule (urethral & vaginal orifices)",
+          male: "Spongy (penile) urethra & distal meatus"
+        }
+      }
+    };
+
+    // ===== 2. STATE =====
+    const state = {
+      t: 0.0,              // 0..1 representing full cycle
+      playing: true,
+      loop: true,
+      style: 'clay',       // 'clay' | 'atlas'
+      highlight: null,     // null or key in TERMS.tissues
+      showLabels: false,
+      duration: 18.0,      // Seconds for one complete cycle
+      dwellTimer: 0.0,
+      isTweening: false,
+      lastT: -1,
+      cameraStandard: { x: 0.0, y: -0.2, z: 6.2, target: [0, -0.6, 0.2] }
+    };
+
+    // ===== 3. PARAMETER KEYFRAMES =====
+    // Coordinates and morphing dimensions defined per Stage (S0: Week 7, F: Female, M: Male)
+    const P = {
+      // Stage 0: Bipotential Week 7
+      S0: {
+        tubercle:  { L: 0.95, r0: 0.28, taper: 0.20, tilt: 0.16, bend: 0.00, glans: 0.08, glansU: 0.85, glansW: 0.12, corona: 0.00, hood: 0.00 },
+        folds:     { dOpen: 0.28, dPeri: 0.32, fuse: 0.00, a: 0.07, b: 0.09, periLen: 1.25, phalicFrac: 0.35, ruffle: 0.00 },
+        swellings: { x: 0.92, y: -0.85, z: -0.06, sx: 0.44, sy: 0.82, sz: 0.36, rotZ: 0.14, merge: 0.0 },
+        sinus:     { sx: 0.15, sy: 0.72, y: -0.78, depth: 0.45, open: 1.0, orifices: 0.0, meatus: 0.0 }
+      },
+      // Stage 1: Female (46,XX)
+      F: {
+        tubercle:  { L: 0.48, r0: 0.18, taper: 0.12, tilt: 0.06, bend: 0.00, glans: 0.42, glansU: 0.80, glansW: 0.14, corona: 0.00, hood: 0.65 },
+        folds:     { dOpen: 0.42, dPeri: 0.54, fuse: 0.00, a: 0.042, b: 0.115, periLen: 1.15, phalicFrac: 0.18, ruffle: 0.40 },
+        swellings: { x: 0.96, y: -0.76, z: -0.03, sx: 0.32, sy: 1.25, sz: 0.32, rotZ: 0.04, merge: 0.0 },
+        sinus:     { sx: 0.30, sy: 0.68, y: -0.68, depth: 0.85, open: 1.0, orifices: 1.0, meatus: 0.0 }
+      },
+      // Stage 2: Male (46,XY)
+      M: {
+        tubercle:  { L: 2.15, r0: 0.31, taper: 0.00, tilt: 0.02, bend: 0.14, glans: 0.28, glansU: 0.90, glansW: 0.08, corona: 0.26, hood: 0.00 },
+        folds:     { dOpen: 0.28, dPeri: 0.28, fuse: 1.00, a: 0.058, b: 0.068, periLen: 0.95, phalicFrac: 0.65, ruffle: 0.00 },
+        swellings: { x: 0.38, y: -1.45, z: 0.06, sx: 0.68, sy: 0.82, sz: 0.64, rotZ: 0.00, merge: 1.0 },
+        sinus:     { sx: 0.02, sy: 0.10, y: -0.80, depth: 0.00, open: 0.0, orifices: 0.0, meatus: 1.0 }
+      }
+    };
+
+    // ===== 4. MATH HELPERS =====
+    function lerp(a, b, t) {
+      return a + (b - a) * t;
+    }
+
+    function smoothstep(min, max, value) {
+      const x = Math.max(0, Math.min(1, (value - min) / (max - min)));
+      return x * x * (3 - 2 * x);
+    }
+
+    function easeInOutCubic(x) {
+      return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+    }
+
+    function gauss(x, mu, sigma) {
+      const diff = (x - mu) / sigma;
+      return Math.exp(-0.5 * diff * diff);
+    }
+
+    // Recursively lerp all numeric properties between two param structures
+    function mixParams(A, B, localT) {
+      const res = {};
+      for (const k in A) {
+        if (typeof A[k] === 'number') {
+          res[k] = lerp(A[k], B[k], localT);
+        } else if (typeof A[k] === 'object' && A[k] !== null) {
+          res[k] = mixParams(A[k], B[k], localT);
+        }
+      }
+      return res;
+    }
+
+    // Sample current parameters across the 3-phase cycle
+    function sampleParams(t) {
+      const clampedT = Math.max(0, Math.min(1, t));
+      let seg = Math.min(2, Math.floor(clampedT * 3));
+      let segLocal = clampedT * 3 - seg;
+      if (segLocal > 0.9999 && seg < 2) {
+        segLocal = 1.0;
+      }
+      const easedLocal = easeInOutCubic(segLocal);
+
+      // Segment 0: S0 -> F | Segment 1: F -> M | Segment 2: M -> S0
+      const pairs = [
+        [P.S0, P.F],
+        [P.F, P.M],
+        [P.M, P.S0]
+      ];
+      const [A, B] = pairs[seg];
+      return mixParams(A, B, easedLocal);
+    }
+
+    // Coordinate calculation of tubercle axis
+    function getAxisPoint(u, p) {
+      const cosT = Math.cos(p.tilt);
+      const sinT = Math.sin(p.tilt);
+      const y = p.L * u * cosT - p.bend * u * u * p.L * 0.5;
+      const z = p.L * u * sinT + 0.16 * u;
+      return { x: 0, y: y, z: z };
+    }
+
+    // Tubercle radius evaluation with localized glans and coronal expansion
+    function getTubercleRadius(u, p, v) {
+      let r = p.r0 * (1.0 - p.taper * u);
+      // Bulbous glans
+      r += p.r0 * p.glans * gauss(u, p.glansU, p.glansW);
+      // Coronal ridge (male)
+      r += p.r0 * p.corona * gauss(u, p.glansU - 0.12, 0.032);
+
+      // Preputial hood (female clitoral hood) on dorsal side (v around -PI/2)
+      if (v !== undefined) {
+        const sinV = Math.sin(v);
+        if (sinV < 0) {
+          r += p.hood * 0.55 * p.r0 * gauss(u, 0.65, 0.18) * (-sinV);
+        }
+      }
+
+      // Rounded distal apex cap
+      const uc = 0.88;
+      if (u > uc) {
+        const capFrac = (u - uc) / (1.0 - uc);
+        r *= Math.sqrt(Math.max(0, 1.0 - capFrac * capFrac));
+      }
+      return Math.max(r, 0.001);
+    }
+
+    // ===== 5. SCENE, CAMERA, RENDERER SETUP =====
+    const container = document.getElementById('viewport-container');
+    const canvas = document.getElementById('webgl-canvas');
+
+    const scene = new THREE.Scene();
+
+    const camera = new THREE.PerspectiveCamera(40, container.clientWidth / container.clientHeight, 0.1, 50);
+    camera.position.set(state.cameraStandard.x, state.cameraStandard.y, state.cameraStandard.z);
+
+    const renderer = new THREE.WebGLRenderer({
+      canvas: canvas,
+      antialias: true,
+      alpha: true,
+      powerPreference: 'high-performance'
+    });
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.outputEncoding = THREE.sRGBEncoding;
+
+    const controls = new THREE.OrbitControls(camera, canvas);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.08;
+    controls.minDistance = 2.5;
+    controls.maxDistance = 10.0;
+    controls.target.set(state.cameraStandard.target[0], state.cameraStandard.target[1], state.cameraStandard.target[2]);
+    controls.update();
+
+    // Lighting Setup
+    const ambientLight = new THREE.AmbientLight(0xfff5ea, 0.65);
+    scene.add(ambientLight);
+
+    const hemiLight = new THREE.HemisphereLight(0xffeedd, 0x1e263d, 0.75);
+    hemiLight.position.set(0, 10, 0);
+    scene.add(hemiLight);
+
+    const dirLight1 = new THREE.DirectionalLight(0xffffff, 0.95);
+    dirLight1.position.set(3, 5, 6);
+    scene.add(dirLight1);
+
+    const dirLight2 = new THREE.DirectionalLight(0xa5b4fc, 0.45);
+    dirLight2.position.set(-4, -2, 3);
+    scene.add(dirLight2);
+
+    const rimPointLight = new THREE.PointLight(0x8B5CF6, 0.4, 12);
+    rimPointLight.position.set(-3, 3, -2);
+    scene.add(rimPointLight);
+
+    // Subtle perineal background base providing anatomical context
+    const baseGeo = new THREE.PlaneGeometry(6.5, 6.0, 32, 32);
+    const posAttr = baseGeo.attributes.position;
+    for (let i = 0; i < posAttr.count; i++) {
+      const px = posAttr.getX(i);
+      const py = posAttr.getY(i);
+      // Gentle saddle bowl curvature
+      const pz = -0.12 - 0.045 * (px * px) - 0.02 * (py * py);
+      posAttr.setZ(i, pz);
+    }
+    baseGeo.computeVertexNormals();
+
+    const baseMatClay = new THREE.MeshStandardMaterial({
+      color: 0x121828,
+      roughness: 0.98,
+      metalness: 0.0
+    });
+    const baseMatAtlas = new THREE.MeshStandardMaterial({
+      color: 0xC9BFB0,
+      roughness: 0.85,
+      metalness: 0.0
+    });
+
+    const perinealBase = new THREE.Mesh(baseGeo, baseMatClay);
+    perinealBase.position.set(0, -0.6, -0.05);
+    scene.add(perinealBase);
+
+    // Concentric depth markers for Style B
+    const depthRingsGroup = new THREE.Group();
+    for (let r = 0.8; r <= 2.4; r += 0.8) {
+      const ringGeo = new THREE.RingGeometry(r - 0.008, r, 64);
+      const ringMat = new THREE.MeshBasicMaterial({
+        color: 0x64748b,
+        transparent: true,
+        opacity: 0.22,
+        side: THREE.DoubleSide
+      });
+      const ringMesh = new THREE.Mesh(ringGeo, ringMat);
+      ringMesh.position.set(0, -0.6, -0.04);
+      depthRingsGroup.add(ringMesh);
+    }
+    depthRingsGroup.visible = false;
+    scene.add(depthRingsGroup);
+
+    // ===== 6. MATERIALS & INVERTED-HULL OUTLINE SHADER =====
+    const MAT = {
+      clay: {
+        genitalTubercle: new THREE.MeshStandardMaterial({
+          color: 0x8B5CF6,
+          roughness: 0.70,
+          metalness: 0.02,
+          emissive: 0x8B5CF6,
+          emissiveIntensity: 0.08
+        }),
+        urogenitalFolds: new THREE.MeshStandardMaterial({
+          color: 0xF59E0B,
+          roughness: 0.68,
+          metalness: 0.02,
+          emissive: 0xF59E0B,
+          emissiveIntensity: 0.08
+        }),
+        labioscrotalSwellings: new THREE.MeshStandardMaterial({
+          color: 0x10B981,
+          roughness: 0.72,
+          metalness: 0.02,
+          emissive: 0x10B981,
+          emissiveIntensity: 0.08
+        }),
+        urogenitalSinus: new THREE.MeshStandardMaterial({
+          color: 0x475569,
+          roughness: 0.90,
+          metalness: 0.0,
+          transparent: true,
+          opacity: 1.0,
+          polygonOffset: true,
+          polygonOffsetFactor: -1.5
+        })
+      },
+      atlas: {
+        genitalTubercle: new THREE.MeshStandardMaterial({
+          color: 0xE8BAA0,
+          roughness: 0.52,
+          metalness: 0.02,
+          emissive: 0xE8BAA0,
+          emissiveIntensity: 0.05
+        }),
+        urogenitalFolds: new THREE.MeshStandardMaterial({
+          color: 0xD4887D,
+          roughness: 0.50,
+          metalness: 0.02,
+          emissive: 0xD4887D,
+          emissiveIntensity: 0.05
+        }),
+        labioscrotalSwellings: new THREE.MeshStandardMaterial({
+          color: 0xE2B296,
+          roughness: 0.54,
+          metalness: 0.02,
+          emissive: 0xE2B296,
+          emissiveIntensity: 0.05
+        }),
+        urogenitalSinus: new THREE.MeshStandardMaterial({
+          color: 0x7A3640,
+          roughness: 0.65,
+          metalness: 0.0,
+          transparent: true,
+          opacity: 1.0,
+          polygonOffset: true,
+          polygonOffsetFactor: -1.5
+        })
+      }
+    };
+
+    // Shared ShaderMaterial for inverted-hull ink outline in Style B
+    function createOutlineMaterial(offsetVal) {
+      return new THREE.ShaderMaterial({
+        uniforms: {
+          outlineColor: { value: new THREE.Color(0x281616) },
+          offset: { value: offsetVal || 0.022 }
+        },
+        vertexShader: `
+          uniform float offset;
+          void main() {
+            vec3 pos = position + normal * offset;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+          }
+        `,
+        fragmentShader: `
+          uniform vec3 outlineColor;
+          void main() {
+            gl_FragColor = vec4(outlineColor, 0.95);
+          }
+        `,
+        side: THREE.BackSide,
+        depthWrite: true
+      });
+    }
+
+    const outlineMaterials = [];
+
+    // Helper to generate a regular (nU+1) * (nV+1) grid BufferGeometry with duplicate seam column
+    function createParametricGridGeometry(nU, nV) {
+      const geo = new THREE.BufferGeometry();
+      const numVerts = (nU + 1) * (nV + 1);
+      const positions = new Float32Array(numVerts * 3);
+      const normals = new Float32Array(numVerts * 3);
+      const indices = [];
+
+      for (let i = 0; i < nU; i++) {
+        for (let j = 0; j < nV; j++) {
+          const a = i * (nV + 1) + j;
+          const b = (i + 1) * (nV + 1) + j;
+          const c = (i + 1) * (nV + 1) + (j + 1);
+          const d = i * (nV + 1) + (j + 1);
+          // Two triangles per quad (CCW winding)
+          indices.push(a, b, d);
+          indices.push(b, c, d);
+        }
+      }
+
+      geo.setAttribute('position', new THREE.BufferAttribute(positions, 3).setUsage(THREE.DynamicDrawUsage));
+      geo.setAttribute('normal', new THREE.BufferAttribute(normals, 3).setUsage(THREE.DynamicDrawUsage));
+      geo.setIndex(indices);
+      return geo;
+    }
+
+    // List of dynamic BufferGeometries needing vertex / normal recomputations
+    const dynamicGeometries = [];
+    const pickableMeshes = [];
+
+    // ===== 7. PROCEDURAL SUB-MESHES CREATION =====
+
+    // --- 7.1 TubercleMesh ---
+    const nU_tub = 42;
+    const nV_tub = 32;
+    const geo_tubercle = createParametricGridGeometry(nU_tub, nV_tub);
+    dynamicGeometries.push(geo_tubercle);
+
+    const TubercleMesh = new THREE.Mesh(geo_tubercle, MAT.clay.genitalTubercle);
+    TubercleMesh.name = 'TubercleMesh';
+    TubercleMesh.userData.tissue = 'genitalTubercle';
+    scene.add(TubercleMesh);
+    pickableMeshes.push(TubercleMesh);
+
+    // Inverted-hull outline for Tubercle (shares same geometry!)
+    const mat_tub_outline = createOutlineMaterial(0.024);
+    outlineMaterials.push(mat_tub_outline);
+    const TubercleOutlineMesh = new THREE.Mesh(geo_tubercle, mat_tub_outline);
+    TubercleOutlineMesh.visible = false;
+    scene.add(TubercleOutlineMesh);
+
+    // --- 7.2 UrogenitalFoldsMesh (Paired Left & Right) ---
+    const nU_fold = 50;
+    const nV_fold = 16;
+
+    const geo_fold_left = createParametricGridGeometry(nU_fold, nV_fold);
+    const geo_fold_right = createParametricGridGeometry(nU_fold, nV_fold);
+    dynamicGeometries.push(geo_fold_left, geo_fold_right);
+
+    const FoldLeftMesh = new THREE.Mesh(geo_fold_left, MAT.clay.urogenitalFolds);
+    FoldLeftMesh.name = 'UrogenitalFoldsMesh_L';
+    FoldLeftMesh.userData.tissue = 'urogenitalFolds';
+    scene.add(FoldLeftMesh);
+    pickableMeshes.push(FoldLeftMesh);
+
+    const FoldRightMesh = new THREE.Mesh(geo_fold_right, MAT.clay.urogenitalFolds);
+    FoldRightMesh.name = 'UrogenitalFoldsMesh_R';
+    FoldRightMesh.userData.tissue = 'urogenitalFolds';
+    scene.add(FoldRightMesh);
+    pickableMeshes.push(FoldRightMesh);
+
+    const mat_fold_outline = createOutlineMaterial(0.018);
+    outlineMaterials.push(mat_fold_outline);
+    const FoldLeftOutline = new THREE.Mesh(geo_fold_left, mat_fold_outline);
+    const FoldRightOutline = new THREE.Mesh(geo_fold_right, mat_fold_outline);
+    FoldLeftOutline.visible = false;
+    FoldRightOutline.visible = false;
+    scene.add(FoldLeftOutline);
+    scene.add(FoldRightOutline);
+
+    // Ventral Raphe Fusion Mesh (visible in male stage)
+    const rapheGeo = new THREE.CylinderGeometry(0.038, 0.038, 1.8, 16);
+    const rapheMat = new THREE.MeshStandardMaterial({
+      color: 0xD97706,
+      roughness: 0.65,
+      metalness: 0.0
+    });
+    const VentralRapheMesh = new THREE.Mesh(rapheGeo, rapheMat);
+    VentralRapheMesh.position.set(0, -0.1, 0.12);
+    VentralRapheMesh.rotation.x = Math.PI * 0.05;
+    VentralRapheMesh.scale.set(0.001, 0.001, 0.001);
+    VentralRapheMesh.userData.tissue = 'urogenitalFolds';
+    scene.add(VentralRapheMesh);
+
+    // --- 7.3 LabioscrotalSwellingsMesh (Paired Spheres + Scrotal Bridge) ---
+    const swellingSphereGeo = new THREE.SphereGeometry(1.0, 36, 28);
+
+    const SwellingLeftMesh = new THREE.Mesh(swellingSphereGeo, MAT.clay.labioscrotalSwellings);
+    SwellingLeftMesh.name = 'LabioscrotalSwellingsMesh_L';
+    SwellingLeftMesh.userData.tissue = 'labioscrotalSwellings';
+    scene.add(SwellingLeftMesh);
+    pickableMeshes.push(SwellingLeftMesh);
+
+    const SwellingRightMesh = new THREE.Mesh(swellingSphereGeo, MAT.clay.labioscrotalSwellings);
+    SwellingRightMesh.name = 'LabioscrotalSwellingsMesh_R';
+    SwellingRightMesh.userData.tissue = 'labioscrotalSwellings';
+    scene.add(SwellingRightMesh);
+    pickableMeshes.push(SwellingRightMesh);
+
+    // Central scrotal bridge sphere for seamless male fusion
+    const ScrotalBridgeMesh = new THREE.Mesh(swellingSphereGeo, MAT.clay.labioscrotalSwellings);
+    ScrotalBridgeMesh.name = 'LabioscrotalSwellingsMesh_Bridge';
+    ScrotalBridgeMesh.userData.tissue = 'labioscrotalSwellings';
+    scene.add(ScrotalBridgeMesh);
+    pickableMeshes.push(ScrotalBridgeMesh);
+
+    // Scrotal Median Raphe Seam
+    const scrotalRapheGeo = new THREE.CylinderGeometry(0.024, 0.024, 1.1, 14);
+    const scrotalRapheMat = new THREE.MeshStandardMaterial({
+      color: 0x059669,
+      roughness: 0.70
+    });
+    const ScrotalRapheMesh = new THREE.Mesh(scrotalRapheGeo, scrotalRapheMat);
+    ScrotalRapheMesh.position.set(0, -1.45, 0.35);
+    ScrotalRapheMesh.userData.tissue = 'labioscrotalSwellings';
+    scene.add(ScrotalRapheMesh);
+
+    // Inverted-hull outlines for swellings
+    const mat_swell_outline = createOutlineMaterial(0.035);
+    outlineMaterials.push(mat_swell_outline);
+    const SwellingLeftOutline = new THREE.Mesh(swellingSphereGeo, mat_swell_outline);
+    const SwellingRightOutline = new THREE.Mesh(swellingSphereGeo, mat_swell_outline);
+    const ScrotalBridgeOutline = new THREE.Mesh(swellingSphereGeo, mat_swell_outline);
+    SwellingLeftMesh.add(SwellingLeftOutline);
+    SwellingRightMesh.add(SwellingRightOutline);
+    ScrotalBridgeMesh.add(ScrotalBridgeOutline);
+    SwellingLeftOutline.visible = false;
+    SwellingRightOutline.visible = false;
+    ScrotalBridgeOutline.visible = false;
+
+    // --- 7.4 SinusOpeningMesh (Urogenital Groove / Vestibule & Orifices) ---
+    // Radial gradient texture for natural depth drop-off
+    const canvasTex = document.createElement('canvas');
+    canvasTex.width = 128;
+    canvasTex.height = 256;
+    const ctx = canvasTex.getContext('2d');
+    const grad = ctx.createRadialGradient(64, 128, 5, 64, 128, 120);
+    grad.addColorStop(0, 'rgba(10, 15, 25, 1.0)');
+    grad.addColorStop(0.5, 'rgba(30, 41, 59, 0.95)');
+    grad.addColorStop(1, 'rgba(71, 85, 105, 0.0)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, 128, 256);
+    const sinusTexture = new THREE.CanvasTexture(canvasTex);
+
+    const sinusPlaneGeo = new THREE.PlaneGeometry(1.0, 1.0, 24, 24);
+    const sinusMat = MAT.clay.urogenitalSinus.clone();
+    sinusMat.map = sinusTexture;
+    sinusMat.transparent = true;
+    sinusMat.depthWrite = false;
+
+    const SinusOpeningMesh = new THREE.Mesh(sinusPlaneGeo, sinusMat);
+    SinusOpeningMesh.name = 'SinusOpeningMesh';
+    SinusOpeningMesh.position.set(0, -0.75, 0.035);
+    SinusOpeningMesh.userData.tissue = 'urogenitalSinus';
+    scene.add(SinusOpeningMesh);
+    pickableMeshes.push(SinusOpeningMesh);
+
+    // Female Orifices: Distinct Urethral & Vaginal Apertures
+    const urethralOrificeGeo = new THREE.CircleGeometry(0.042, 24);
+    const urethralOrificeMat = new THREE.MeshBasicMaterial({ color: 0x0f172a, depthWrite: false });
+    const UrethralOrificeMesh = new THREE.Mesh(urethralOrificeGeo, urethralOrificeMat);
+    UrethralOrificeMesh.position.set(0, -0.52, 0.042);
+    UrethralOrificeMesh.userData.tissue = 'urogenitalSinus';
+    scene.add(UrethralOrificeMesh);
+
+    const vaginalOrificeGeo = new THREE.CircleGeometry(0.095, 24);
+    const vaginalOrificeMat = new THREE.MeshBasicMaterial({ color: 0x070b14, depthWrite: false });
+    const VaginalOrificeMesh = new THREE.Mesh(vaginalOrificeGeo, vaginalOrificeMat);
+    VaginalOrificeMesh.position.set(0, -0.88, 0.042);
+    VaginalOrificeMesh.userData.tissue = 'urogenitalSinus';
+    scene.add(VaginalOrificeMesh);
+
+    // Male Distal Urethral Meatus on Glans Apex
+    const meatusGeo = new THREE.CircleGeometry(0.032, 16);
+    const meatusMat = new THREE.MeshBasicMaterial({ color: 0x1e293b, depthWrite: false });
+    const MeatusMesh = new THREE.Mesh(meatusGeo, meatusMat);
+    MeatusMesh.position.set(0, 1.9, 0.45);
+    MeatusMesh.scale.set(0.4, 1.2, 1.0);
+    MeatusMesh.userData.tissue = 'urogenitalSinus';
+    scene.add(MeatusMesh);
+
+    // ===== 8. PROCEDURAL MORPHING ENGINE: updateMorph(t) =====
+
+    // Evaluate fold centerline polyline C(s) at param s in [0, 1]
+    function getFoldCenterlinePoint(s, side, pFold, pTub) {
+      const fuseLocal = Math.max(0, Math.min(1, pFold.fuse * 1.45 - 0.45 * s));
+
+      if (s <= pFold.phalicFrac) {
+        // Phallic portion: ascends along ventral surface of tubercle
+        const normFrac = s / pFold.phalicFrac;
+        const u = Math.max(0.02, 0.90 * (1.0 - normFrac));
+        const axisPt = getAxisPoint(u, pTub);
+        const rad = getTubercleRadius(u, pTub);
+        const dx = lerp(pFold.dOpen, 0.008, fuseLocal);
+        return {
+          x: side * dx,
+          y: axisPt.y,
+          z: axisPt.z + rad * 0.92
+        };
+      } else {
+        // Perineal portion: descends onto perineal base
+        const q = (s - pFold.phalicFrac) / (1.0 - pFold.phalicFrac);
+        const axisPt0 = getAxisPoint(0, pTub);
+        const rad0 = getTubercleRadius(0, pTub);
+        const dx = lerp(pFold.dPeri, 0.008, fuseLocal);
+        return {
+          x: side * dx,
+          y: axisPt0.y - q * pFold.periLen,
+          z: 0.025 + (1.0 - q) * rad0 * 0.35
+        };
+      }
+    }
+
+    // Write computed vertex coordinates into BufferGeometry attributes
+    function writeTubercleVertices(pTub) {
+      const pos = geo_tubercle.attributes.position;
+      let idx = 0;
+
+      for (let i = 0; i <= nU_tub; i++) {
+        const u = i / nU_tub;
+        const axisPt = getAxisPoint(u, pTub);
+
+        for (let j = 0; j <= nV_tub; j++) {
+          const v = (j / nV_tub) * Math.PI * 2.0;
+          const rad = getTubercleRadius(u, pTub, v);
+
+          const cosV = Math.cos(v);
+          const sinV = Math.sin(v);
+
+          // Bilateral X projection, ventral (+Z) vs dorsal (-Z)
+          const px = axisPt.x + rad * cosV;
+          const py = axisPt.y;
+          const pz = axisPt.z + 0.92 * rad * sinV;
+
+          pos.setXYZ(idx++, px, py, pz);
+        }
+      }
+    }
+
+    function writeFoldVertices(geo, side, pFold, pTub) {
+      const pos = geo.attributes.position;
+      let idx = 0;
+      const ds = 0.015;
+
+      for (let i = 0; i <= nU_fold; i++) {
+        const s = i / nU_fold;
+        const pt = getFoldCenterlinePoint(s, side, pFold, pTub);
+        const ptAhead = getFoldCenterlinePoint(Math.min(1.0, s + ds), side, pFold, pTub);
+
+        // Tangent
+        const tx = ptAhead.x - pt.x;
+        const ty = ptAhead.y - pt.y;
+        const tz = ptAhead.z - pt.z;
+        const tLen = Math.sqrt(tx * tx + ty * ty + tz * tz) || 1.0;
+        const Tx = tx / tLen, Ty = ty / tLen, Tz = tz / tLen;
+
+        // Stable reference normal N0 = (0, 0, 1) to prevent twisting
+        // Binormal = T x N0
+        let bx = Ty * 1.0 - Tz * 0.0;
+        let by = Tz * 0.0 - Tx * 1.0;
+        let bz = Tx * 0.0 - Ty * 0.0;
+        const bLen = Math.sqrt(bx * bx + by * by + bz * bz) || 1.0;
+        bx /= bLen; by /= bLen; bz /= bLen;
+
+        // Normal = B x T
+        const nx = by * Tz - bz * Ty;
+        const ny = bz * Tx - bx * Tz;
+        const nz = bx * Ty - by * Tx;
+
+        // Radii tapering & female labial thinning/ruffling
+        const taper = Math.pow(Math.sin(Math.PI * s), 0.35);
+        const ruffleFactor = 1.0 + pFold.ruffle * 0.32 * Math.sin(s * 22.0);
+        const ra = pFold.a * ruffleFactor * taper;
+        const rb = pFold.b * taper;
+
+        for (let j = 0; j <= nV_fold; j++) {
+          const phi = (j / nV_fold) * Math.PI * 2.0;
+          const cosP = Math.cos(phi);
+          const sinP = Math.sin(phi);
+
+          const px = pt.x + bx * (ra * cosP) + nx * (rb * sinP);
+          const py = pt.y + by * (ra * cosP) + ny * (rb * sinP);
+          const pz = pt.z + bz * (ra * cosP) + nz * (rb * sinP);
+
+          pos.setXYZ(idx++, px, py, pz);
+        }
+      }
+    }
+
+    function updateMorph(t) {
+      const p = sampleParams(t);
+
+      // 1. Update Tubercle
+      writeTubercleVertices(p.tubercle);
+
+      // 2. Update Urogenital Folds
+      writeFoldVertices(geo_fold_left, -1.0, p.folds, p.tubercle);
+      writeFoldVertices(geo_fold_right, 1.0, p.folds, p.tubercle);
+
+      // 3. Update Labioscrotal Swellings & Scrotal pouch
+      SwellingLeftMesh.position.set(-p.swellings.x, p.swellings.y, p.swellings.z);
+      SwellingLeftMesh.scale.set(p.swellings.sx, p.swellings.sy, p.swellings.sz);
+      SwellingLeftMesh.rotation.z = -p.swellings.rotZ;
+
+      SwellingRightMesh.position.set(p.swellings.x, p.swellings.y, p.swellings.z);
+      SwellingRightMesh.scale.set(p.swellings.sx, p.swellings.sy, p.swellings.sz);
+      SwellingRightMesh.rotation.z = p.swellings.rotZ;
+
+      // Scrotal bridge mesh for fused scrotum
+      const mergeVal = p.swellings.merge;
+      ScrotalBridgeMesh.position.set(0, p.swellings.y, p.swellings.z);
+      ScrotalBridgeMesh.scale.set(
+        Math.max(0.001, p.swellings.x * 1.15 * mergeVal),
+        Math.max(0.001, p.swellings.sy * 0.95 * mergeVal),
+        Math.max(0.001, p.swellings.sz * 0.98 * mergeVal)
+      );
+      ScrotalRapheMesh.scale.set(mergeVal, mergeVal, mergeVal);
+      ScrotalRapheMesh.position.set(0, p.swellings.y, p.swellings.z + p.swellings.sz * 0.9);
+
+      // Ventral penile raphe fusion ridge
+      const fuseVal = p.folds.fuse;
+      if (fuseVal > 0.4) {
+        const rapheScale = (fuseVal - 0.4) / 0.6;
+        VentralRapheMesh.scale.set(rapheScale, 1.0, rapheScale);
+        VentralRapheMesh.visible = true;
+      } else {
+        VentralRapheMesh.visible = false;
+      }
+
+      // 4. Update Urogenital Sinus & Orifices
+      SinusOpeningMesh.position.set(0, p.sinus.y, 0.035);
+      SinusOpeningMesh.scale.set(p.sinus.sx, p.sinus.sy, 1.0);
+      sinusMat.opacity = p.sinus.open;
+
+      // Female Orifices visibility
+      const orificesVal = p.sinus.orifices;
+      UrethralOrificeMesh.scale.set(orificesVal, orificesVal, orificesVal);
+      UrethralOrificeMesh.visible = orificesVal > 0.05;
+      VaginalOrificeMesh.scale.set(orificesVal, orificesVal, orificesVal);
+      VaginalOrificeMesh.visible = orificesVal > 0.05;
+
+      // Male Meatus at distal apex of glans
+      const meatusVal = p.sinus.meatus;
+      const apexPt = getAxisPoint(0.98, p.tubercle);
+      const apexRad = getTubercleRadius(0.98, p.tubercle);
+      MeatusMesh.position.set(0, apexPt.y, apexPt.z + apexRad * 0.88);
+      MeatusMesh.scale.set(0.4 * meatusVal, 1.2 * meatusVal, 1.0);
+      MeatusMesh.visible = meatusVal > 0.05;
+
+      // Signal Three.js to re-upload vertex data and re-calculate normals
+      for (let k = 0; k < dynamicGeometries.length; k++) {
+        dynamicGeometries[k].attributes.position.needsUpdate = true;
+        dynamicGeometries[k].computeVertexNormals();
+      }
+
+      state.derivedParams = p;
+    }
+
+    // ===== 9. STYLE TOGGLING (Sculpted Clay vs Clinical Atlas) =====
+    function setRenderStyle(styleKey) {
+      state.style = styleKey;
+      const isAtlas = styleKey === 'atlas';
+
+      // Material swapping
+      TubercleMesh.material = isAtlas ? MAT.atlas.genitalTubercle : MAT.clay.genitalTubercle;
+      FoldLeftMesh.material = isAtlas ? MAT.atlas.urogenitalFolds : MAT.clay.urogenitalFolds;
+      FoldRightMesh.material = isAtlas ? MAT.atlas.urogenitalFolds : MAT.clay.urogenitalFolds;
+      SwellingLeftMesh.material = isAtlas ? MAT.atlas.labioscrotalSwellings : MAT.clay.labioscrotalSwellings;
+      SwellingRightMesh.material = isAtlas ? MAT.atlas.labioscrotalSwellings : MAT.clay.labioscrotalSwellings;
+      ScrotalBridgeMesh.material = isAtlas ? MAT.atlas.labioscrotalSwellings : MAT.clay.labioscrotalSwellings;
+      perinealBase.material = isAtlas ? baseMatAtlas : baseMatClay;
+
+      // Inverted-hull outlines visibility
+      TubercleOutlineMesh.visible = isAtlas;
+      FoldLeftOutline.visible = isAtlas;
+      FoldRightOutline.visible = isAtlas;
+      SwellingLeftOutline.visible = isAtlas;
+      SwellingRightOutline.visible = isAtlas;
+      ScrotalBridgeOutline.visible = isAtlas;
+      depthRingsGroup.visible = isAtlas;
+
+      // Background class on container
+      if (isAtlas) {
+        container.classList.add('atlas-mode');
+        document.body.classList.add('atlas-mode-active');
+        document.getElementById('depth-ruler').classList.add('visible');
+        ambientLight.intensity = 0.85;
+        dirLight1.intensity = 0.80;
+        rimPointLight.intensity = 0.15;
+      } else {
+        container.classList.remove('atlas-mode');
+        document.body.classList.remove('atlas-mode-active');
+        document.getElementById('depth-ruler').classList.remove('visible');
+        ambientLight.intensity = 0.65;
+        dirLight1.intensity = 0.95;
+        rimPointLight.intensity = 0.40;
+      }
+
+      // Sync header buttons
+      document.getElementById('btn-style-clay').classList.toggle('active', !isAtlas);
+      document.getElementById('btn-style-atlas').classList.toggle('active', isAtlas);
+      document.getElementById('btn-style-clay').setAttribute('aria-pressed', !isAtlas);
+      document.getElementById('btn-style-atlas').setAttribute('aria-pressed', isAtlas);
+    }
+
+    // ===== 10. INTERACTION, RAYCASTING & HOMOLOGY HIGHLIGHTING =====
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2(-999, -999);
+    let isDraggingControls = false;
+
+    canvas.addEventListener('pointerdown', () => { isDraggingControls = false; });
+    controls.addEventListener('start', () => { isDraggingControls = true; });
+
+    function getPointerPos(e) {
+      const rect = canvas.getBoundingClientRect();
+      return {
+        x: ((e.clientX - rect.left) / rect.width) * 2 - 1,
+        y: -((e.clientY - rect.top) / rect.height) * 2 + 1
+      };
+    }
+
+    canvas.addEventListener('pointermove', (e) => {
+      const p = getPointerPos(e);
+      mouse.x = p.x;
+      mouse.y = p.y;
+    });
+
+    canvas.addEventListener('pointerleave', () => {
+      mouse.x = -999;
+      mouse.y = -999;
+      if (!pinnedHighlight) setHighlight(null);
+    });
+
+    let pinnedHighlight = null;
+
+    canvas.addEventListener('click', (e) => {
+      if (isDraggingControls) return;
+      const p = getPointerPos(e);
+      raycaster.setFromCamera(new THREE.Vector2(p.x, p.y), camera);
+      const hits = raycaster.intersectObjects(pickableMeshes);
+      if (hits.length > 0) {
+        const tissueKey = hits[0].object.userData.tissue;
+        if (pinnedHighlight === tissueKey) {
+          pinnedHighlight = null;
+          setHighlight(null);
+        } else {
+          pinnedHighlight = tissueKey;
+          setHighlight(tissueKey);
+        }
+      } else {
+        pinnedHighlight = null;
+        setHighlight(null);
+      }
+    });
+
+    function setHighlight(tissueKey) {
+      state.highlight = tissueKey;
+
+      // Update Legend rows active state
+      const rows = document.querySelectorAll('.legend-row');
+      rows.forEach(r => {
+        const matches = r.getAttribute('data-tissue') === tissueKey;
+        r.classList.toggle('active', matches);
+      });
+
+      // Update Homology Matrix active state
+      const matrixRows = document.querySelectorAll('#homology-matrix tbody tr');
+      matrixRows.forEach(r => {
+        const matches = r.getAttribute('data-tissue') === tissueKey;
+        r.classList.toggle('active-highlight', matches);
+      });
+
+      // Update HUD
+      const hud = document.getElementById('tissue-hud');
+      if (tissueKey && TERMS.tissues[tissueKey]) {
+        const tInfo = TERMS.tissues[tissueKey];
+        hud.classList.add('active');
+        document.getElementById('hud-chip').style.backgroundColor = tInfo.color;
+        document.getElementById('hud-tissue-name').textContent = tInfo.name;
+        document.getElementById('hud-derivatives-text').innerHTML =
+          `Female: <strong>${tInfo.female}</strong> | Male: <strong>${tInfo.male}</strong>`;
+      } else {
+        hud.classList.remove('active');
+      }
+
+      // Material opacity dimming for non-highlighted tissues
+      for (const tName in TERMS.tissues) {
+        const isTarget = (!tissueKey || tName === tissueKey);
+        const mats = [MAT.clay[tName], MAT.atlas[tName]];
+        mats.forEach(m => {
+          if (!m) return;
+          if (tissueKey === null) {
+            m.transparent = (tName === 'urogenitalSinus');
+            m.opacity = 1.0;
+          } else {
+            m.transparent = true;
+            m.opacity = isTarget ? 1.0 : 0.32;
+          }
+        });
+      }
+    }
+
+    // Legend item click bindings
+    document.querySelectorAll('.legend-row').forEach(row => {
+      const tissueKey = row.getAttribute('data-tissue');
+      row.addEventListener('mouseenter', () => {
+        if (!pinnedHighlight) setHighlight(tissueKey);
+      });
+      row.addEventListener('mouseleave', () => {
+        if (!pinnedHighlight) setHighlight(null);
+      });
+      row.addEventListener('click', () => {
+        if (pinnedHighlight === tissueKey) {
+          pinnedHighlight = null;
+          setHighlight(null);
+        } else {
+          pinnedHighlight = tissueKey;
+          setHighlight(tissueKey);
+        }
+      });
+    });
+
+    // ===== 11. ANNOTATION LABELS OVERLAY (Leader lines) =====
+    const labelsOverlay = document.getElementById('labels-overlay-container');
+    const labelElements = {
+      genitalTubercle: document.getElementById('lbl-tubercle'),
+      urogenitalFolds: document.getElementById('lbl-folds'),
+      labioscrotalSwellings: document.getElementById('lbl-swellings'),
+      urogenitalSinus: document.getElementById('lbl-sinus')
+    };
+    const lineElements = {
+      genitalTubercle: { line: document.getElementById('line-tubercle'), dot: document.getElementById('dot-tubercle') },
+      urogenitalFolds: { line: document.getElementById('line-folds'), dot: document.getElementById('dot-folds') },
+      labioscrotalSwellings: { line: document.getElementById('line-swellings'), dot: document.getElementById('dot-swellings') },
+      urogenitalSinus: { line: document.getElementById('line-sinus'), dot: document.getElementById('dot-sinus') }
+    };
+
+    function updateLabelPositions() {
+      if (!state.showLabels) return;
+      if (!state.derivedParams) return;
+
+      const p = state.derivedParams;
+      const rect = container.getBoundingClientRect();
+      const w = rect.width;
+      const h = rect.height;
+
+      // 3D Anchor positions in world space
+      const tubPt = getAxisPoint(0.96, p.tubercle);
+      const anchors = {
+        genitalTubercle: new THREE.Vector3(tubPt.x, tubPt.y, tubPt.z + 0.1),
+        urogenitalFolds: new THREE.Vector3(p.folds.dPeri * 0.9, -0.7, 0.08),
+        labioscrotalSwellings: new THREE.Vector3(p.swellings.x + p.swellings.sx * 0.7, p.swellings.y, p.swellings.z + 0.1),
+        urogenitalSinus: new THREE.Vector3(0, p.sinus.y, 0.08)
+      };
+
+      for (const key in anchors) {
+        const v = anchors[key].clone().project(camera);
+        const tag = labelElements[key];
+        const lineObj = lineElements[key];
+
+        // If behind camera
+        if (v.z > 1.0) {
+          tag.style.display = 'none';
+          lineObj.line.setAttribute('display', 'none');
+          lineObj.dot.setAttribute('display', 'none');
+          continue;
+        }
+
+        tag.style.display = 'block';
+        lineObj.line.removeAttribute('display');
+        lineObj.dot.removeAttribute('display');
+
+        const screenX = (v.x * 0.5 + 0.5) * w;
+        const screenY = (-v.y * 0.5 + 0.5) * h;
+
+        // Position label tag to the right or left with leader line
+        const tagOffsetX = (v.x >= 0 ? 95 : -140);
+        const tagOffsetY = (v.y > 0 ? -25 : 25);
+        const tagX = screenX + tagOffsetX;
+        const tagY = screenY + tagOffsetY;
+
+        tag.style.transform = `translate3d(${tagX}px, ${tagY}px, 0)`;
+
+        // Update leader line coordinates
+        lineObj.line.setAttribute('x1', screenX);
+        lineObj.line.setAttribute('y1', screenY);
+        lineObj.line.setAttribute('x2', tagX + (tagOffsetX > 0 ? 0 : tag.offsetWidth));
+        lineObj.line.setAttribute('y2', tagY + 12);
+
+        lineObj.dot.setAttribute('cx', screenX);
+        lineObj.dot.setAttribute('cy', screenY);
+      }
+    }
+
+    // Toggle labels
+    document.getElementById('btn-toggle-labels').addEventListener('click', () => {
+      state.showLabels = !state.showLabels;
+      labelsOverlay.classList.toggle('visible', state.showLabels);
+      document.getElementById('btn-toggle-labels').classList.toggle('active', state.showLabels);
+    });
+
+    // ===== 12. UI BINDINGS & TIMELINE CONTROLS =====
+    const scrubber = document.getElementById('morph-scrubber');
+    const btnPlayPause = document.getElementById('btn-play-pause');
+    const iconPlay = document.getElementById('icon-play');
+    const iconPause = document.getElementById('icon-pause');
+    const btnLoopToggle = document.getElementById('btn-loop-toggle');
+    const stageTitle = document.getElementById('stage-title');
+    const stageDetails = document.getElementById('stage-details');
+    const stagePercentage = document.getElementById('stage-percentage');
+    const statusDot = document.getElementById('status-dot');
+
+    const jumpButtons = {
+      0.0: document.getElementById('jump-s0'),
+      0.3333: document.getElementById('jump-female'),
+      0.6666: document.getElementById('jump-male')
+    };
+
+    function updatePlayPauseUI() {
+      if (state.playing) {
+        iconPlay.style.display = 'none';
+        iconPause.style.display = 'block';
+      } else {
+        iconPlay.style.display = 'block';
+        iconPause.style.display = 'none';
+      }
+    }
+
+    btnPlayPause.addEventListener('click', () => {
+      state.playing = !state.playing;
+      updatePlayPauseUI();
+    });
+
+    btnLoopToggle.addEventListener('click', () => {
+      state.loop = !state.loop;
+      btnLoopToggle.classList.toggle('active', state.loop);
+    });
+
+    let isUserScrubbing = false;
+    scrubber.addEventListener('input', (e) => {
+      isUserScrubbing = true;
+      state.t = parseFloat(e.target.value) / 1000.0;
+      updateMorph(state.t);
+      updateLabelsAndStatus();
+    });
+
+    scrubber.addEventListener('change', () => {
+      isUserScrubbing = false;
+    });
+
+    // Quick jump to target t with smooth GSAP tween
+    function jumpToStage(targetT) {
+      state.isTweening = true;
+      gsap.killTweensOf(state);
+      gsap.to(state, {
+        t: targetT,
+        duration: 1.4,
+        ease: "power2.inOut",
+        onUpdate: () => {
+          updateMorph(state.t);
+          scrubber.value = Math.round(state.t * 1000);
+          updateLabelsAndStatus();
+        },
+        onComplete: () => {
+          state.isTweening = false;
+        }
+      });
+    }
+
+    document.querySelectorAll('.stage-jump-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const target = parseFloat(btn.getAttribute('data-target'));
+        jumpToStage(target);
+      });
+    });
+
+    document.querySelectorAll('.marker-tick').forEach(tick => {
+      tick.addEventListener('click', () => {
+        const target = parseFloat(tick.getAttribute('data-target'));
+        jumpToStage(target);
+      });
+    });
+
+    // Reset Camera view button
+    document.getElementById('btn-reset-cam').addEventListener('click', () => {
+      gsap.to(camera.position, {
+        x: state.cameraStandard.x,
+        y: state.cameraStandard.y,
+        z: state.cameraStandard.z,
+        duration: 1.0,
+        ease: 'power2.out'
+      });
+      gsap.to(controls.target, {
+        x: state.cameraStandard.target[0],
+        y: state.cameraStandard.target[1],
+        z: state.cameraStandard.target[2],
+        duration: 1.0,
+        ease: 'power2.out',
+        onUpdate: () => controls.update()
+      });
+    });
+
+    // Style switch buttons
+    document.getElementById('btn-style-clay').addEventListener('click', () => setRenderStyle('clay'));
+    document.getElementById('btn-style-atlas').addEventListener('click', () => setRenderStyle('atlas'));
+
+    // Collapsible educational panel
+    const educationalPanel = document.getElementById('educational-panel');
+    document.getElementById('btn-toggle-panel').addEventListener('click', () => {
+      educationalPanel.classList.toggle('collapsed');
+      setTimeout(() => {
+        onWindowResize();
+      }, 360);
+    });
+
+    // Accordions inside side panel
+    document.querySelectorAll('.accordion-header').forEach(header => {
+      header.addEventListener('click', () => {
+        const item = header.parentElement;
+        item.classList.toggle('open');
+      });
+    });
+
+    // Synchronize UI titles, percentages, derivatives text based on current t
+    function updateLabelsAndStatus() {
+      const t = state.t;
+      const pct = Math.round(t * 100);
+      stagePercentage.textContent = `${pct}% CYCLE`;
+
+      let currentStageName = '';
+      let currentStageDesc = '';
+      let activeDotColor = '#8B5CF6';
+
+      // Keyframe proximity detection (within +/- 0.05)
+      if (t < 0.08 || t > 0.94) {
+        currentStageName = "Bipotential Primordial Genitalia";
+        currentStageDesc = "Gestational Week 7 &bull; Neutral Phenotypic Primordium";
+        activeDotColor = '#8B5CF6';
+        setActiveStageButton(0.0);
+      } else if (Math.abs(t - 0.3333) < 0.08) {
+        currentStageName = "Female Phenotypic Differentiation (46,XX)";
+        currentStageDesc = "Gestational Weeks 10&ndash;14 &bull; Default Pathway (Absence of DHT)";
+        activeDotColor = '#EC4899';
+        setActiveStageButton(0.3333);
+      } else if (Math.abs(t - 0.6666) < 0.08) {
+        currentStageName = "Male Phenotypic Differentiation (46,XY)";
+        currentStageDesc = "Gestational Weeks 10&ndash;14 &bull; Androgen/DHT-Mediated Midline Fusion";
+        activeDotColor = '#3B82F6';
+        setActiveStageButton(0.6666);
+      } else {
+        if (t < 0.3333) {
+          currentStageName = "Primordial &rarr; Female Morphogenesis";
+          currentStageDesc = "Urogenital folds remain unfused &bull; Vestibule expands";
+          activeDotColor = '#F472B6';
+        } else if (t < 0.6666) {
+          currentStageName = "Comparative Homology Divergence";
+          currentStageDesc = "Female structure &harr; Male homologous counterparts";
+          activeDotColor = '#60A5FA';
+        } else {
+          currentStageName = "Male &rarr; Primordial Regression";
+          currentStageDesc = "Returning to bipotential baseline morphology";
+          activeDotColor = '#A78BFA';
+        }
+        clearActiveStageButtons();
+      }
+
+      stageTitle.textContent = currentStageName;
+      stageDetails.innerHTML = currentStageDesc;
+      statusDot.style.backgroundColor = activeDotColor;
+      statusDot.style.boxShadow = `0 0 10px ${activeDotColor}`;
+
+      // Update derivative dynamic sub-labels in persistent legend
+      const isFemaleStage = (t >= 0.20 && t <= 0.48);
+      const isMaleStage = (t >= 0.54 && t <= 0.82);
+
+      const derivTubercle = document.getElementById('deriv-tubercle');
+      const derivFolds = document.getElementById('deriv-folds');
+      const derivSwellings = document.getElementById('deriv-swellings');
+      const derivSinus = document.getElementById('deriv-sinus');
+
+      if (isFemaleStage) {
+        derivTubercle.textContent = "\u2192 " + TERMS.tissues.genitalTubercle.female;
+        derivFolds.textContent = "\u2192 " + TERMS.tissues.urogenitalFolds.female;
+        derivSwellings.textContent = "\u2192 " + TERMS.tissues.labioscrotalSwellings.female;
+        derivSinus.textContent = "\u2192 " + TERMS.tissues.urogenitalSinus.female;
+
+        labelElements.genitalTubercle.textContent = TERMS.tissues.genitalTubercle.female;
+        labelElements.urogenitalFolds.textContent = TERMS.tissues.urogenitalFolds.female;
+        labelElements.labioscrotalSwellings.textContent = TERMS.tissues.labioscrotalSwellings.female;
+        labelElements.urogenitalSinus.textContent = TERMS.tissues.urogenitalSinus.female;
+      } else if (isMaleStage) {
+        derivTubercle.textContent = "\u2192 " + TERMS.tissues.genitalTubercle.male;
+        derivFolds.textContent = "\u2192 " + TERMS.tissues.urogenitalFolds.male;
+        derivSwellings.textContent = "\u2192 " + TERMS.tissues.labioscrotalSwellings.male;
+        derivSinus.textContent = "\u2192 " + TERMS.tissues.urogenitalSinus.male;
+
+        labelElements.genitalTubercle.textContent = TERMS.tissues.genitalTubercle.male;
+        labelElements.urogenitalFolds.textContent = TERMS.tissues.urogenitalFolds.male;
+        labelElements.labioscrotalSwellings.textContent = TERMS.tissues.labioscrotalSwellings.male;
+        labelElements.urogenitalSinus.textContent = TERMS.tissues.urogenitalSinus.male;
+      } else {
+        derivTubercle.textContent = "\u2192 " + TERMS.tissues.genitalTubercle.s0;
+        derivFolds.textContent = "\u2192 " + TERMS.tissues.urogenitalFolds.s0;
+        derivSwellings.textContent = "\u2192 " + TERMS.tissues.labioscrotalSwellings.s0;
+        derivSinus.textContent = "\u2192 " + TERMS.tissues.urogenitalSinus.s0;
+
+        labelElements.genitalTubercle.textContent = TERMS.tissues.genitalTubercle.name;
+        labelElements.urogenitalFolds.textContent = TERMS.tissues.urogenitalFolds.name;
+        labelElements.labioscrotalSwellings.textContent = TERMS.tissues.labioscrotalSwellings.name;
+        labelElements.urogenitalSinus.textContent = TERMS.tissues.urogenitalSinus.name;
+      }
+    }
+
+    function setActiveStageButton(targetVal) {
+      for (const val in jumpButtons) {
+        const btn = jumpButtons[val];
+        btn.classList.toggle('active', Math.abs(parseFloat(val) - targetVal) < 0.05);
+      }
+    }
+
+    function clearActiveStageButtons() {
+      for (const val in jumpButtons) {
+        jumpButtons[val].classList.remove('active');
+      }
+    }
+
+    // Keyboard shortcuts
+    window.addEventListener('keydown', (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      if (e.code === 'Space') {
+        e.preventDefault();
+        state.playing = !state.playing;
+        updatePlayPauseUI();
+      } else if (e.key === '1') {
+        jumpToStage(0.0);
+      } else if (e.key === '2') {
+        jumpToStage(0.3333);
+      } else if (e.key === '3') {
+        jumpToStage(0.6666);
+      } else if (e.key === 's' || e.key === 'S') {
+        setRenderStyle(state.style === 'clay' ? 'atlas' : 'clay');
+      } else if (e.key === 'l' || e.key === 'L') {
+        state.showLabels = !state.showLabels;
+        labelsOverlay.classList.toggle('visible', state.showLabels);
+        document.getElementById('btn-toggle-labels').classList.toggle('active', state.showLabels);
+      }
+    });
+
+    // Resize handler
+    function onWindowResize() {
+      const width = container.clientWidth;
+      const height = container.clientHeight;
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+      renderer.setSize(width, height);
+    }
+    window.addEventListener('resize', onWindowResize);
+
+    // ===== 13. MAIN ANIMATION & RENDER LOOP =====
+    let lastTime = performance.now();
+
+    function animate(currentTime) {
+      requestAnimationFrame(animate);
+
+      const dt = Math.min(0.05, (currentTime - lastTime) / 1000.0);
+      lastTime = currentTime;
+
+      // Autoplay progression & milestone dwell timer
+      if (state.playing && !isUserScrubbing && !state.isTweening) {
+        const milestoneDwellThreshold = 0.003;
+        const isNearMilestone =
+          Math.abs(state.t - 0.0) < milestoneDwellThreshold ||
+          Math.abs(state.t - 0.3333) < milestoneDwellThreshold ||
+          Math.abs(state.t - 0.6666) < milestoneDwellThreshold;
+
+        if (isNearMilestone && state.dwellTimer < 1.15) {
+          state.dwellTimer += dt;
+        } else {
+          state.dwellTimer = 0.0;
+          state.t += dt / state.duration;
+
+          if (state.t >= 1.0) {
+            if (state.loop) {
+              state.t = state.t % 1.0;
+            } else {
+              state.t = 1.0;
+              state.playing = false;
+              updatePlayPauseUI();
+            }
+          }
+          scrubber.value = Math.round(state.t * 1000);
+          updateMorph(state.t);
+          updateLabelsAndStatus();
+        }
+      }
+
+      // Continuous Raycast inspection on hover when not dragging
+      if (!isDraggingControls && !pinnedHighlight && mouse.x !== -999) {
+        raycaster.setFromCamera(mouse, camera);
+        const hits = raycaster.intersectObjects(pickableMeshes);
+        if (hits.length > 0) {
+          const hoveredTissue = hits[0].object.userData.tissue;
+          if (state.highlight !== hoveredTissue) {
+            setHighlight(hoveredTissue);
+          }
+        } else {
+          if (state.highlight !== null) {
+            setHighlight(null);
+          }
+        }
+      }
+
+      // Emissive pulse animation for active highlighted structure
+      if (state.highlight) {
+        const pulse = 0.28 + 0.22 * Math.sin(currentTime * 0.0055);
+        const activeMats = [MAT.clay[state.highlight], MAT.atlas[state.highlight]];
+        activeMats.forEach(m => {
+          if (m && m.emissiveIntensity !== undefined) {
+            m.emissiveIntensity = pulse;
+          }
+        });
+      }
+
+      controls.update();
+      renderer.render(scene, camera);
+      updateLabelPositions();
+    }
+
+    // Initialize initial frame
+    updateMorph(0.0);
+    updateLabelsAndStatus();
+    updatePlayPauseUI();
+    requestAnimationFrame(animate);
+
+  })();
+  </script>
+</body>
+</html>
