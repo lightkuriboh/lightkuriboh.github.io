@@ -374,27 +374,27 @@ const state = {
   t: 0, playing: true, loop: true, style: 'clay', highlight: null, pinned: null,
   duration: 18, dwell: 1.2, tweening: false, scrubbing: false, labels: false, derived: null
 };
-const CAM = { pos: [0, 0.3, 8.0], target: [0, -0.15, 0.2] };
+const CAM = { pos: [0, 0.2, 7.2], target: [0, -0.05, 0.2] };
 
 // ===== 3. PARAMETER KEYFRAMES =====
 const P = {};
 P.S0 = {
-  tubercle:  { L:0.95, r0:0.28, taper:0.20, tilt:0.16, bend:0.00, glans:0.06, glansU:0.85, glansW:0.10, corona:0.00, hood:0.00 },
-  folds:     { dOpen:0.28, dPeri:0.30, fuse:0.00, a:0.07,  b:0.09,  periLen:1.30, phalicFrac:0.30, ruffle:0.00 },
-  swellings: { x:0.95, y:-0.90, z:-0.05, sx:0.45, sy:0.80, sz:0.35, rotZ:0.15, merge:0 },
-  sinus:     { sx:0.14, sy:0.75, y:-0.80, depth:0.5, open:1, orifices:0, meatus:0 }
+  tubercle:  { L: 0.95, r0: 0.24, taper: 0.18, tilt: 0.16, bend: 0.00, glans: 0.08, glansU: 0.85, glansW: 0.10, corona: 0.00, sulcus: 0.00, hood: 0.00 },
+  folds:     { dOpen: 0.24, dPeri: 0.24, fuse: 0.00, a: 0.060, b: 0.075, periLen: 1.05, phalicFrac: 0.35, ruffle: 0.00 },
+  swellings: { yStart: 0.40, yEnd: -1.05, xBase: 0.38, xBulge: 0.18, zBase: 0.08, zBulge: 0.10, rx0: 0.13, rxBulge: 0.06, rz0: 0.10, rzBulge: 0.06, archPow: 0.90, taperPow: 0.35, fuse: 0.00 },
+  sinus:     { sx: 0.14, sy: 0.70, y: -0.52, depth: 0.45, open: 1.0, orifices: 0.0, meatus: 0.0 }
 };
 P.F = {
-  tubercle:  { L:0.45, r0:0.17, taper:0.10, tilt:0.05, bend:0.00, glans:0.38, glansU:0.82, glansW:0.12, corona:0.00, hood:0.55 },
-  folds:     { dOpen:0.40, dPeri:0.52, fuse:0.00, a:0.04,  b:0.11,  periLen:1.20, phalicFrac:0.15, ruffle:0.35 },
-  swellings: { x:1.00, y:-0.80, z:-0.02, sx:0.30, sy:1.20, sz:0.30, rotZ:0.05, merge:0 },
-  sinus:     { sx:0.28, sy:0.70, y:-0.70, depth:0.8, open:1, orifices:1, meatus:0 }
+  tubercle:  { L: 0.28, r0: 0.075, taper: 0.06, tilt: 0.04, bend: 0.00, glans: 0.35, glansU: 0.82, glansW: 0.12, corona: 0.00, sulcus: 0.00, hood: 0.45 },
+  folds:     { dOpen: 0.26, dPeri: 0.22, fuse: 0.00, a: 0.032, b: 0.090, periLen: 0.95, phalicFrac: 0.12, ruffle: 0.40 },
+  swellings: { yStart: 0.72, yEnd: -0.92, xBase: 0.02, xBulge: 0.34, zBase: 0.10, zBulge: 0.12, rx0: 0.14, rxBulge: 0.08, rz0: 0.12, rzBulge: 0.06, archPow: 0.85, taperPow: 0.30, fuse: 0.00 },
+  sinus:     { sx: 0.18, sy: 0.60, y: -0.38, depth: 0.85, open: 1.0, orifices: 1.0, meatus: 0.0 }
 };
 P.M = {
-  tubercle:  { L:1.85, r0:0.30, taper:0.00, tilt:0.00, bend:0.12, glans:0.25, glansU:0.90, glansW:0.07, corona:0.22, hood:0.00 },
-  folds:     { dOpen:0.30, dPeri:0.30, fuse:1.00, a:0.06,  b:0.07,  periLen:0.70, phalicFrac:0.70, ruffle:0.00 },
-  swellings: { x:0.40, y:-1.45, z:0.05, sx:0.65, sy:0.80, sz:0.62, rotZ:0.00, merge:1 },
-  sinus:     { sx:0.02, sy:0.10, y:-0.80, depth:0.0, open:0, orifices:0, meatus:1 }
+  tubercle:  { L: 2.25, r0: 0.30, taper: 0.02, tilt: 0.14, bend: 0.12, glans: 0.24, glansU: 0.86, glansW: 0.08, corona: 0.28, sulcus: 0.14, hood: 0.00 },
+  folds:     { dOpen: 0.24, dPeri: 0.24, fuse: 1.00, a: 0.050, b: 0.060, periLen: 0.02, phalicFrac: 0.95, ruffle: 0.00 },
+  swellings: { yStart: 0.04, yEnd: -1.45, xBase: 0.02, xBulge: 0.22, zBase: 0.14, zBulge: 0.18, rx0: 0.16, rxBulge: 0.12, rz0: 0.16, rzBulge: 0.14, archPow: 0.95, taperPow: 0.35, fuse: 1.00 },
+  sinus:     { sx: 0.02, sy: 0.10, y: -0.65, depth: 0.00, open: 0.0, orifices: 0.0, meatus: 1.0 }
 };
 
 // ===== 4. MATH HELPERS =====
@@ -423,11 +423,17 @@ function axisPoint(u, p) {
 }
 function tubRadius(u, p, v) {
   let r = p.r0 * (1 - p.taper * u);
-  r += p.r0 * p.glans * gauss(u, p.glansU, p.glansW);          // bulbous glans
-  r += p.r0 * p.corona * gauss(u, p.glansU - 0.12, 0.03);      // corona (male)
-  if (v !== undefined && Math.sin(v) < 0)                      // dorsal hood (female)
-    r += p.hood * 0.5 * p.r0 * gauss(u, 0.62, 0.18) * (-Math.sin(v));
-  const uc = 0.88;                                             // rounded distal cap
+  r += p.r0 * p.glans * gauss(u, p.glansU, p.glansW);          // glans
+  r += p.r0 * p.corona * gauss(u, p.glansU - 0.08, 0.035);    // corona glandis (male)
+  if (p.sulcus) r -= p.r0 * p.sulcus * gauss(u, p.glansU - 0.15, 0.045); // coronal sulcus (male)
+  if (v !== undefined && p.hood > 0) {                        // preputial clitoral hood (female)
+    const hoodMask = Math.max(0, Math.sin(v) + 0.3);
+    r += p.hood * 0.75 * p.r0 * gauss(u, 0.65, 0.18) * (0.3 + 0.7 * hoodMask);
+  }
+  // Smooth proximal root rounding (closes base, eliminates open hollow pipe)
+  if (u < 0.14) r *= Math.sqrt(Math.max(0, 1 - ((0.14 - u) / 0.14) ** 2));
+  // Smooth distal cap rounding
+  const uc = 0.88;
   if (u > uc) r *= Math.sqrt(Math.max(0, 1 - ((u - uc) / (1 - uc)) ** 2));
   return Math.max(r, 1e-4);
 }
@@ -453,11 +459,18 @@ const sun = new THREE.DirectionalLight(0xfff4e6, 0.9); sun.position.set(3, 4, 5)
 const rim = new THREE.PointLight(0x8b5cf6, 0.35, 14); rim.position.set(-4, 2, -2);
 scene.add(ambient, hemi, sun, rim);
 
-// Cosmetic perineal base (not pickable)
-const baseGeo = new THREE.PlaneGeometry(7, 6.5, 24, 24);
+// Cosmetic perineal base (not pickable) with mons pubis contour
+const baseGeo = new THREE.PlaneGeometry(7, 6.5, 32, 32);
 {
   const a = baseGeo.attributes.position;
-  for (let i = 0; i < a.count; i++) a.setZ(i, -0.06 - 0.035 * a.getX(i) ** 2 - 0.008 * a.getY(i) ** 2);
+  for (let i = 0; i < a.count; i++) {
+    const x = a.getX(i), y = a.getY(i);
+    let z = -0.06 - 0.035 * x * x - 0.008 * y * y;
+    if (y > 0.3 && Math.abs(x) < 1.4) {
+      z += 0.09 * Math.exp(-0.5 * ((x / 0.65) ** 2 + ((y - 0.85) / 0.55) ** 2));
+    }
+    a.setZ(i, z);
+  }
   baseGeo.computeVertexNormals();
 }
 const baseMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 1 });
@@ -550,16 +563,17 @@ scene.add(UrogenitalFoldsMesh);
 makeOutline(geoFoldL, 'urogenitalFolds', 0.016, UrogenitalFoldsMesh);
 makeOutline(geoFoldR, 'urogenitalFolds', 0.016, UrogenitalFoldsMesh);
 
-// --- LabioscrotalSwellingsMesh (paired spheres + scrotal bridge + raphe) ---
-const sphereGeo = new THREE.SphereGeometry(1, 40, 28);
+// --- LabioscrotalSwellingsMesh (continuous parametric lofted lips / scrotal sac) ---
+const nU_S = 44, nV_S = 24;
+const geoSwellingL = makeGridGeometry(nU_S, nV_S), geoSwellingR = makeGridGeometry(nU_S, nV_S);
 const LabioscrotalSwellingsMesh = new THREE.Group(); LabioscrotalSwellingsMesh.name = 'LabioscrotalSwellingsMesh';
-const swL = new THREE.Mesh(sphereGeo, MAT.clay.labioscrotalSwellings);
-const swR = new THREE.Mesh(sphereGeo, MAT.clay.labioscrotalSwellings);
-const bridge = new THREE.Mesh(sphereGeo, MAT.clay.labioscrotalSwellings);
-const scrotalRaphe = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.022, 1, 12), MAT.clay.labioscrotalSwellings);
-[swL, swR, bridge, scrotalRaphe].forEach(m => { m.userData.tissue = 'labioscrotalSwellings'; LabioscrotalSwellingsMesh.add(m); pickables.push(m); });
+const swL = new THREE.Mesh(geoSwellingL, MAT.clay.labioscrotalSwellings);
+const swR = new THREE.Mesh(geoSwellingR, MAT.clay.labioscrotalSwellings);
+const scrotalRaphe = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 1, 14), MAT.clay.labioscrotalSwellings);
+[swL, swR, scrotalRaphe].forEach(m => { m.userData.tissue = 'labioscrotalSwellings'; LabioscrotalSwellingsMesh.add(m); pickables.push(m); });
 scene.add(LabioscrotalSwellingsMesh);
-[swL, swR, bridge].forEach(m => makeOutline(sphereGeo, 'labioscrotalSwellings', 0.04, m));
+makeOutline(geoSwellingL, 'labioscrotalSwellings', 0.024, LabioscrotalSwellingsMesh);
+makeOutline(geoSwellingR, 'labioscrotalSwellings', 0.024, LabioscrotalSwellingsMesh);
 
 // --- SinusOpeningMesh (slot + recess + orifices + meatus) ---
 const gradCanvas = document.createElement('canvas'); gradCanvas.width = gradCanvas.height = 128;
@@ -597,16 +611,17 @@ function foldPoint(s, side, f, tp, lift) {
   if (s <= pf) {                                   // phallic portion: ventral surface of tubercle
     const u = 0.92 * (1 - s / pf);
     const ax = axisPoint(u, tp), r = tubRadius(u, tp);
-    const dx = Math.min(lerp(f.dOpen, 0.008, fuseLocal), r * 0.85);
+    const dx = Math.min(lerp(f.dOpen, 0.008, fuseLocal) * (0.3 + 0.7 * (s / pf)), r * 0.85);
     const zs = 0.92 * Math.sqrt(Math.max(r * r - dx * dx, 0));
     return [side * dx, ax[1], ax[2] + zs + lift];
   }
-  const q = (s - pf) / (1 - pf);                   // perineal portion
-  const ax0 = axisPoint(0, tp), r0 = tubRadius(0, tp);
-  const dBase = lerp(Math.min(f.dOpen, r0 * 0.85), f.dPeri, smoothstep(0, 0.35, q));
+  const q = (s - pf) / (1 - pf);                   // perineal portion (vestibule / perineum)
+  const ax0 = axisPoint(0, tp);
+  const arch = Math.sin(Math.PI * Math.pow(q, 0.85));
+  const dBase = lerp(0.06, f.dPeri, arch);
   const dx = lerp(dBase, 0.008, fuseLocal);
-  const zStart = 0.92 * Math.sqrt(Math.max(r0 * r0 - Math.min(f.dOpen, r0 * 0.85) ** 2, 0));
-  return [side * dx, ax0[1] - q * f.periLen, lerp(zStart, 0.03, smoothstep(0, 0.4, q)) + lift];
+  const zHeight = lerp(0.10, 0.03, q) + 0.05 * Math.sin(Math.PI * q);
+  return [side * dx, ax0[1] - q * f.periLen, zHeight + lift];
 }
 
 function writeTubercle(p) {
@@ -633,8 +648,8 @@ function writeTube(geo, side, f, tp, a0, b0, lift) {
     // Fixed reference normal N0 = +Z (no Frenet twisting): Bn = T x N0, N = Bn x T
     let Bn = [T[1], -T[0], 0]; const bl = Math.hypot(...Bn) || 1; Bn = Bn.map(x => x / bl);
     const N = [Bn[1] * T[2] - Bn[2] * T[1], Bn[2] * T[0] - Bn[0] * T[2], Bn[0] * T[1] - Bn[1] * T[0]];
-    const taper = Math.pow(Math.sin(Math.PI * s), 0.3);
-    const a = a0 * (1 + f.ruffle * 0.25 * Math.sin(18 * s)) * taper, b = b0 * taper;
+    const taper = Math.pow(Math.sin(Math.PI * s), 0.35);
+    const a = a0 * (1 + f.ruffle * 0.35 * Math.sin(20 * s)) * taper, b = b0 * taper;
     for (let j = 0; j <= nV; j++) {
       const ph = j / nV * Math.PI * 2, ca = a * Math.cos(ph), sb = b * Math.sin(ph);
       pos.setXYZ(k++, c[0] + Bn[0] * ca + N[0] * sb, c[1] + Bn[1] * ca + N[1] * sb, c[2] + Bn[2] * ca + N[2] * sb);
@@ -642,16 +657,32 @@ function writeTube(geo, side, f, tp, a0, b0, lift) {
   }
 }
 
-function applySwellings(s) {
-  swL.position.set(-s.x, s.y, s.z); swL.scale.set(s.sx, s.sy, s.sz); swL.rotation.z = -s.rotZ;
-  swR.position.set(s.x, s.y, s.z);  swR.scale.set(s.sx, s.sy, s.sz); swR.rotation.z = s.rotZ;
-  const m = s.merge;
-  bridge.visible = m > 0.01;
-  bridge.position.set(0, s.y, s.z);
-  bridge.scale.set(Math.max(1e-3, s.x * 1.1 * m), Math.max(1e-3, s.sy * 0.85 * m), Math.max(1e-3, s.sz * 0.9 * m));
-  scrotalRaphe.visible = m > 0.3;
-  scrotalRaphe.scale.set(m, s.sy * 1.5 * m + 1e-3, m);
-  scrotalRaphe.position.set(0, s.y, s.z + s.sz * 0.9 * m + 0.01);
+function writeSwelling(geo, side, p) {
+  const pos = geo.attributes.position, { nU, nV } = geo.userData; let k = 0;
+  for (let i = 0; i <= nU; i++) {
+    const s = i / nU;
+    const phi = Math.PI * s;
+    const fCurv = (1 - Math.cos(phi)) * 0.5;
+    const y = lerp(p.yStart, p.yEnd, fCurv);
+    const q = Math.sin(phi);
+    const xArch = (p.xBase + p.xBulge * Math.pow(q, p.archPow)) * Math.pow(q, 0.25);
+    const zArch = lerp(p.zBase, p.zBase + p.zBulge, q);
+    const tq = Math.pow(q, p.taperPow);
+    const rx = (p.rx0 + p.rxBulge * q) * tq;
+    const rz = (p.rz0 + p.rzBulge * q) * tq;
+    for (let j = 0; j <= nV; j++) {
+      const th = -side * (j / nV) * Math.PI * 2;
+      const cth = Math.cos(th), sth = Math.sin(th);
+      let dx;
+      if (cth >= 0) {
+        dx = xArch + cth * rx;
+      } else {
+        const medR = lerp(rx, xArch, p.fuse);
+        dx = Math.max(0.004, xArch + cth * medR);
+      }
+      pos.setXYZ(k++, side * dx, y, zArch + sth * rz);
+    }
+  }
 }
 
 function applySinus(s, tp) {
@@ -659,12 +690,18 @@ function applySinus(s, tp) {
   slot.position.set(0, s.y, 0.03); slot.scale.set(Math.max(1e-3, s.sx), Math.max(1e-3, s.sy), 1);
   recess.scale.set(Math.max(1e-3, s.depth), Math.max(1e-3, s.depth), 1);
   const o = Math.max(1e-3, s.orifices);
-  urethral.position.set(0, s.y + 0.30 * s.sy, 0.045); urRim.position.copy(urethral.position);
-  vaginal.position.set(0, s.y - 0.14 * s.sy, 0.045);  vagRim.position.copy(vaginal.position);
-  [urethral, urRim, vaginal, vagRim].forEach(m => { m.scale.set(o, o, 1); m.visible = s.orifices > 0.03; });
+  urethral.position.set(0, s.y + 0.32 * s.sy, 0.045);
+  urethral.scale.set(0.65 * o, 1.15 * o, 1);
+  urRim.position.copy(urethral.position);
+  urRim.scale.copy(urethral.scale);
+  vaginal.position.set(0, s.y - 0.16 * s.sy, 0.045);
+  vaginal.scale.set(0.80 * o, 1.30 * o, 1);
+  vagRim.position.copy(vaginal.position);
+  vagRim.scale.copy(vaginal.scale);
+  [urethral, urRim, vaginal, vagRim].forEach(m => { m.visible = s.orifices > 0.03; });
   const mu = 0.94, ax = axisPoint(mu, tp), r = tubRadius(mu, tp);
   meatus.position.set(0, ax[1], ax[2] + 0.92 * r + 0.012);
-  meatus.scale.set(Math.max(1e-3, 0.45 * s.meatus), Math.max(1e-3, 1.3 * s.meatus), 1);
+  meatus.scale.set(Math.max(1e-3, 0.22 * s.meatus), Math.max(1e-3, 1.35 * s.meatus), 1);
   meatus.visible = s.meatus > 0.03;
 }
 
@@ -676,7 +713,16 @@ function updateMorph(t) {
   writeTube(geoFoldR,  1, p.folds, p.tubercle, p.folds.a, p.folds.b, 0);
   const rf = smoothstep(0.55, 1, p.folds.fuse);
   writeTube(geoRaphe, 0, p.folds, p.tubercle, 0.03 * rf, 0.035 * rf, p.folds.b * 0.55 * rf);
-  applySwellings(p.swellings);
+  writeSwelling(geoSwellingL, -1, p.swellings);
+  writeSwelling(geoSwellingR,  1, p.swellings);
+  scrotalRaphe.visible = p.swellings.fuse > 0.15;
+  if (scrotalRaphe.visible) {
+    const yLen = p.swellings.yStart - p.swellings.yEnd;
+    const yMid = (p.swellings.yStart + p.swellings.yEnd) * 0.5;
+    const zMid = p.swellings.zBase + p.swellings.zBulge * 0.85;
+    scrotalRaphe.position.set(0, yMid, zMid + 0.01);
+    scrotalRaphe.scale.set(p.swellings.fuse, yLen * 0.96, p.swellings.fuse * 1.1);
+  }
   applySinus(p.sinus, p.tubercle);
   for (const g of dynamicGeometries) {
     g.attributes.position.needsUpdate = true;
@@ -694,7 +740,7 @@ const styleSets = {
 };
 const meshTissue = [
   [TubercleMesh, 'genitalTubercle'], [foldL, 'urogenitalFolds'], [foldR, 'urogenitalFolds'], [rapheMesh, 'urogenitalFolds'],
-  [swL, 'labioscrotalSwellings'], [swR, 'labioscrotalSwellings'], [bridge, 'labioscrotalSwellings'], [scrotalRaphe, 'labioscrotalSwellings']
+  [swL, 'labioscrotalSwellings'], [swR, 'labioscrotalSwellings'], [scrotalRaphe, 'labioscrotalSwellings']
 ];
 function setStyle(name) {
   state.style = name;
@@ -919,11 +965,14 @@ function updateLabels() {
   const p = state.derived, w = viewport.clientWidth, h = viewport.clientHeight;
   const tp = axisPoint(0.97, p.tubercle), tr = tubRadius(0.9, p.tubercle);
   const fp = foldPoint(p.folds.phalicFrac + (1 - p.folds.phalicFrac) * 0.5, 1, p.folds, p.tubercle, 0);
+  const swX = p.swellings.xBase + p.swellings.xBulge * 0.75 + p.swellings.rx0;
+  const swY = (p.swellings.yStart + p.swellings.yEnd) * 0.5;
+  const swZ = p.swellings.zBase + p.swellings.zBulge * 0.65;
   const anchors = {
-    genitalTubercle: [tp[0], tp[1], tp[2] + tr * 0.9],
-    urogenitalFolds: [fp[0], fp[1], fp[2] + 0.05],
-    labioscrotalSwellings: [p.swellings.x + p.swellings.sx * 0.7, p.swellings.y, p.swellings.z + 0.1],
-    urogenitalSinus: [0, p.sinus.y, 0.06]
+    genitalTubercle: [tp[0], tp[1], tp[2] + tr * 0.85],
+    urogenitalFolds: [fp[0], fp[1], fp[2] + 0.04],
+    labioscrotalSwellings: [swX, swY, swZ],
+    urogenitalSinus: [0, p.sinus.y, 0.05]
   };
   KEYS.forEach(k => {
     _v.set(...anchors[k]).project(camera);
@@ -984,7 +1033,16 @@ function frame(now) {
 
 resize();
 setStyle('clay');
+const urlParams = typeof window !== 'undefined' && window.location ? new URLSearchParams(window.location.search) : null;
+if (urlParams) {
+  if (urlParams.has('t')) { state.t = parseFloat(urlParams.get('t')); state.playing = false; }
+  if (urlParams.has('play')) { state.playing = urlParams.get('play') === '1'; }
+  if (urlParams.has('style')) { setStyle(urlParams.get('style')); }
+  if (urlParams.has('labels')) { setLabels(urlParams.get('labels') === '1'); }
+}
 updatePlayIcon();
+updateMorph(state.t);
+updateUIFromT();
 requestAnimationFrame(frame);
 
 })();
