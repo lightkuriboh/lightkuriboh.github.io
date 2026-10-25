@@ -379,21 +379,21 @@ const CAM = { pos: [0, 0.2, 7.2], target: [0, -0.05, 0.2] };
 // ===== 3. PARAMETER KEYFRAMES =====
 const P = {};
 P.S0 = {
-  tubercle:  { L: 0.95, r0: 0.24, taper: 0.18, tilt: 0.16, bend: 0.00, glans: 0.08, glansU: 0.85, glansW: 0.10, corona: 0.00, sulcus: 0.00, hood: 0.00 },
+  tubercle:  { yBase: 0.00, L: 0.95, r0: 0.24, taper: 0.18, tilt: 0.16, bend: 0.00, glans: 0.08, glansU: 0.85, glansW: 0.10, corona: 0.00, sulcus: 0.00, hood: 0.00 },
   folds:     { dOpen: 0.24, dPeri: 0.24, fuse: 0.00, a: 0.060, b: 0.075, periLen: 1.05, phalicFrac: 0.35, ruffle: 0.00 },
   swellings: { yStart: 0.40, yEnd: -1.05, xBase: 0.38, xBulge: 0.18, zBase: 0.08, zBulge: 0.10, rx0: 0.13, rxBulge: 0.06, rz0: 0.10, rzBulge: 0.06, archPow: 0.90, taperPow: 0.35, fuse: 0.00 },
   sinus:     { sx: 0.14, sy: 0.70, y: -0.52, depth: 0.45, open: 1.0, orifices: 0.0, meatus: 0.0 }
 };
 P.F = {
-  tubercle:  { L: 0.28, r0: 0.075, taper: 0.06, tilt: 0.04, bend: 0.00, glans: 0.35, glansU: 0.82, glansW: 0.12, corona: 0.00, sulcus: 0.00, hood: 0.45 },
-  folds:     { dOpen: 0.26, dPeri: 0.22, fuse: 0.00, a: 0.032, b: 0.090, periLen: 0.95, phalicFrac: 0.12, ruffle: 0.40 },
-  swellings: { yStart: 0.72, yEnd: -0.92, xBase: 0.02, xBulge: 0.34, zBase: 0.10, zBulge: 0.12, rx0: 0.14, rxBulge: 0.08, rz0: 0.12, rzBulge: 0.06, archPow: 0.85, taperPow: 0.30, fuse: 0.00 },
-  sinus:     { sx: 0.18, sy: 0.60, y: -0.38, depth: 0.85, open: 1.0, orifices: 1.0, meatus: 0.0 }
+  tubercle:  { yBase: 0.22, L: 0.24, r0: 0.075, taper: 0.06, tilt: 0.04, bend: 0.00, glans: 0.35, glansU: 0.82, glansW: 0.12, corona: 0.00, sulcus: 0.00, hood: 0.45 },
+  folds:     { dOpen: 0.10, dPeri: 0.11, fuse: 0.00, a: 0.032, b: 0.075, periLen: 0.92, phalicFrac: 0.10, ruffle: 0.35 },
+  swellings: { yStart: 0.58, yEnd: -0.82, xBase: 0.02, xBulge: 0.24, zBase: 0.10, zBulge: 0.12, rx0: 0.15, rxBulge: 0.06, rz0: 0.12, rzBulge: 0.06, archPow: 0.85, taperPow: 0.30, fuse: 0.00 },
+  sinus:     { sx: 0.13, sy: 0.48, y: -0.22, depth: 0.85, open: 1.0, orifices: 1.0, meatus: 0.0 }
 };
 P.M = {
-  tubercle:  { L: 2.25, r0: 0.30, taper: 0.02, tilt: 0.14, bend: 0.12, glans: 0.24, glansU: 0.86, glansW: 0.08, corona: 0.28, sulcus: 0.14, hood: 0.00 },
+  tubercle:  { yBase: 0.06, L: 2.20, r0: 0.30, taper: 0.02, tilt: 0.14, bend: 0.12, glans: 0.24, glansU: 0.86, glansW: 0.08, corona: 0.28, sulcus: 0.14, hood: 0.00 },
   folds:     { dOpen: 0.24, dPeri: 0.24, fuse: 1.00, a: 0.050, b: 0.060, periLen: 0.02, phalicFrac: 0.95, ruffle: 0.00 },
-  swellings: { yStart: 0.04, yEnd: -1.45, xBase: 0.02, xBulge: 0.22, zBase: 0.14, zBulge: 0.18, rx0: 0.16, rxBulge: 0.12, rz0: 0.16, rzBulge: 0.14, archPow: 0.95, taperPow: 0.35, fuse: 1.00 },
+  swellings: { yStart: 0.20, yEnd: -1.35, xBase: 0.02, xBulge: 0.26, zBase: 0.12, zBulge: 0.22, rx0: 0.20, rxBulge: 0.14, rz0: 0.18, rzBulge: 0.16, archPow: 0.92, taperPow: 0.35, fuse: 1.00 },
   sinus:     { sx: 0.02, sy: 0.10, y: -0.65, depth: 0.00, open: 0.0, orifices: 0.0, meatus: 1.0 }
 };
 
@@ -419,7 +419,8 @@ function sampleParams(t) {
 
 // Tubercle centerline and radius profile
 function axisPoint(u, p) {
-  return [0, p.L * u * Math.cos(p.tilt) - p.bend * u * u * p.L * 0.5, p.L * u * Math.sin(p.tilt) + 0.15 * u];
+  const yBase = p.yBase || 0;
+  return [0, yBase + p.L * u * Math.cos(p.tilt) - p.bend * u * u * p.L * 0.5, p.L * u * Math.sin(p.tilt) + 0.15 * u];
 }
 function tubRadius(u, p, v) {
   let r = p.r0 * (1 - p.taper * u);
@@ -680,7 +681,13 @@ function writeSwelling(geo, side, p) {
         const medR = lerp(rx, xArch, p.fuse);
         dx = Math.max(0.004, xArch + cth * medR);
       }
-      pos.setXYZ(k++, side * dx, y, zArch + sth * rz);
+      let z = zArch + sth * rz;
+      if (p.fuse > 0 && sth >= -1e-4 && cth <= 0) {
+        const midBlend = -cth; // 0 at lateral apex, 1 at medial seam
+        const domeZ = zArch + rz * (sth + midBlend * (1 - sth) * 0.88);
+        z = lerp(z, domeZ, p.fuse);
+      }
+      pos.setXYZ(k++, side * dx, y, z);
     }
   }
 }
@@ -719,9 +726,9 @@ function updateMorph(t) {
   if (scrotalRaphe.visible) {
     const yLen = p.swellings.yStart - p.swellings.yEnd;
     const yMid = (p.swellings.yStart + p.swellings.yEnd) * 0.5;
-    const zMid = p.swellings.zBase + p.swellings.zBulge * 0.85;
-    scrotalRaphe.position.set(0, yMid, zMid + 0.01);
-    scrotalRaphe.scale.set(p.swellings.fuse, yLen * 0.96, p.swellings.fuse * 1.1);
+    const zMid = (p.swellings.zBase + p.swellings.zBulge) + (p.swellings.rz0 + p.swellings.rzBulge) * 0.88 * p.swellings.fuse;
+    scrotalRaphe.position.set(0, yMid, zMid + 0.005);
+    scrotalRaphe.scale.set(p.swellings.fuse, yLen * 0.94, p.swellings.fuse * 1.1);
   }
   applySinus(p.sinus, p.tubercle);
   for (const g of dynamicGeometries) {
