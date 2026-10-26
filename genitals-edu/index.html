@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>External Genital Homology: Morphological Differentiation from Bipotential Primordium (Week 7)</title>
-<meta name="description" content="Interactive 3D embryology visualization of human external genitalia homology: bipotential primordial genitalia at gestational Week 7 differentiating along the 46,XX and 46,XY (DHT-mediated) pathways.">
+<title>External Genital Homology &amp; Morphogenesis: Embryology to Adult &amp; Physiological Response</title>
+<meta name="description" content="Interactive 3D medical visualization of human external genitalia homology: embryonic differentiation from gestational Week 7 bipotential primordium along 46,XX and 46,XY pathways, post-pubertal adult maturation, and physiological arousal (vasocongestion and erection).">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -12,14 +12,15 @@
 <style>
 /* ======================= DESIGN TOKENS ======================= */
 :root{
-  --bg:#0b1020; --panel:rgba(15,22,41,.62); --panel-solid:rgba(11,16,32,.95);
-  --border:rgba(148,163,184,.18); --border-hi:rgba(148,163,184,.38);
+  --bg:#090d1a; --panel:rgba(15,22,41,.68); --panel-solid:rgba(11,16,32,.96);
+  --border:rgba(148,163,184,.18); --border-hi:rgba(148,163,184,.42);
   --text:#e2e8f0; --muted:#94a3b8; --dim:#64748b; --accent:#8B5CF6; --cyan:#38bdf8;
+  --rose:#ec4899; --amber:#f59e0b; --emerald:#10b981;
   --c-tub:#8B5CF6; --c-fold:#F59E0B; --c-swell:#10B981; --c-sinus:#475569;
-  --a-tub:#E9BBA3; --a-fold:#D9958A; --a-swell:#E3B09A; --a-sinus:#6b2f35;
+  --a-tub:#E9BBA3; --a-fold:#D9958A; --a-swell:#E3B09A; --a-sinus:#802838;
   --r-sm:8px; --r-md:12px; --r-lg:16px;
   --ease:cubic-bezier(.16,1,.3,1);
-  --glass:blur(14px) saturate(140%);
+  --glass:blur(16px) saturate(140%);
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
@@ -31,39 +32,40 @@ button{cursor:pointer}
 
 /* ======================= HEADER ======================= */
 header{height:58px;flex:none;padding:0 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;
-  background:rgba(7,10,19,.85);backdrop-filter:var(--glass);-webkit-backdrop-filter:var(--glass);
+  background:rgba(7,10,19,.88);backdrop-filter:var(--glass);-webkit-backdrop-filter:var(--glass);
   border-bottom:1px solid var(--border);z-index:40}
 .brand{display:flex;align-items:center;gap:12px;min-width:0}
 .brand-logo{width:32px;height:32px;border-radius:9px;flex:none;display:grid;place-items:center;
-  background:linear-gradient(135deg,#8B5CF6,#38bdf8);box-shadow:0 2px 12px rgba(139,92,246,.45)}
+  background:linear-gradient(135deg,#8B5CF6,#38bdf8);box-shadow:0 2px 14px rgba(139,92,246,.45)}
 .brand-logo svg{width:18px;height:18px}
 h1{font-size:.92rem;font-weight:600;letter-spacing:-.01em;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .subtitle{font-size:.7rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .brand-text{min-width:0}
-.header-actions{display:flex;align-items:center;gap:10px;flex:none}
+.header-actions{display:flex;align-items:center;gap:8px;flex:none}
 .seg{display:flex;background:rgba(15,23,42,.75);border:1px solid var(--border);border-radius:30px;padding:3px;gap:2px}
-.seg button{background:transparent;border:0;border-radius:24px;padding:5px 13px;font-size:.74rem;font-weight:500;
+.seg button{background:transparent;border:0;border-radius:24px;padding:5px 12px;font-size:.73rem;font-weight:500;
   color:var(--muted);transition:all .25s var(--ease);display:flex;align-items:center;gap:6px;white-space:nowrap}
 .seg button.active{background:rgba(255,255,255,.14);color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.35)}
 .ghost-btn{background:rgba(15,23,42,.6);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--muted);
-  font-size:.75rem;padding:6px 11px;display:inline-flex;align-items:center;gap:6px;transition:all .25s var(--ease);white-space:nowrap}
+  font-size:.74rem;padding:6px 11px;display:inline-flex;align-items:center;gap:6px;transition:all .25s var(--ease);white-space:nowrap}
 .ghost-btn:hover{background:rgba(30,41,59,.85);color:var(--text);border-color:var(--border-hi);transform:translateY(-1px)}
 .ghost-btn.on{color:var(--cyan);border-color:var(--cyan)}
+.ghost-btn.adv-btn.on{color:#f472b6;border-color:rgba(244,114,182,.6);background:rgba(236,72,153,.14);box-shadow:0 0 12px rgba(236,72,153,.25)}
 
 /* ======================= WORKSPACE ======================= */
 main{flex:1;display:flex;position:relative;min-height:0}
 #viewport{flex:1;position:relative;min-width:0;overflow:hidden;
-  background:radial-gradient(circle at 50% 40%,#18213d 0%,#0b1020 62%,#05070f 100%);transition:background .5s ease}
-#viewport.atlas{background:radial-gradient(circle at 50% 40%,#d8cfc0 0%,#bfb4a2 62%,#a79d8c 100%)}
+  background:radial-gradient(circle at 50% 38%,#161e38 0%,#090d1a 62%,#04060c 100%);transition:background .5s ease}
+#viewport.atlas{background:radial-gradient(circle at 50% 38%,#dcd4c7 0%,#bfb4a2 62%,#a59a88 100%)}
 canvas{width:100%;height:100%;display:block;cursor:grab;touch-action:none}
 canvas:active{cursor:grabbing}
 #gl-error{position:absolute;inset:0;display:none;place-items:center;text-align:center;padding:24px;color:#fca5a5;z-index:50;font-weight:500}
 
 .glass{background:var(--panel);backdrop-filter:var(--glass);-webkit-backdrop-filter:var(--glass);
-  border:1px solid var(--border);border-radius:var(--r-md);box-shadow:0 12px 36px rgba(0,0,0,.4)}
+  border:1px solid var(--border);border-radius:var(--r-md);box-shadow:0 12px 36px rgba(0,0,0,.45)}
 
 /* top-left status */
-.hud-tl{position:absolute;top:16px;left:16px;z-index:20;display:flex;flex-direction:column;gap:8px;max-width:min(470px,calc(100% - 32px));pointer-events:none}
+.hud-tl{position:absolute;top:16px;left:16px;z-index:20;display:flex;flex-direction:column;gap:8px;max-width:min(490px,calc(100% - 32px));pointer-events:none}
 .stage-card{pointer-events:auto;display:flex;align-items:center;gap:12px;padding:10px 14px}
 .dot{width:10px;height:10px;border-radius:50%;flex:none;background:var(--c-tub);box-shadow:0 0 10px currentColor;color:var(--c-tub);transition:all .4s ease}
 .stage-title{font-size:.82rem;font-weight:600;color:#fff;line-height:1.25;transition:opacity .25s}
@@ -80,7 +82,7 @@ canvas:active{cursor:grabbing}
 @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
 
 /* legend */
-.legend{position:absolute;left:16px;bottom:128px;z-index:20;width:316px;padding:10px 12px;display:flex;flex-direction:column;gap:6px}
+.legend{position:absolute;left:16px;bottom:140px;z-index:20;width:316px;padding:10px 12px;display:flex;flex-direction:column;gap:6px}
 .legend-head{display:flex;align-items:center;justify-content:space-between;background:none;border:0;width:100%;text-align:left;padding:2px 0 6px;
   border-bottom:1px solid rgba(148,163,184,.14)}
 .legend-head span:first-child{font-size:.7rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
@@ -104,12 +106,12 @@ body.atlas-on .chip.atl{display:block}
 #labels{position:absolute;inset:0;pointer-events:none;z-index:15;opacity:0;transition:opacity .3s}
 #labels.show{opacity:1}
 #leaders{position:absolute;inset:0;width:100%;height:100%}
-.leader{stroke:rgba(226,232,240,.7);stroke-width:1.2;stroke-dasharray:3 3}
+.leader{stroke:rgba(226,232,240,.75);stroke-width:1.2;stroke-dasharray:3 3}
 .ldot{fill:#e2e8f0}
-#viewport.atlas .leader{stroke:rgba(46,24,24,.7)}
+#viewport.atlas .leader{stroke:rgba(46,24,24,.75)}
 #viewport.atlas .ldot{fill:#2e1818}
-.lbl{position:absolute;left:0;top:0;pointer-events:auto;background:rgba(255,255,255,.9);border:1px solid rgba(46,24,24,.4);
-  padding:4px 10px;border-radius:5px;font-size:.68rem;font-weight:600;color:#2e1818;box-shadow:0 2px 8px rgba(0,0,0,.2);
+.lbl{position:absolute;left:0;top:0;pointer-events:auto;background:rgba(255,255,255,.92);border:1px solid rgba(46,24,24,.4);
+  padding:4px 10px;border-radius:5px;font-size:.68rem;font-weight:600;color:#2e1818;box-shadow:0 2px 8px rgba(0,0,0,.25);
   white-space:nowrap;cursor:pointer;will-change:transform}
 .lbl:hover{background:#fff;border-color:var(--accent)}
 .ruler{position:absolute;left:10px;top:50%;transform:translateY(-50%);height:220px;display:none;flex-direction:column;justify-content:space-between;
@@ -117,7 +119,7 @@ body.atlas-on .chip.atl{display:block}
 body.atlas-on .ruler{display:flex}
 
 /* playback dock */
-.dock{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);width:min(860px,calc(100% - 28px));z-index:25;padding:10px 16px;
+.dock{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);width:min(900px,calc(100% - 24px));z-index:25;padding:10px 16px;
   display:flex;flex-direction:column;gap:10px;border-radius:var(--r-lg)}
 .dock-top{display:flex;align-items:center;gap:12px}
 .round{border-radius:50%;display:grid;place-items:center;flex:none;transition:all .25s var(--ease)}
@@ -137,12 +139,30 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
 .ticks button:first-child{transform:none}
 .ticks button:last-child{transform:translateX(-100%)}
 .ticks button:hover,.ticks button.on{color:#fff}
-.stages{display:flex;gap:8px;padding-top:8px;border-top:1px solid rgba(148,163,184,.12)}
-.stg{flex:1;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:var(--r-sm);padding:6px 8px;font-size:.72rem;font-weight:500;
+
+.stages{display:flex;gap:6px;padding-top:8px;border-top:1px solid rgba(148,163,184,.12);overflow-x:auto}
+.stg{flex:1;min-width:max-content;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:var(--r-sm);padding:6px 9px;font-size:.72rem;font-weight:500;
   color:var(--muted);display:flex;align-items:center;justify-content:center;gap:6px;transition:all .25s var(--ease);white-space:nowrap}
 .stg:hover{background:rgba(255,255,255,.1);color:var(--text);transform:translateY(-1px)}
 .stg.active{background:rgba(139,92,246,.2);color:#fff;border-color:var(--accent);box-shadow:0 0 10px rgba(139,92,246,.3)}
 .stg i{width:6px;height:6px;border-radius:50%;background:currentColor;flex:none}
+
+/* Arousal Dock (Advanced Mode) */
+.arousal-box{display:none;flex-direction:column;gap:8px;padding-top:8px;border-top:1px dashed rgba(236,72,153,.3);animation:fadeIn .3s ease}
+.arousal-box.show{display:flex}
+.arousal-header{display:flex;align-items:center;justify-content:space-between;font-size:.74rem}
+.arousal-title{display:flex;align-items:center;gap:6px;font-weight:600;color:#f472b6}
+.arousal-title svg{width:15px;height:15px;stroke:currentColor}
+.arousal-badge{font-size:.66rem;font-weight:600;background:rgba(236,72,153,.16);color:#f472b6;padding:2px 8px;border-radius:10px;font-family:'JetBrains Mono',monospace}
+.arousal-slider-wrap{display:flex;align-items:center;gap:10px}
+.arousal-sub{font-size:.64rem;color:var(--dim);white-space:nowrap}
+#arousal-slider{background:rgba(236,72,153,.2)}
+#arousal-slider::-webkit-slider-thumb{border-color:#ec4899;box-shadow:0 0 12px rgba(236,72,153,.9)}
+#arousal-slider::-moz-range-thumb{border-color:#ec4899;box-shadow:0 0 12px rgba(236,72,153,.9)}
+.arousal-presets{display:flex;gap:6px;align-items:center}
+.mini-btn{background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:6px;padding:3px 8px;font-size:.66rem;color:var(--muted);transition:all .2s ease}
+.mini-btn:hover{background:rgba(255,255,255,.1);color:#fff}
+.mini-btn.active{background:rgba(236,72,153,.22);color:#fff;border-color:#ec4899}
 
 /* ======================= SIDE PANEL ======================= */
 aside{width:380px;flex:none;position:relative;background:var(--panel-solid);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
@@ -165,7 +185,7 @@ h2{font-size:1.02rem;font-weight:700;color:#fff;letter-spacing:-.01em}
 .acc>button svg{width:14px;height:14px;transition:transform .25s}
 .acc.open>button svg{transform:rotate(180deg)}
 .acc-body{max-height:0;overflow:hidden;padding:0 14px;font-size:.74rem;line-height:1.55;color:var(--muted);transition:max-height .35s var(--ease)}
-.acc.open .acc-body{max-height:1400px;padding-bottom:14px}
+.acc.open .acc-body{max-height:2200px;padding-bottom:14px}
 .acc-body p{margin-top:6px}
 .acc-body strong{color:var(--text)}
 table{width:100%;border-collapse:collapse;font-size:.67rem;margin-top:10px}
@@ -175,6 +195,7 @@ tr.hl td{background:rgba(139,92,246,.18);color:#fff}
 td .tchip{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px}
 .step{border-left:2px solid var(--cyan);padding:6px 10px;margin-top:8px;background:rgba(255,255,255,.025);border-radius:0 5px 5px 0}
 .step.f{border-left-color:#EC4899}
+.step.p{border-left-color:#a855f7}
 .callout{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:var(--r-sm);padding:8px 10px;margin-top:8px}
 .callout h5{color:#f87171;font-size:.72rem;margin-bottom:3px}
 .tissue-desc{border-left:3px solid var(--c);padding:2px 0 2px 10px;margin-top:10px}
@@ -188,17 +209,16 @@ td .tchip{display:inline-block;width:8px;height:8px;border-radius:2px;margin-rig
   aside.collapsed .inner{visibility:visible}
   .inner{width:100%}
   .ptab{left:50%;top:-30px;transform:translateX(-50%) rotate(90deg);transform-origin:center}
-  .legend{width:260px}
+  .legend{width:260px;bottom:180px}
 }
 @media (max-width:700px){
   header{padding:0 12px}
   .subtitle,.ghost-btn span{display:none}
   h1{font-size:.8rem}
-  .seg button{padding:5px 9px;font-size:.68rem}
+  .seg button{padding:5px 8px;font-size:.68rem}
   .dock{padding:8px 10px;gap:8px}
-  .stages{flex-wrap:wrap;gap:6px}
-  .stg{font-size:.66rem;padding:5px 6px;flex:1 1 30%}
-  .legend{bottom:176px;width:230px}
+  .stg{font-size:.66rem;padding:5px 6px}
+  .legend{bottom:200px;width:230px}
   .legend:not(.userOpen) .legend-list{display:none}
   .legend .hint{display:none}
   .hud-tl{top:10px;left:10px}
@@ -214,10 +234,12 @@ td .tchip{display:inline-block;width:8px;height:8px;border-radius:2px;margin-rig
 
 <header>
   <div class="brand">
-    <div class="brand-logo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 3v4M12 17v4M3 12h4M17 12h4"/></svg></div>
+    <div class="brand-logo" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 3v4M12 17v4M3 12h4M17 12h4"/></svg>
+    </div>
     <div class="brand-text">
-      <h1>External Genital Morphogenesis &amp; Anatomical Homology</h1>
-      <div class="subtitle">Bipotential primordium (Gestational Week 7) &rarr; 46,XX / 46,XY differentiation</div>
+      <h1>External Genital Homology &amp; Morphogenesis</h1>
+      <div class="subtitle">Embryonic primordium (Week 7) &rarr; Neonatal &rarr; Adult maturation &amp; Arousal response</div>
     </div>
   </div>
   <div class="header-actions">
@@ -225,16 +247,21 @@ td .tchip{display:inline-block;width:8px;height:8px;border-radius:2px;margin-rig
       <button id="btn-style-clay" class="active" aria-pressed="true" title="Sculpted Clay (Stylized/Tactile)">Sculpted Clay</button>
       <button id="btn-style-atlas" aria-pressed="false" title="Clinical Atlas (Realistic/Medical Diagram)">Clinical Atlas</button>
     </div>
+    <button id="btn-adv" class="ghost-btn adv-btn" aria-pressed="false" aria-label="Toggle Advanced Development (Adult maturation &amp; Arousal response)" title="Toggle Adult Maturation &amp; Arousal (A)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg><span>Advanced Development</span>
+    </button>
     <button id="btn-labels" class="ghost-btn" aria-pressed="false" aria-label="Toggle anatomical labels" title="Labels (L)">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L2 12V2h10l8.6 8.6a2 2 0 0 1 0 2.8z"/><circle cx="7" cy="7" r="1.5"/></svg><span>Labels</span></button>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L2 12V2h10l8.6 8.6a2 2 0 0 1 0 2.8z"/><circle cx="7" cy="7" r="1.5"/></svg><span>Labels</span>
+    </button>
     <button id="btn-reset" class="ghost-btn" aria-label="Reset camera view" title="Reset view">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg><span>Reset view</span></button>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg><span>Reset view</span>
+    </button>
   </div>
 </header>
 
 <main>
   <section id="viewport" aria-label="3D morphing viewer">
-    <canvas id="gl" aria-label="Interactive 3D model of external genitalia differentiation"></canvas>
+    <canvas id="gl" aria-label="Interactive 3D model of external genitalia differentiation, adult maturation, and physiological arousal"></canvas>
     <div id="gl-error" role="alert">Failed to load three.js. Check your internet connection and reload.</div>
 
     <div id="labels" aria-hidden="true">
@@ -272,59 +299,88 @@ td .tchip{display:inline-block;width:8px;height:8px;border-radius:2px;margin-rig
           <svg viewBox="0 0 24 24"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg>
         </button>
         <div class="scrub">
-          <input id="scrubber" type="range" min="0" max="1000" value="0" aria-label="Developmental progress scrubber, 0 to 100 percent">
-          <div class="ticks">
-            <button data-t="0" title="Week 7 Bipotential">W7</button>
-            <button data-t="0.3333" style="left:33.33%" title="Female homology">&#9792; 46,XX</button>
-            <button data-t="0.6667" style="left:66.67%" title="Male homology">&#9794; 46,XY</button>
-            <button data-t="1" style="left:100%" title="Return to Week 7">W7 &#8635;</button>
-          </div>
+          <input id="scrubber" type="range" min="0" max="1000" value="0" aria-label="Developmental timeline scrubber">
+          <div id="ticks" class="ticks"></div>
         </div>
       </div>
-      <div class="stages">
-        <button id="jump-0" class="stg active" data-t="0"><i></i>Week 7 Bipotential</button>
-        <button id="jump-1" class="stg" data-t="0.3333"><i></i>Female Homology</button>
-        <button id="jump-2" class="stg" data-t="0.6667"><i></i>Male Homology</button>
+
+      <div id="stages-container" class="stages"></div>
+
+      <!-- Advanced Arousal / Vasocongestion Controls -->
+      <div id="arousal-box" class="arousal-box">
+        <div class="arousal-header">
+          <span class="arousal-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            <strong id="arousal-title-text">Physiological Vasocongestion &amp; Tumescence (Arousal)</strong>
+          </span>
+          <span id="arousal-badge" class="arousal-badge">Resting (0%)</span>
+        </div>
+        <div class="arousal-slider-wrap">
+          <span class="arousal-sub">Resting (Flaccid)</span>
+          <input id="arousal-slider" type="range" min="0" max="100" value="0" aria-label="Arousal vasocongestion level">
+          <span class="arousal-sub">Peak Vasocongestion (Erect)</span>
+        </div>
+        <div class="arousal-presets">
+          <button id="btn-arousal-0" class="mini-btn active" data-val="0">Resting (0%)</button>
+          <button id="btn-arousal-50" class="mini-btn" data-val="50">Plateau (50%)</button>
+          <button id="btn-arousal-100" class="mini-btn" data-val="100">Peak Arousal (100%)</button>
+          <button id="btn-arousal-pulse" class="mini-btn" style="margin-left:auto;color:#38bdf8" title="Animate physiological cycle">&#9654; Auto Pulse</button>
+        </div>
       </div>
     </div>
   </section>
 
   <aside id="panel" aria-label="Educational panel">
     <button id="btn-panel" class="ptab" aria-label="Collapse or expand educational panel" aria-expanded="true">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></button>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
     <div class="inner">
       <div>
-        <h2>Embryological Organogenesis</h2>
+        <h2>Embryological Organogenesis &amp; Adult Homology</h2>
       </div>
-      <p class="pdesc">Reference summary of external genital homology, in the style of standard embryology texts (e.g. Langman's Medical Embryology).</p>
+      <p class="pdesc">Comprehensive comparative anatomy of human external genitalia: primordial origins, sex steroid-driven differentiation, pubertal maturation, and neurovascular arousal physiology.</p>
 
       <div class="acc open"><button aria-expanded="true">Anatomical Homology Matrix<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></button>
         <div class="acc-body">
-          <p>Click a row to trace that structure through all stages.</p>
+          <p>Click any row to isolate and trace that tissue across all developmental stages.</p>
           <table id="matrix"><thead><tr><th>Tissue</th><th>Week 7</th><th>Female</th><th>Male</th></tr></thead><tbody></tbody></table>
-        </div></div>
+        </div>
+      </div>
 
-      <div class="acc"><button aria-expanded="false">Tissue Origins &amp; Derivatives<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></button>
-        <div class="acc-body" id="tissue-descs"></div></div>
+      <div class="acc"><button aria-expanded="false">Tissue Origins &amp; Adult Derivatives<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></button>
+        <div class="acc-body" id="tissue-descs"></div>
+      </div>
 
       <div class="acc open"><button aria-expanded="true">Endocrine Drivers (SRY &rarr; DHT)<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></button>
         <div class="acc-body">
-          <div class="step"><strong>1. SRY</strong> on the Y chromosome (Yp11.2) drives testis determination and Sertoli / Leydig cell differentiation.</div>
-          <div class="step"><strong>2. Testosterone.</strong> Fetal Leydig cells secrete testosterone from about Week 8.</div>
-          <div class="step"><strong>3. 5&alpha;-reductase type 2</strong> converts testosterone to <strong>dihydrotestosterone (DHT)</strong> within the target tissues of the external genitalia.</div>
-          <div class="step"><strong>4. Androgen receptor signalling.</strong> DHT drives tubercle elongation, medial fusion of the urethral folds (enclosing the spongy urethra) and inferomedial fusion of the labioscrotal swellings.</div>
-          <div class="step f"><strong>5. Absence of DHT</strong> yields the default 46,XX pattern: a short tubercle, unfused folds (labia minora) and unfused swellings (labia majora) bordering an open vestibule.</div>
-        </div></div>
+          <div class="step"><strong>1. SRY</strong> on the Y chromosome (Yp11.2) triggers testis determination (Sertoli &amp; Leydig cells).</div>
+          <div class="step"><strong>2. Fetal Testosterone.</strong> Secreted by Leydig cells beginning Week 8.</div>
+          <div class="step"><strong>3. 5&alpha;-reductase type 2</strong> converts testosterone locally to <strong>dihydrotestosterone (DHT)</strong>.</div>
+          <div class="step"><strong>4. Androgen receptor signalling.</strong> Drives phallic elongation, ventral fold fusion (penile raphe/spongy urethra), and scrotal swelling fusion.</div>
+          <div class="step f"><strong>5. Absence of DHT (46,XX).</strong> Yields default female morphology: glans clitoridis, unfused labia minora, labia majora, and patent vestibule.</div>
+        </div>
+      </div>
+
+      <div class="acc open"><button aria-expanded="true">Pubertal Maturation &amp; Sexual Response<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></button>
+        <div class="acc-body">
+          <div class="step p"><strong>Pubertal Steroid Surge.</strong> Hypothalamic GnRH stimulates pituitary LH/FSH. In 46,XX, ovarian estrogens expand labial adipose, clitoral vascularity, and vaginal lubrication. In 46,XY, testicular testosterone/DHT expands penile corpora, glans volume, and scrotal dartos rugae.</div>
+          <div class="step p"><strong>Parasympathetic Erection &amp; Vasocongestion (S2&ndash;S4).</strong> Pelvic splanchnic nerves release <strong>Nitric Oxide (NO)</strong> &rarr; soluble guanylyl cyclase &rarr; <strong>cGMP</strong> &rarr; smooth muscle relaxation of helicine arterioles.
+            <br>&bull; <em>Male:</em> Cavernosal spaces engorge; subtunical venules compress against tunica albuginea (veno-occlusive mechanism), producing rigid erection (+55% length, +35% girth). Scrotum contracts and ascends.
+            <br>&bull; <em>Female:</em> Clitoral corpora and vestibular bulbs engorge; labia minora swell, blush, and <strong>part laterally</strong> to reveal the vaginal introitus; labia majora flatten slightly; epithelial transudation produces lubrication.</div>
+          <div class="step"><strong>Sympathetic Resolution (T11&ndash;L2).</strong> Norepinephrine &rarr; vasoconstriction &rarr; PDE5 degrades cGMP &rarr; detumescence back to resting flaccid state.</div>
+        </div>
+      </div>
 
       <div class="acc"><button aria-expanded="false">Clinical Correlates<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></button>
         <div class="acc-body">
-          <div class="callout"><h5>Hypospadias</h5>Incomplete fusion of the urethral folds leaves the external urethral meatus on the ventral aspect of the penis.</div>
-          <div class="callout"><h5>Androgen insensitivity syndrome (AIS)</h5>46,XY with a nonfunctional androgen receptor; target tissues do not respond to testosterone or DHT, giving a female-typical external phenotype (complete AIS).</div>
-          <div class="callout"><h5>5&alpha;-reductase type 2 deficiency</h5>Reduced conversion of testosterone to DHT causes under-virilization of the external genitalia in 46,XY individuals.</div>
-          <div class="callout"><h5>Congenital adrenal hyperplasia (46,XX)</h5>Fetal adrenal androgen excess virilizes the external genitalia (clitoromegaly, partial labioscrotal fusion).</div>
-        </div></div>
+          <div class="callout"><h5>Hypospadias</h5>Incomplete ventral fusion of urethral folds leaves the urethral meatus proximal on the ventral shaft.</div>
+          <div class="callout"><h5>Androgen Insensitivity Syndrome (CAIS)</h5>46,XY individuals with non-functional AR exhibit female-typical external anatomy despite intra-abdominal testes.</div>
+          <div class="callout"><h5>5&alpha;-Reductase Type 2 Deficiency</h5>Impaired conversion of T to DHT causes under-virilized neonatal genitalia, often with significant virilization at puberty under high testosterone.</div>
+          <div class="callout"><h5>Congenital Adrenal Hyperplasia (46,XX)</h5>Adrenal androgen excess virilizes female external genitalia (clitoromegaly and partial labioscrotal fusion).</div>
+        </div>
+      </div>
 
-      <p class="notice">Schematic educational model; not to anatomical scale. The Female&rarr;Male segment is a comparative homology morph, not a biological transition.</p>
+      <p class="notice">Educational anatomical simulation based on classical embryology (Langman) and human sexual neurovascular physiology (Masters &amp; Johnson / Guyton &amp; Hall).</p>
     </div>
   </aside>
 </main>
@@ -341,29 +397,38 @@ if (typeof THREE === 'undefined' || typeof gsap === 'undefined' || !THREE.OrbitC
 // ===== 1. CONSTANTS & TERMINOLOGY =====
 const TERMS = {
   s0: 'Bipotential primordial genitalia (Gestational Week 7)',
-  female: 'Female Phenotypic Differentiation (46,XX pathway)',
-  male: 'Male Phenotypic Differentiation (46,XY / Androgen-mediated pathway)',
+  femaleNeo: 'Female Phenotypic Differentiation (46,XX Neonatal)',
+  femaleAdult: 'Adult Female Genital Anatomy (Post-Pubertal)',
+  maleNeo: 'Male Phenotypic Differentiation (46,XY Neonatal)',
+  maleAdult: 'Adult Male Genital Anatomy (Post-Pubertal)',
   tissues: {
     genitalTubercle: {
-      name: 'Genital Tubercle', color: '#8B5CF6', atlas: '#E9BBA3',
-      s0: 'Primordial phallus', female: 'Glans clitoridis', male: 'Glans penis',
-      desc: 'Midline phallic precursor cranial to the cloacal membrane. Without DHT it forms the glans clitoridis and hood; with DHT it elongates into the penile shaft and glans.'
+      name: 'Genital Tubercle', color: '#8B5CF6', atlas: '#E5989B',
+      s0: 'Primordial phallus',
+      femaleNeo: 'Glans clitoridis & prepuce', femaleAdult: 'Glans clitoridis (erectile)',
+      maleNeo: 'Glans penis & shaft', maleAdult: 'Glans penis & shaft (erectile corpora)',
+      desc: 'Midline phallic precursor cranial to the urogenital membrane. In females it forms the glans clitoridis and hood; in males under DHT it elongates into the penile shaft (paired corpora cavernosa) and glans penis.'
     },
     urogenitalFolds: {
-      name: 'Urogenital / Urethral Folds', color: '#F59E0B', atlas: '#D9958A',
-      s0: 'Unfused medial folds', female: 'Labia minora', male: 'Ventral penile raphe & spongy urethra',
-      desc: 'Paired medial folds flanking the urogenital groove. They remain unfused as the labia minora, or fuse ventrally along the midline (penile raphe) enclosing the spongy urethra.'
+      name: 'Urogenital / Urethral Folds', color: '#F59E0B', atlas: '#DF7986',
+      s0: 'Unfused medial folds',
+      femaleNeo: 'Labia minora', femaleAdult: 'Labia minora (vascular folds)',
+      maleNeo: 'Ventral penile raphe & spongy urethra', maleAdult: 'Ventral penile raphe & penile urethra',
+      desc: 'Paired medial folds flanking the urogenital groove. In females they remain unfused as the delicate, vascular labia minora that part during arousal; in males they fuse ventrally along the penile raphe to enclose the spongy urethra.'
     },
     labioscrotalSwellings: {
-      name: 'Labioscrotal / Genital Swellings', color: '#10B981', atlas: '#E3B09A',
-      s0: 'Lateral genital swellings', female: 'Labia majora', male: 'Scrotum & scrotal raphe',
-      desc: 'Paired lateral swellings. They enlarge laterally as the labia majora, or migrate inferomedially and fuse at the scrotal raphe to form the scrotal sac.'
+      name: 'Labioscrotal / Genital Swellings', color: '#10B981', atlas: '#E8BEAC',
+      s0: 'Lateral genital swellings',
+      femaleNeo: 'Labia majora', femaleAdult: 'Labia majora (cutaneous adipose cushions)',
+      maleNeo: 'Scrotum & scrotal raphe', maleAdult: 'Scrotal sac & dartos rugae',
+      desc: 'Paired lateral swellings. In females they develop into the labia majora meeting at the commissures; in males they migrate inferomedially and fuse into the bilobate scrotal sac with median raphe.'
     },
     urogenitalSinus: {
-      name: 'Urogenital Sinus / Groove', color: '#475569', atlas: '#6b2f35',
-      s0: 'Urogenital groove', female: 'Vestibule (urethral & vaginal orifices)', male: 'Spongy (penile) urethra'
-    ,
-      desc: 'Central groove between the urogenital folds. It broadens into the vestibule with separate urethral and vaginal orifices, or is closed over by fold fusion to form the spongy urethra.'
+      name: 'Urogenital Sinus / Vestibule', color: '#475569', atlas: '#802838',
+      s0: 'Urogenital groove',
+      femaleNeo: 'Vestibule (urethral & vaginal orifices)', femaleAdult: 'Vestibule, urethral papilla & vaginal introitus',
+      maleNeo: 'Spongy (penile) urethra lumen', maleAdult: 'Spongy urethra & external urethral meatus',
+      desc: 'Central groove and endodermal sinus. In females it broadens into the vestibule containing the external urethral orifice and vaginal introitus; in males fold fusion closes it over to form the lumen of the spongy urethra.'
     }
   }
 };
@@ -372,29 +437,43 @@ const KEYS = Object.keys(TERMS.tissues);
 // ===== 2. STATE =====
 const state = {
   t: 0, playing: true, loop: true, style: 'clay', highlight: null, pinned: null,
-  duration: 18, dwell: 1.2, tweening: false, scrubbing: false, labels: false, derived: null
+  duration: 20, dwell: 1.2, tweening: false, scrubbing: false, labels: false, derived: null,
+  advMode: false, arousal: 0, arousalPulse: false
 };
 const CAM = { pos: [0, 0.2, 7.2], target: [0, -0.05, 0.2] };
 
 // ===== 3. PARAMETER KEYFRAMES =====
-const P = {};
-P.S0 = {
-  tubercle:  { yBase: 0.00, L: 0.95, r0: 0.24, taper: 0.18, tilt: 0.16, bend: 0.00, glans: 0.08, glansU: 0.85, glansW: 0.10, corona: 0.00, sulcus: 0.00, hood: 0.00 },
-  folds:     { dOpen: 0.24, dPeri: 0.24, fuse: 0.00, a: 0.060, b: 0.075, periLen: 1.05, phalicFrac: 0.35, ruffle: 0.00 },
-  swellings: { yStart: 0.40, yEnd: -1.05, xBase: 0.38, xBulge: 0.18, zBase: 0.08, zBulge: 0.10, rx0: 0.13, rxBulge: 0.06, rz0: 0.10, rzBulge: 0.06, archPow: 0.90, taperPow: 0.35, fuse: 0.00 },
-  sinus:     { sx: 0.14, sy: 0.70, y: -0.52, depth: 0.45, open: 1.0, orifices: 0.0, meatus: 0.0 }
-};
-P.F = {
-  tubercle:  { yBase: 0.22, L: 0.24, r0: 0.075, taper: 0.06, tilt: 0.04, bend: 0.00, glans: 0.35, glansU: 0.82, glansW: 0.12, corona: 0.00, sulcus: 0.00, hood: 0.45 },
-  folds:     { dOpen: 0.10, dPeri: 0.11, fuse: 0.00, a: 0.032, b: 0.075, periLen: 0.92, phalicFrac: 0.10, ruffle: 0.35 },
-  swellings: { yStart: 0.58, yEnd: -0.82, xBase: 0.02, xBulge: 0.24, zBase: 0.10, zBulge: 0.12, rx0: 0.15, rxBulge: 0.06, rz0: 0.12, rzBulge: 0.06, archPow: 0.85, taperPow: 0.30, fuse: 0.00 },
-  sinus:     { sx: 0.13, sy: 0.48, y: -0.22, depth: 0.85, open: 1.0, orifices: 1.0, meatus: 0.0 }
-};
-P.M = {
-  tubercle:  { yBase: 0.06, L: 2.20, r0: 0.30, taper: 0.02, tilt: 0.14, bend: 0.12, glans: 0.24, glansU: 0.86, glansW: 0.08, corona: 0.28, sulcus: 0.14, hood: 0.00 },
-  folds:     { dOpen: 0.24, dPeri: 0.24, fuse: 1.00, a: 0.050, b: 0.060, periLen: 0.02, phalicFrac: 0.95, ruffle: 0.00 },
-  swellings: { yStart: 0.20, yEnd: -1.35, xBase: 0.02, xBulge: 0.26, zBase: 0.12, zBulge: 0.22, rx0: 0.20, rxBulge: 0.14, rz0: 0.18, rzBulge: 0.16, archPow: 0.92, taperPow: 0.35, fuse: 1.00 },
-  sinus:     { sx: 0.02, sy: 0.10, y: -0.65, depth: 0.00, open: 0.0, orifices: 0.0, meatus: 1.0 }
+const P = {
+  S0: { // Week 7 Bipotential Primordium
+    tubercle:  { yBase: 0.04, L: 0.82, r0: 0.22, taper: 0.16, tilt: 0.20, bend: 0.00, glans: 0.14, glansU: 0.80, glansW: 0.14, corona: 0.00, sulcus: 0.00, hood: 0.00, shaftFlat: 0.00 },
+    folds:     { dOpen: 0.20, dPeri: 0.22, fuse: 0.00, a: 0.048, b: 0.065, periLen: 0.95, phalicFrac: 0.35, ruffle: 0.00, flange: 0.15 },
+    swellings: { yStart: 0.45, yEnd: -1.02, xBase: 0.34, xBulge: 0.16, zBase: 0.08, zBulge: 0.10, rx0: 0.14, rxBulge: 0.06, rz0: 0.11, rzBulge: 0.05, archPow: 0.88, taperPow: 0.35, fuse: 0.00, antComm: 0.00, postComm: 0.00, bilobe: 0.00, rugae: 0.00 },
+    sinus:     { sx: 0.16, sy: 0.65, y: -0.48, depth: 0.35, open: 1.0, orifices: 0.0, meatus: 0.0 }
+  },
+  F_Neo: { // Female Neonatal (46,XX early differentiation)
+    tubercle:  { yBase: 0.20, L: 0.38, r0: 0.125, taper: 0.06, tilt: 0.10, bend: 0.01, glans: 0.28, glansU: 0.78, glansW: 0.14, corona: 0.00, sulcus: 0.00, hood: 0.72, shaftFlat: 0.00 },
+    folds:     { dOpen: 0.08, dPeri: 0.10, fuse: 0.00, a: 0.024, b: 0.092, periLen: 0.88, phalicFrac: 0.10, ruffle: 0.45, flange: 0.85 },
+    swellings: { yStart: 0.52, yEnd: -0.82, xBase: 0.05, xBulge: 0.22, zBase: 0.10, zBulge: 0.12, rx0: 0.17, rxBulge: 0.07, rz0: 0.14, rzBulge: 0.07, archPow: 0.82, taperPow: 0.28, fuse: 0.00, antComm: 0.85, postComm: 0.80, bilobe: 0.00, rugae: 0.00 },
+    sinus:     { sx: 0.15, sy: 0.52, y: -0.22, depth: 0.90, open: 1.0, orifices: 1.0, meatus: 0.0 }
+  },
+  F_Adult: { // Mature Adult Female (Post-pubertal, resting baseline)
+    tubercle:  { yBase: 0.22, L: 0.46, r0: 0.145, taper: 0.05, tilt: 0.12, bend: 0.02, glans: 0.32, glansU: 0.78, glansW: 0.14, corona: 0.00, sulcus: 0.00, hood: 0.76, shaftFlat: 0.00 },
+    folds:     { dOpen: 0.09, dPeri: 0.12, fuse: 0.00, a: 0.026, b: 0.120, periLen: 0.96, phalicFrac: 0.09, ruffle: 0.55, flange: 0.92 },
+    swellings: { yStart: 0.56, yEnd: -0.86, xBase: 0.06, xBulge: 0.27, zBase: 0.12, zBulge: 0.16, rx0: 0.21, rxBulge: 0.09, rz0: 0.17, rzBulge: 0.09, archPow: 0.80, taperPow: 0.26, fuse: 0.00, antComm: 0.92, postComm: 0.88, bilobe: 0.00, rugae: 0.00 },
+    sinus:     { sx: 0.17, sy: 0.58, y: -0.22, depth: 0.95, open: 1.0, orifices: 1.0, meatus: 0.0 }
+  },
+  M_Neo: { // Male Neonatal (46,XY early differentiation)
+    tubercle:  { yBase: 0.06, L: 2.30, r0: 0.31, taper: 0.03, tilt: 0.15, bend: 0.10, glans: 0.26, glansU: 0.84, glansW: 0.08, corona: 0.32, sulcus: 0.15, hood: 0.00, shaftFlat: 0.18 },
+    folds:     { dOpen: 0.20, dPeri: 0.22, fuse: 1.00, a: 0.040, b: 0.048, periLen: 0.02, phalicFrac: 0.95, ruffle: 0.00, flange: 0.00 },
+    swellings: { yStart: 0.18, yEnd: -1.35, xBase: 0.02, xBulge: 0.25, zBase: 0.13, zBulge: 0.22, rx0: 0.21, rxBulge: 0.15, rz0: 0.19, rzBulge: 0.17, archPow: 0.92, taperPow: 0.35, fuse: 1.00, antComm: 0.00, postComm: 0.00, bilobe: 0.85, rugae: 0.80 },
+    sinus:     { sx: 0.02, sy: 0.10, y: -0.65, depth: 0.00, open: 0.0, orifices: 0.0, meatus: 1.0 }
+  },
+  M_Adult: { // Mature Adult Male (Post-pubertal, resting flaccid)
+    tubercle:  { yBase: 0.06, L: 2.80, r0: 0.36, taper: 0.02, tilt: 0.08, bend: 0.18, glans: 0.30, glansU: 0.85, glansW: 0.08, corona: 0.36, sulcus: 0.16, hood: 0.00, shaftFlat: 0.24 },
+    folds:     { dOpen: 0.20, dPeri: 0.22, fuse: 1.00, a: 0.042, b: 0.052, periLen: 0.02, phalicFrac: 0.96, ruffle: 0.00, flange: 0.00 },
+    swellings: { yStart: 0.14, yEnd: -1.52, xBase: 0.02, xBulge: 0.29, zBase: 0.14, zBulge: 0.27, rx0: 0.25, rxBulge: 0.19, rz0: 0.23, rzBulge: 0.21, archPow: 0.94, taperPow: 0.36, fuse: 1.00, antComm: 0.00, postComm: 0.00, bilobe: 0.92, rugae: 0.92 },
+    sinus:     { sx: 0.02, sy: 0.10, y: -0.68, depth: 0.00, open: 0.0, orifices: 0.0, meatus: 1.0 }
+  }
 };
 
 // ===== 4. MATH HELPERS =====
@@ -409,31 +488,131 @@ function mixParams(A, B, k) {
   for (const key in A) out[key] = (typeof A[key] === 'number') ? lerp(A[key], B[key], k) : mixParams(A[key], B[key], k);
   return out;
 }
-function sampleParams(t) {
-  t = clamp(t, 0, 1);
-  const seg = Math.min(2, Math.floor(t * 3));
-  const local = easeInOutCubic(t * 3 - seg);               // cubic ease per segment
-  const [A, B] = [[P.S0, P.F], [P.F, P.M], [P.M, P.S0]][seg];
-  return mixParams(A, B, local);
+
+// Applies autonomic neurovascular vasocongestion & tumescence
+function applyArousal(baseP, isMale, arousal) {
+  if (arousal <= 0.001) return baseP;
+  const p = JSON.parse(JSON.stringify(baseP));
+  const E = clamp(arousal, 0, 1);
+
+  if (isMale) {
+    // Penile erection: length, girth, dorsal erection angle, glans engorgement
+    p.tubercle.L = lerp(p.tubercle.L, p.tubercle.L * 1.55, E);
+    p.tubercle.r0 = lerp(p.tubercle.r0, p.tubercle.r0 * 1.35, E);
+    p.tubercle.tilt = lerp(p.tubercle.tilt, 0.65, E); // elevates forward / up
+    p.tubercle.bend = lerp(p.tubercle.bend, 0.02, E); // straightens erect shaft
+    p.tubercle.corona = lerp(p.tubercle.corona, p.tubercle.corona * 1.30, E);
+
+    // Scrotal elevation & tightening (dartos / cremasteric contraction)
+    p.swellings.yStart = lerp(p.swellings.yStart, p.swellings.yStart + 0.18, E);
+    p.swellings.yEnd = lerp(p.swellings.yEnd, p.swellings.yEnd + 0.32, E);
+    p.swellings.rx0 = lerp(p.swellings.rx0, p.swellings.rx0 * 0.88, E);
+    p.swellings.rz0 = lerp(p.swellings.rz0, p.swellings.rz0 * 0.88, E);
+    p.swellings.rugae = lerp(p.swellings.rugae, 1.35, E);
+  } else {
+    // Female vasocongestion: clitoral glans tumescence & elevation
+    p.tubercle.L = lerp(p.tubercle.L, p.tubercle.L * 1.40, E);
+    p.tubercle.r0 = lerp(p.tubercle.r0, p.tubercle.r0 * 1.35, E);
+    p.tubercle.tilt = lerp(p.tubercle.tilt, p.tubercle.tilt + 0.10, E);
+
+    // Labia minora engorge and part laterally, widely exposing the vestibule
+    p.folds.dOpen = lerp(p.folds.dOpen, p.folds.dOpen + 0.15, E);
+    p.folds.dPeri = lerp(p.folds.dPeri, p.folds.dPeri + 0.18, E);
+    p.folds.b = lerp(p.folds.b, p.folds.b * 1.35, E);
+    p.folds.ruffle = lerp(p.folds.ruffle, p.folds.ruffle + 0.25, E);
+
+    // Labia majora flatten slightly and spread outward
+    p.swellings.xBase = lerp(p.swellings.xBase, p.swellings.xBase + 0.10, E);
+    p.swellings.xBulge = lerp(p.swellings.xBulge, p.swellings.xBulge + 0.08, E);
+
+    // Vestibule & introitus deepen and widen
+    p.sinus.sx = lerp(p.sinus.sx, p.sinus.sx * 1.55, E);
+    p.sinus.depth = lerp(p.sinus.depth, p.sinus.depth * 1.25, E);
+  }
+  return p;
 }
 
-// Tubercle centerline and radius profile
-function axisPoint(u, p) {
-  const yBase = p.yBase || 0;
-  return [0, yBase + p.L * u * Math.cos(p.tilt) - p.bend * u * u * p.L * 0.5, p.L * u * Math.sin(p.tilt) + 0.15 * u];
+function sampleParams(t) {
+  t = clamp(t, 0, 1);
+  let baseP, isMale = false;
+
+  if (state.advMode) {
+    // 5-Stage Sequence: S0 -> F_Neo -> F_Adult -> M_Neo -> M_Adult -> S0
+    const stages = [P.S0, P.F_Neo, P.F_Adult, P.M_Neo, P.M_Adult, P.S0];
+    const numSegs = stages.length - 1;
+    const segFloat = t * numSegs;
+    const seg = Math.min(numSegs - 1, Math.floor(segFloat));
+    const local = easeInOutCubic(segFloat - seg);
+    baseP = mixParams(stages[seg], stages[seg + 1], local);
+    isMale = baseP.folds.fuse > 0.5;
+  } else {
+    // 3-Stage Classic Embryonic Sequence: S0 -> F_Neo -> M_Neo -> S0
+    const seg = Math.min(2, Math.floor(t * 3));
+    const local = easeInOutCubic(t * 3 - seg);
+    const [A, B] = [[P.S0, P.F_Neo], [P.F_Neo, P.M_Neo], [P.M_Neo, P.S0]][seg];
+    baseP = mixParams(A, B, local);
+    isMale = baseP.folds.fuse > 0.5;
+  }
+
+  // Arousal applies when user engages arousal slider (primarily in adult/differentiation phases)
+  const isPrimordial = (t < 0.08 || t > 0.95);
+  const effectiveArousal = isPrimordial ? 0 : state.arousal;
+  return applyArousal(baseP, isMale, effectiveArousal);
 }
+
+// Axis with moving orthogonal cross-section frame
+function getTubFrame(u, p) {
+  const yBase = p.yBase || 0;
+  const y = yBase + p.L * u * Math.cos(p.tilt) - p.bend * u * u * p.L * 0.5;
+  const z = p.L * u * Math.sin(p.tilt) + 0.12 * u;
+  const dy = p.L * Math.cos(p.tilt) - p.bend * u * p.L;
+  const dz = p.L * Math.sin(p.tilt) + 0.12;
+  const len = Math.hypot(dy, dz) || 1;
+  const Ty = dy / len, Tz = dz / len;
+  const B = [1, 0, 0];
+  const N = [0, -Tz, Ty]; // normal perpendicular to tangent pointing ventrally (+Z)
+  return { pos: [0, y, z], T: [0, Ty, Tz], B, N };
+}
+
 function tubRadius(u, p, v) {
   let r = p.r0 * (1 - p.taper * u);
-  r += p.r0 * p.glans * gauss(u, p.glansU, p.glansW);          // glans
-  r += p.r0 * p.corona * gauss(u, p.glansU - 0.08, 0.035);    // corona glandis (male)
-  if (p.sulcus) r -= p.r0 * p.sulcus * gauss(u, p.glansU - 0.15, 0.045); // coronal sulcus (male)
-  if (v !== undefined && p.hood > 0) {                        // preputial clitoral hood (female)
-    const hoodMask = Math.max(0, Math.sin(v) + 0.3);
-    r += p.hood * 0.75 * p.r0 * gauss(u, 0.65, 0.18) * (0.3 + 0.7 * hoodMask);
+  const cosV = Math.cos(v);
+  const sinV = Math.sin(v);
+
+  // Dorsal corpora cavernosa twin-ridge on penile shaft
+  if (p.shaftFlat > 0 && u < p.glansU - 0.12) {
+    const shaftMask = Math.pow(Math.sin(Math.PI * clamp(u / (p.glansU - 0.12), 0, 1)), 0.5);
+    const dorsalTwin = 0.08 * p.shaftFlat * Math.cos(2 * v) * Math.max(0, -sinV);
+    const ventralNarrow = -0.05 * p.shaftFlat * Math.max(0, sinV);
+    r *= (1 + shaftMask * (dorsalTwin + ventralNarrow));
   }
-  // Smooth proximal root rounding (closes base, eliminates open hollow pipe)
+
+  // Glans enlargement
+  r += p.r0 * p.glans * gauss(u, p.glansU, p.glansW);
+
+  // Corona glandis (male): prominent dorsal/lateral ledge, dipping ventrally at frenular notch
+  if (p.corona > 0) {
+    const coronaFlare = p.r0 * p.corona * gauss(u, p.glansU - 0.08, 0.038);
+    const coronaProfile = 1.0 - 0.65 * Math.max(0, sinV);
+    r += coronaFlare * coronaProfile;
+  }
+
+  // Coronal sulcus (neck groove):
+  if (p.sulcus > 0) {
+    const sulcusDip = p.r0 * p.sulcus * gauss(u, p.glansU - 0.15, 0.042);
+    const sulcusProfile = 1.0 - 0.35 * Math.max(0, sinV);
+    r -= sulcusDip * sulcusProfile;
+  }
+
+  // Preputial hood (female clitoral prepuce):
+  if (p.hood > 0) {
+    const hoodMask = Math.max(0, -sinV + 0.35);
+    r += p.hood * 0.85 * p.r0 * gauss(u, 0.68, 0.18) * hoodMask;
+  }
+
+  // Proximal root closure
   if (u < 0.14) r *= Math.sqrt(Math.max(0, 1 - ((0.14 - u) / 0.14) ** 2));
-  // Smooth distal cap rounding
+  // Distal cap dome
   const uc = 0.88;
   if (u > uc) r *= Math.sqrt(Math.max(0, 1 - ((u - uc) / (1 - uc)) ** 2));
   return Math.max(r, 1e-4);
@@ -454,27 +633,30 @@ Object.assign(controls, { enableDamping: true, dampingFactor: 0.08, minDistance:
 controls.target.set(...CAM.target);
 controls.update();
 
-const ambient = new THREE.AmbientLight(0xfff5ea, 0.25);
-const hemi = new THREE.HemisphereLight(0xfff1e0, 0x2a2f45, 0.7);
-const sun = new THREE.DirectionalLight(0xfff4e6, 0.9); sun.position.set(3, 4, 5);
+// Medical studio lighting
+const ambient = new THREE.AmbientLight(0xfff5ea, 0.22);
+const hemi = new THREE.HemisphereLight(0xfff5ea, 0x1e2438, 0.65);
+const sun = new THREE.DirectionalLight(0xfff8ee, 1.05); sun.position.set(3.5, 4.5, 5.0);
+const fillLight = new THREE.DirectionalLight(0xdce7ff, 0.45); fillLight.position.set(-4.0, 1.0, 3.5);
 const rim = new THREE.PointLight(0x8b5cf6, 0.35, 14); rim.position.set(-4, 2, -2);
-scene.add(ambient, hemi, sun, rim);
+scene.add(ambient, hemi, sun, fillLight, rim);
 
-// Cosmetic perineal base (not pickable) with mons pubis contour
-const baseGeo = new THREE.PlaneGeometry(7, 6.5, 32, 32);
+// High-resolution anatomical pelvic floor & mons pubis base
+const baseGeo = new THREE.PlaneGeometry(8, 7.5, 64, 64);
 {
   const a = baseGeo.attributes.position;
   for (let i = 0; i < a.count; i++) {
     const x = a.getX(i), y = a.getY(i);
     let z = -0.06 - 0.035 * x * x - 0.008 * y * y;
-    if (y > 0.3 && Math.abs(x) < 1.4) {
-      z += 0.09 * Math.exp(-0.5 * ((x / 0.65) ** 2 + ((y - 0.85) / 0.55) ** 2));
+    // Mons pubis soft fatty prominence
+    if (y > 0.25 && Math.abs(x) < 1.6) {
+      z += 0.12 * Math.exp(-0.5 * ((x / 0.75) ** 2 + ((y - 0.95) / 0.65) ** 2));
     }
     a.setZ(i, z);
   }
   baseGeo.computeVertexNormals();
 }
-const baseMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 1 });
+const baseMat = new THREE.MeshStandardMaterial({ color: 0x1a2333, roughness: 1 });
 const perinealBase = new THREE.Mesh(baseGeo, baseMat);
 perinealBase.position.set(0, -0.8, 0);
 scene.add(perinealBase);
@@ -487,7 +669,28 @@ const depthRings = new THREE.Group();
 });
 depthRings.visible = false; scene.add(depthRings);
 
-// ===== 6. GEOMETRY BUILDERS (topology built once) =====
+// ===== 6. PROCEDURAL SKIN TEXTURE & GEOMETRIES =====
+function makeProceduralSkinTexture() {
+  const c = document.createElement('canvas'); c.width = c.height = 512;
+  const ctx = c.getContext('2d'), imgData = ctx.createImageData(512, 512), data = imgData.data;
+  for (let y = 0; y < 512; y++) {
+    for (let x = 0; x < 512; x++) {
+      const idx = (y * 512 + x) * 4;
+      const n1 = Math.sin(x * 0.14) * Math.cos(y * 0.14);
+      const n2 = Math.sin(x * 0.32 + 1.2) * Math.sin(y * 0.32 + 0.7);
+      const n3 = Math.sin((x + y) * 0.5);
+      const val = 128 + Math.floor(26 * n1 + 16 * n2 + 10 * n3);
+      data[idx] = val; data[idx + 1] = val; data[idx + 2] = val; data[idx + 3] = 255;
+    }
+  }
+  ctx.putImageData(imgData, 0, 0);
+  const tex = new THREE.CanvasTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(6, 6);
+  return tex;
+}
+const skinBumpTex = makeProceduralSkinTexture();
+
 const dynamicGeometries = [];
 const pickables = [];
 
@@ -499,7 +702,7 @@ function makeGridGeometry(nU, nV) {
   const idx = [];
   for (let i = 0; i < nU; i++) for (let j = 0; j < nV; j++) {
     const a = i * (nV + 1) + j, b = (i + 1) * (nV + 1) + j, c = (i + 1) * (nV + 1) + j + 1, d = i * (nV + 1) + j + 1;
-    idx.push(a, b, d, b, c, d);                       // outward CCW winding
+    idx.push(a, b, d, b, c, d);
   }
   g.setIndex(idx);
   g.userData = { nU, nV };
@@ -507,7 +710,6 @@ function makeGridGeometry(nU, nV) {
   return g;
 }
 
-// Average normals across the duplicated seam column
 function fixSeam(g) {
   const { nU, nV } = g.userData, nrm = g.attributes.normal;
   for (let i = 0; i <= nU; i++) {
@@ -517,18 +719,24 @@ function fixSeam(g) {
   }
 }
 
-// Materials ------------------------------------------------------------
+// Materials
 const emissiveBase = { clay: 0.08, atlas: 0.05 };
-function stdMat(hex, rough) { return new THREE.MeshStandardMaterial({ color: hex, roughness: rough, metalness: 0, emissive: hex, emissiveIntensity: 0.08 }); }
+function stdMat(hex, rough, bumpScale) {
+  return new THREE.MeshStandardMaterial({
+    color: hex, roughness: rough, metalness: 0.02,
+    emissive: hex, emissiveIntensity: 0.08,
+    bumpMap: skinBumpTex, bumpScale: bumpScale || 0.012
+  });
+}
 const MAT = { clay: {}, atlas: {} };
-for (const k of ['genitalTubercle', 'urogenitalFolds', 'labioscrotalSwellings']) {
-  MAT.clay[k] = stdMat(new THREE.Color(TERMS.tissues[k].color), 0.72);
-  MAT.atlas[k] = stdMat(new THREE.Color(TERMS.tissues[k].atlas), 0.5);
+for (const k of KEYS) {
+  MAT.clay[k] = stdMat(new THREE.Color(TERMS.tissues[k].color), 0.70, 0.010);
+  MAT.atlas[k] = stdMat(new THREE.Color(TERMS.tissues[k].atlas), k === 'urogenitalSinus' || k === 'urogenitalFolds' ? 0.38 : 0.52, 0.014);
   MAT.atlas[k].emissiveIntensity = emissiveBase.atlas;
 }
 
-// Inverted-hull outline (shares geometry with its source mesh)
-const outlineMeshes = [];   // {mesh, tissue}
+// Inverted-hull outline for clinical atlas mode
+const outlineMeshes = [];
 function makeOutline(geometry, tissue, offset, parent) {
   const mat = new THREE.ShaderMaterial({
     uniforms: { off: { value: offset } },
@@ -543,17 +751,17 @@ function makeOutline(geometry, tissue, offset, parent) {
   return m;
 }
 
-// --- TubercleMesh ---
-const nU_T = 40, nV_T = 32;
+// 1. Tubercle Mesh
+const nU_T = 56, nV_T = 40;
 const geoTub = makeGridGeometry(nU_T, nV_T);
 const TubercleMesh = new THREE.Mesh(geoTub, MAT.clay.genitalTubercle);
 TubercleMesh.name = 'TubercleMesh'; TubercleMesh.userData.tissue = 'genitalTubercle';
 scene.add(TubercleMesh); pickables.push(TubercleMesh);
 makeOutline(geoTub, 'genitalTubercle', 0.022);
 
-// --- UrogenitalFoldsMesh (paired tubes + ventral raphe tube) ---
-const nU_F = 48, nV_F = 14;
-const geoFoldL = makeGridGeometry(nU_F, nV_F), geoFoldR = makeGridGeometry(nU_F, nV_F), geoRaphe = makeGridGeometry(nU_F, 10);
+// 2. Urogenital Folds Mesh (paired tubes + ventral raphe)
+const nU_F = 60, nV_F = 28;
+const geoFoldL = makeGridGeometry(nU_F, nV_F), geoFoldR = makeGridGeometry(nU_F, nV_F), geoRaphe = makeGridGeometry(nU_F, 16);
 const UrogenitalFoldsMesh = new THREE.Group(); UrogenitalFoldsMesh.name = 'UrogenitalFoldsMesh';
 const foldL = new THREE.Mesh(geoFoldL, MAT.clay.urogenitalFolds);
 const foldR = new THREE.Mesh(geoFoldR, MAT.clay.urogenitalFolds);
@@ -564,74 +772,75 @@ scene.add(UrogenitalFoldsMesh);
 makeOutline(geoFoldL, 'urogenitalFolds', 0.016, UrogenitalFoldsMesh);
 makeOutline(geoFoldR, 'urogenitalFolds', 0.016, UrogenitalFoldsMesh);
 
-// --- LabioscrotalSwellingsMesh (continuous parametric lofted lips / scrotal sac) ---
-const nU_S = 44, nV_S = 24;
+// 3. Labioscrotal Swellings Mesh (continuous anatomical cushions / scrotal sac)
+const nU_S = 60, nV_S = 36;
 const geoSwellingL = makeGridGeometry(nU_S, nV_S), geoSwellingR = makeGridGeometry(nU_S, nV_S);
+const geoScrotalRaphe = makeGridGeometry(44, 12);
 const LabioscrotalSwellingsMesh = new THREE.Group(); LabioscrotalSwellingsMesh.name = 'LabioscrotalSwellingsMesh';
 const swL = new THREE.Mesh(geoSwellingL, MAT.clay.labioscrotalSwellings);
 const swR = new THREE.Mesh(geoSwellingR, MAT.clay.labioscrotalSwellings);
-const scrotalRaphe = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 1, 14), MAT.clay.labioscrotalSwellings);
+const scrotalRaphe = new THREE.Mesh(geoScrotalRaphe, MAT.clay.labioscrotalSwellings);
+scrotalRaphe.name = 'ScrotalRapheMesh';
 [swL, swR, scrotalRaphe].forEach(m => { m.userData.tissue = 'labioscrotalSwellings'; LabioscrotalSwellingsMesh.add(m); pickables.push(m); });
 scene.add(LabioscrotalSwellingsMesh);
 makeOutline(geoSwellingL, 'labioscrotalSwellings', 0.024, LabioscrotalSwellingsMesh);
 makeOutline(geoSwellingR, 'labioscrotalSwellings', 0.024, LabioscrotalSwellingsMesh);
 
-// --- SinusOpeningMesh (slot + recess + orifices + meatus) ---
-const gradCanvas = document.createElement('canvas'); gradCanvas.width = gradCanvas.height = 128;
-{
-  const c = gradCanvas.getContext('2d'), g = c.createRadialGradient(64, 64, 4, 64, 64, 62);
-  g.addColorStop(0, 'rgba(11,18,32,1)'); g.addColorStop(0.6, 'rgba(30,41,59,0.95)');
-  g.addColorStop(0.85, 'rgba(71,85,105,0.7)'); g.addColorStop(1, 'rgba(71,85,105,0)');
-  c.fillStyle = g; c.fillRect(0, 0, 128, 128);
-}
-const gradTex = new THREE.CanvasTexture(gradCanvas);
-function sinusMat(hex, extra) {
-  return new THREE.MeshBasicMaterial(Object.assign({ color: hex, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 }, extra));
-}
-const slotMat = sinusMat(0xffffff, { map: gradTex });
-const recessMat = sinusMat(0x05080f), urMat = sinusMat(0x0b1220), vagMat = sinusMat(0x05080f), meatMat = sinusMat(0x0b1220);
-const rimUrMat = sinusMat(0x94a3b8), rimVagMat = sinusMat(0x94a3b8);
+// 4. 3D Sinus & Vestibule Mesh
+const nU_Sinus = 52, nV_Sinus = 28;
+const geoSinus3D = makeGridGeometry(nU_Sinus, nV_Sinus);
+const SinusVestibuleMesh = new THREE.Mesh(geoSinus3D, MAT.clay.urogenitalSinus);
+SinusVestibuleMesh.name = 'SinusVestibuleMesh'; SinusVestibuleMesh.userData.tissue = 'urogenitalSinus';
 const SinusOpeningMesh = new THREE.Group(); SinusOpeningMesh.name = 'SinusOpeningMesh';
-const slot = new THREE.Mesh(new THREE.CircleGeometry(1, 48), slotMat);
-const recess = new THREE.Mesh(new THREE.CircleGeometry(0.55, 40), recessMat); recess.position.z = 0.002;
-const urethral = new THREE.Mesh(new THREE.CircleGeometry(0.045, 24), urMat);
-const urRim = new THREE.Mesh(new THREE.RingGeometry(0.047, 0.065, 24), rimUrMat);
-const vaginal = new THREE.Mesh(new THREE.CircleGeometry(0.10, 32), vagMat);
-const vagRim = new THREE.Mesh(new THREE.RingGeometry(0.103, 0.13, 32), rimVagMat);
-const meatus = new THREE.Mesh(new THREE.CircleGeometry(0.03, 16), meatMat);
-slot.add(recess);
-[slot, urethral, urRim, vaginal, vagRim, meatus].forEach(m => { m.userData.tissue = 'urogenitalSinus'; SinusOpeningMesh.add(m); });
-pickables.push(slot);
+SinusOpeningMesh.add(SinusVestibuleMesh);
+pickables.push(SinusVestibuleMesh);
 scene.add(SinusOpeningMesh);
+makeOutline(geoSinus3D, 'urogenitalSinus', 0.016, SinusOpeningMesh);
 
-// ===== 7. updateMorph(t) =====
-// Fold centerline C(s); s = 0 at the glans end. side = -1 / +1 (0 = midline raphe)
+// Male external urethral meatus (apex sagittal slit on glans penis)
+const meatusMat = new THREE.MeshBasicMaterial({ color: 0x05080f, transparent: true });
+const meatus = new THREE.Mesh(new THREE.RingGeometry(0.012, 0.038, 20), meatusMat);
+meatus.userData.tissue = 'urogenitalSinus';
+SinusOpeningMesh.add(meatus);
+
+// ===== 7. UPDATE MORPH =====
 function foldPoint(s, side, f, tp, lift) {
-  const fuseLocal = clamp(f.fuse * 1.4 - 0.4 * s, 0, 1);
+  const fuseLocal = clamp(f.fuse * 1.5 - 0.5 * s, 0, 1);
   const pf = f.phalicFrac;
-  if (s <= pf) {                                   // phallic portion: ventral surface of tubercle
+  if (s <= pf) {
     const u = 0.92 * (1 - s / pf);
-    const ax = axisPoint(u, tp), r = tubRadius(u, tp);
-    const dx = Math.min(lerp(f.dOpen, 0.008, fuseLocal) * (0.3 + 0.7 * (s / pf)), r * 0.85);
-    const zs = 0.92 * Math.sqrt(Math.max(r * r - dx * dx, 0));
-    return [side * dx, ax[1], ax[2] + zs + lift];
+    const frm = getTubFrame(u, tp);
+    const rV = tubRadius(u, tp, Math.PI / 2);
+    const dx = Math.min(lerp(f.dOpen, 0.006, fuseLocal) * (0.3 + 0.7 * (s / pf)), rV * 0.88);
+    const x = side * dx;
+    const y = frm.pos[1] + (rV + lift) * frm.N[1];
+    const z = frm.pos[2] + (rV + lift) * frm.N[2];
+    return [x, y, z];
   }
-  const q = (s - pf) / (1 - pf);                   // perineal portion (vestibule / perineum)
-  const ax0 = axisPoint(0, tp);
+  const q = (s - pf) / (1 - pf);
+  const frm0 = getTubFrame(0, tp);
   const arch = Math.sin(Math.PI * Math.pow(q, 0.85));
   const dBase = lerp(0.06, f.dPeri, arch);
-  const dx = lerp(dBase, 0.008, fuseLocal);
-  const zHeight = lerp(0.10, 0.03, q) + 0.05 * Math.sin(Math.PI * q);
-  return [side * dx, ax0[1] - q * f.periLen, zHeight + lift];
+  const dx = lerp(dBase, 0.006, fuseLocal);
+  const y = frm0.pos[1] - q * f.periLen;
+  const z = lerp(0.12, 0.04, q) + 0.06 * Math.sin(Math.PI * q) + lift;
+  return [side * dx, y, z];
 }
 
-function writeTubercle(p) {
-  const pos = geoTub.attributes.position; let k = 0;
-  for (let i = 0; i <= nU_T; i++) {
-    const u = i / nU_T, ax = axisPoint(u, p);
-    for (let j = 0; j <= nV_T; j++) {
-      const v = j / nV_T * Math.PI * 2, r = tubRadius(u, p, v);
-      pos.setXYZ(k++, ax[0] + r * Math.cos(v), ax[1], ax[2] + 0.92 * r * Math.sin(v));
+function writeTubercle(geo, p) {
+  const pos = geo.attributes.position, { nU, nV } = geo.userData;
+  let k = 0;
+  for (let i = 0; i <= nU; i++) {
+    const u = i / nU;
+    const f = getTubFrame(u, p);
+    for (let j = 0; j <= nV; j++) {
+      const v = j / nV * Math.PI * 2;
+      const r = tubRadius(u, p, v);
+      const cv = Math.cos(v), sv = Math.sin(v);
+      const x = f.pos[0] + r * cv * f.B[0] + r * sv * f.N[0];
+      const y = f.pos[1] + r * cv * f.B[1] + r * sv * f.N[1];
+      const z = f.pos[2] + r * cv * f.B[2] + r * sv * f.N[2];
+      pos.setXYZ(k++, x, y, z);
     }
   }
 }
@@ -646,13 +855,19 @@ function writeTube(geo, side, f, tp, a0, b0, lift) {
     let T = [c2[0] - c[0], c2[1] - c[1], c2[2] - c[2]];
     if (s2 < s) T = T.map(x => -x);
     const tl = Math.hypot(...T) || 1; T = T.map(x => x / tl);
-    // Fixed reference normal N0 = +Z (no Frenet twisting): Bn = T x N0, N = Bn x T
     let Bn = [T[1], -T[0], 0]; const bl = Math.hypot(...Bn) || 1; Bn = Bn.map(x => x / bl);
     const N = [Bn[1] * T[2] - Bn[2] * T[1], Bn[2] * T[0] - Bn[0] * T[2], Bn[0] * T[1] - Bn[1] * T[0]];
     const taper = Math.pow(Math.sin(Math.PI * s), 0.35);
-    const a = a0 * (1 + f.ruffle * 0.35 * Math.sin(20 * s)) * taper, b = b0 * taper;
+    const a = a0 * taper;
+    const b = b0 * taper;
     for (let j = 0; j <= nV; j++) {
-      const ph = j / nV * Math.PI * 2, ca = a * Math.cos(ph), sb = b * Math.sin(ph);
+      const ph = j / nV * Math.PI * 2;
+      const cph = Math.cos(ph), sph = Math.sin(ph);
+      // Delicate mucosal flange taper in female
+      const flangeW = (1 - 0.45 * f.flange * sph * sph);
+      const ruff = (sph > 0 ? f.ruffle * 0.016 * Math.sin(18 * s) * sph : 0);
+      const ca = a * cph * flangeW + ruff;
+      const sb = b * sph;
       pos.setXYZ(k++, c[0] + Bn[0] * ca + N[0] * sb, c[1] + Bn[1] * ca + N[1] * sb, c[2] + Bn[2] * ca + N[2] * sb);
     }
   }
@@ -666,11 +881,18 @@ function writeSwelling(geo, side, p) {
     const fCurv = (1 - Math.cos(phi)) * 0.5;
     const y = lerp(p.yStart, p.yEnd, fCurv);
     const q = Math.sin(phi);
-    const xArch = (p.xBase + p.xBulge * Math.pow(q, p.archPow)) * Math.pow(q, 0.25);
+    // Convergence at anterior commissure (s=0) and posterior commissure (s=1)
+    const commFalloff = (1 - q);
+    const xComm = lerp(p.xBase, 0.018, commFalloff * (s < 0.5 ? p.antComm : p.postComm));
+    const xArch = (xComm + p.xBulge * Math.pow(q, p.archPow)) * Math.pow(q, 0.22);
     const zArch = lerp(p.zBase, p.zBase + p.zBulge, q);
     const tq = Math.pow(q, p.taperPow);
     const rx = (p.rx0 + p.rxBulge * q) * tq;
     const rz = (p.rz0 + p.rzBulge * q) * tq;
+
+    // Transverse dartos rugae for male scrotum
+    const rugae = p.rugae > 0 ? 0.038 * p.rugae * Math.sin(36 * y) * q : 0;
+
     for (let j = 0; j <= nV; j++) {
       const th = -side * (j / nV) * Math.PI * 2;
       const cth = Math.cos(th), sth = Math.sin(th);
@@ -679,118 +901,170 @@ function writeSwelling(geo, side, p) {
         dx = xArch + cth * rx;
       } else {
         const medR = lerp(rx, xArch, p.fuse);
-        dx = Math.max(0.004, xArch + cth * medR);
+        dx = Math.max(0.003, xArch + cth * medR);
+        // Bilobate median sulcus indentation
+        if (p.bilobe > 0 && p.fuse > 0.1) {
+          const furrow = 0.055 * p.bilobe * Math.exp(-Math.pow(dx / 0.07, 2));
+          dx += furrow * 0.5;
+        }
       }
-      let z = zArch + sth * rz;
+      let z = zArch + sth * (rz + rugae);
       if (p.fuse > 0 && sth >= -1e-4 && cth <= 0) {
-        const midBlend = -cth; // 0 at lateral apex, 1 at medial seam
-        const domeZ = zArch + rz * (sth + midBlend * (1 - sth) * 0.88);
+        const midBlend = -cth;
+        const domeZ = zArch + (rz + rugae) * (sth + midBlend * (1 - sth) * 0.88);
         z = lerp(z, domeZ, p.fuse);
+        // Scrotal median sulcus
+        if (p.bilobe > 0) {
+          z -= 0.05 * p.bilobe * Math.exp(-Math.pow(dx / 0.06, 2)) * p.fuse;
+        }
       }
       pos.setXYZ(k++, side * dx, y, z);
     }
   }
 }
 
-function applySinus(s, tp) {
-  SinusOpeningMesh.position.set(0, 0, 0);
-  slot.position.set(0, s.y, 0.03); slot.scale.set(Math.max(1e-3, s.sx), Math.max(1e-3, s.sy), 1);
-  recess.scale.set(Math.max(1e-3, s.depth), Math.max(1e-3, s.depth), 1);
-  const o = Math.max(1e-3, s.orifices);
-  urethral.position.set(0, s.y + 0.32 * s.sy, 0.045);
-  urethral.scale.set(0.65 * o, 1.15 * o, 1);
-  urRim.position.copy(urethral.position);
-  urRim.scale.copy(urethral.scale);
-  vaginal.position.set(0, s.y - 0.16 * s.sy, 0.045);
-  vaginal.scale.set(0.80 * o, 1.30 * o, 1);
-  vagRim.position.copy(vaginal.position);
-  vagRim.scale.copy(vaginal.scale);
-  [urethral, urRim, vaginal, vagRim].forEach(m => { m.visible = s.orifices > 0.03; });
-  const mu = 0.94, ax = axisPoint(mu, tp), r = tubRadius(mu, tp);
-  meatus.position.set(0, ax[1], ax[2] + 0.92 * r + 0.012);
-  meatus.scale.set(Math.max(1e-3, 0.22 * s.meatus), Math.max(1e-3, 1.35 * s.meatus), 1);
-  meatus.visible = s.meatus > 0.03;
+function writeScrotalRaphe(geo, p) {
+  const pos = geo.attributes.position, { nU, nV } = geo.userData; let k = 0;
+  for (let i = 0; i <= nU; i++) {
+    const s = i / nU;
+    const y = lerp(p.yStart, p.yEnd, s);
+    const q = Math.sin(Math.PI * s);
+    const zSurface = lerp(p.zBase, p.zBase + p.zBulge, q) + (p.rz0 + p.rzBulge * q) * 0.88 * p.fuse;
+    const rRaphe = 0.018 * p.fuse * Math.pow(q, 0.35);
+    for (let j = 0; j <= nV; j++) {
+      const ph = j / nV * Math.PI * 2;
+      const x = rRaphe * Math.cos(ph);
+      const z = zSurface + rRaphe * Math.max(0, Math.sin(ph)) * 1.3 + 0.002;
+      pos.setXYZ(k++, x, y, z);
+    }
+  }
 }
 
-let lastT = -1;
+function writeSinus3D(geo, s) {
+  const pos = geo.attributes.position, { nU, nV } = geo.userData; let k = 0;
+  for (let i = 0; i <= nU; i++) {
+    const u = i / nU;
+    const y = lerp(s.y + s.sy * 0.48, s.y - s.sy * 0.48, u);
+    const q = Math.sin(Math.PI * clamp(u, 0, 1));
+    const w = s.sx * Math.pow(q, 0.38) * 1.35 * s.open;
+    for (let j = 0; j <= nV; j++) {
+      const v = (j / nV) * 2 - 1; // -1 to +1
+      const x = v * w;
+      let z = 0.04 - s.depth * 0.10 * (1 - v * v) * s.open;
+
+      if (s.orifices > 0.01) {
+        const o = s.orifices;
+        // Urethral papilla & slit
+        const dUrU = (u - 0.28) / 0.08, dUrV = v / 0.45;
+        const rUr = Math.hypot(dUrU, dUrV);
+        const papilla = 0.026 * o * gauss(rUr, 0.65, 0.35);
+        const slitUr = -0.042 * o * gauss(u, 0.28, 0.05) * gauss(v, 0, 0.16);
+
+        // Vaginal introitus & hymenal caruncles
+        const dVagU = (u - 0.68) / 0.14, dVagV = v / 0.55;
+        const rVag = Math.hypot(dVagU, dVagV);
+        const hymen = 0.022 * o * gauss(rVag, 0.75, 0.30);
+        const introitus = -0.090 * o * gauss(u, 0.68, 0.11) * gauss(v, 0, 0.38);
+
+        z += papilla + slitUr + hymen + introitus;
+      }
+      pos.setXYZ(k++, x, y, z);
+    }
+  }
+}
+
+let lastT = -1, lastArousal = -1;
 function updateMorph(t) {
   const p = sampleParams(t);
-  writeTubercle(p.tubercle);
+  writeTubercle(geoTub, p.tubercle);
   writeTube(geoFoldL, -1, p.folds, p.tubercle, p.folds.a, p.folds.b, 0);
   writeTube(geoFoldR,  1, p.folds, p.tubercle, p.folds.a, p.folds.b, 0);
   const rf = smoothstep(0.55, 1, p.folds.fuse);
-  writeTube(geoRaphe, 0, p.folds, p.tubercle, 0.03 * rf, 0.035 * rf, p.folds.b * 0.55 * rf);
+  writeTube(geoRaphe, 0, p.folds, p.tubercle, 0.022 * rf, 0.028 * rf, p.folds.b * 0.5 * rf);
   writeSwelling(geoSwellingL, -1, p.swellings);
   writeSwelling(geoSwellingR,  1, p.swellings);
-  scrotalRaphe.visible = p.swellings.fuse > 0.15;
-  if (scrotalRaphe.visible) {
-    const yLen = p.swellings.yStart - p.swellings.yEnd;
-    const yMid = (p.swellings.yStart + p.swellings.yEnd) * 0.5;
-    const zMid = (p.swellings.zBase + p.swellings.zBulge) + (p.swellings.rz0 + p.swellings.rzBulge) * 0.88 * p.swellings.fuse;
-    scrotalRaphe.position.set(0, yMid, zMid + 0.005);
-    scrotalRaphe.scale.set(p.swellings.fuse, yLen * 0.94, p.swellings.fuse * 1.1);
-  }
-  applySinus(p.sinus, p.tubercle);
+  writeScrotalRaphe(geoScrotalRaphe, p.swellings);
+  scrotalRaphe.visible = p.swellings.fuse > 0.12;
+
+  writeSinus3D(geoSinus3D, p.sinus);
+  SinusVestibuleMesh.visible = p.sinus.open > 0.02;
+
+  // External urethral meatus on glans penis
+  const mu = 0.94, axFrm = getTubFrame(mu, p.tubercle), rApex = tubRadius(mu, p.tubercle, Math.PI / 2);
+  meatus.position.set(0, axFrm.pos[1] + rApex * axFrm.N[1] + 0.012, axFrm.pos[2] + rApex * axFrm.N[2] + 0.012);
+  meatus.scale.set(Math.max(1e-3, 0.22 * p.sinus.meatus), Math.max(1e-3, 1.35 * p.sinus.meatus), 1);
+  meatus.visible = p.sinus.meatus > 0.03;
+
   for (const g of dynamicGeometries) {
     g.attributes.position.needsUpdate = true;
-    g.computeVertexNormals(); fixSeam(g);
+    g.computeVertexNormals();
+    if (g === geoTub || g === geoFoldL || g === geoFoldR || g === geoRaphe || g === geoSwellingL || g === geoSwellingR) {
+      fixSeam(g);
+    }
     g.attributes.normal.needsUpdate = true;
-    g.computeBoundingSphere(); g.computeBoundingBox();     // keeps raycasting + culling correct
+    g.computeBoundingSphere(); g.computeBoundingBox();
   }
   state.derived = p;
 }
 
 // ===== 8. MATERIALS & STYLE SWITCHING =====
 const styleSets = {
-  clay:  { amb: 0.25, hemi: 0.7, sun: 0.9, rim: 0.35, base: 0x1e293b, slot: 0xffffff, rimCol: 0x94a3b8 },
-  atlas: { amb: 0.35, hemi: 0.9, sun: 0.6, rim: 0.0,  base: 0xc9bfb0, slot: 0xd9959f, rimCol: 0xb5656f }
+  clay:  { amb: 0.22, hemi: 0.65, sun: 1.05, rim: 0.35, base: 0x1a2333 },
+  atlas: { amb: 0.35, hemi: 0.90, sun: 0.70, rim: 0.00, base: 0xc8bfaf }
 };
 const meshTissue = [
   [TubercleMesh, 'genitalTubercle'], [foldL, 'urogenitalFolds'], [foldR, 'urogenitalFolds'], [rapheMesh, 'urogenitalFolds'],
-  [swL, 'labioscrotalSwellings'], [swR, 'labioscrotalSwellings'], [scrotalRaphe, 'labioscrotalSwellings']
+  [swL, 'labioscrotalSwellings'], [swR, 'labioscrotalSwellings'], [scrotalRaphe, 'labioscrotalSwellings'],
+  [SinusVestibuleMesh, 'urogenitalSinus']
 ];
+
 function setStyle(name) {
   state.style = name;
   const atlas = name === 'atlas', S = styleSets[name];
   meshTissue.forEach(([m, k]) => { m.material = MAT[name][k]; });
   baseMat.color.setHex(S.base); baseMat.roughness = atlas ? 0.85 : 1;
-  slotMat.color.setHex(S.slot); rimUrMat.color.setHex(S.rimCol); rimVagMat.color.setHex(S.rimCol);
   depthRings.visible = atlas;
-  gsap.to(ambient, { intensity: S.amb, duration: 0.4 }); gsap.to(hemi, { intensity: S.hemi, duration: 0.4 });
-  gsap.to(sun, { intensity: S.sun, duration: 0.4 }); gsap.to(rim, { intensity: S.rim, duration: 0.4 });
+  gsap.to(ambient, { intensity: S.amb, duration: 0.4 });
+  gsap.to(hemi, { intensity: S.hemi, duration: 0.4 });
+  gsap.to(sun, { intensity: S.sun, duration: 0.4 });
+  gsap.to(rim, { intensity: S.rim, duration: 0.4 });
   viewport.classList.toggle('atlas', atlas); document.body.classList.toggle('atlas-on', atlas);
   document.getElementById('btn-style-clay').classList.toggle('active', !atlas);
   document.getElementById('btn-style-atlas').classList.toggle('active', atlas);
   document.getElementById('btn-style-clay').setAttribute('aria-pressed', String(!atlas));
   document.getElementById('btn-style-atlas').setAttribute('aria-pressed', String(atlas));
-  setLabels(atlas);                       // Clinical Atlas shows labels by default
+  setLabels(atlas);
 }
 
-// Per-frame visuals: highlight pulse + dimming (persists across all morph stages)
+// Per-frame visuals: highlight pulse, dimming, arousal vascular blush
 function applyVisuals(time) {
   const hl = state.highlight, p = state.derived; if (!p) return;
   const pulse = 0.25 + 0.2 * Math.sin(time * 4);
-  for (const k of ['genitalTubercle', 'urogenitalFolds', 'labioscrotalSwellings']) {
+  const arousal = state.arousal;
+
+  for (const k of KEYS) {
     const dim = (hl && hl !== k) ? 0.3 : 1;
     for (const set of ['clay', 'atlas']) {
       const m = MAT[set][k];
       m.transparent = dim < 1; m.opacity = dim; m.depthWrite = dim === 1;
       m.emissiveIntensity = (hl === k) ? pulse : emissiveBase[set];
+
+      // Atlas vascular vasocongestion blush in female mucosal tissue during arousal
+      if (set === 'atlas' && (k === 'urogenitalFolds' || k === 'urogenitalSinus')) {
+        const isFemale = p.folds.fuse < 0.5;
+        if (isFemale && arousal > 0.05) {
+          const blushColor = new THREE.Color(TERMS.tissues[k].atlas).lerp(new THREE.Color(0xd92d4b), arousal * 0.45);
+          m.color.copy(blushColor);
+        } else {
+          m.color.set(TERMS.tissues[k].atlas);
+        }
+      }
     }
   }
-  const dimS = (hl && hl !== 'urogenitalSinus') ? 0.3 : 1;
-  const boost = hl === 'urogenitalSinus' ? 0.5 + 0.5 * Math.sin(time * 4) : 0;
-  slotMat.opacity = p.sinus.open * dimS;
-  slotMat.color.setHex(styleSets[state.style].slot).lerp(new THREE.Color(0x8aa4c8), boost * 0.6);
-  recessMat.opacity = p.sinus.depth * 0.7 * p.sinus.open * dimS;
-  const o = clamp(p.sinus.orifices, 0, 1) * dimS;
-  urMat.opacity = vagMat.opacity = rimUrMat.opacity = rimVagMat.opacity = o;
-  meatMat.opacity = clamp(p.sinus.meatus, 0, 1) * dimS;
-  // Outlines are hidden for dimmed tissues / clay style
   outlineMeshes.forEach(({ mesh, tissue }) => { mesh.visible = state.style === 'atlas' && (!hl || hl === tissue); });
 }
 
-// ===== 9. INTERACTION (raycast, highlight, legend) =====
+// ===== 9. INTERACTION (Raycast, Highlight, Legend) =====
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2(); let mouseIn = false, downPos = null;
 
@@ -801,7 +1075,7 @@ canvas.addEventListener('pointermove', e => {
 canvas.addEventListener('pointerleave', () => { mouseIn = false; if (!state.pinned) setHighlight(null); });
 canvas.addEventListener('pointerdown', e => { downPos = [e.clientX, e.clientY]; });
 canvas.addEventListener('click', e => {
-  if (downPos && Math.hypot(e.clientX - downPos[0], e.clientY - downPos[1]) > 5) return;   // was an orbit drag
+  if (downPos && Math.hypot(e.clientX - downPos[0], e.clientY - downPos[1]) > 5) return;
   const k = pickAt(mouse, e);
   togglePin(k);
 });
@@ -815,7 +1089,6 @@ function togglePin(k) {
   if (!k || state.pinned === k) { state.pinned = null; setHighlight(null); } else { state.pinned = k; setHighlight(k); }
 }
 
-// Legend + matrix + panel content (generated from TERMS)
 const legendList = document.getElementById('legend-list');
 KEYS.forEach(k => {
   const t = TERMS.tissues[k], b = document.createElement('button');
@@ -831,26 +1104,39 @@ KEYS.forEach(k => {
 const matrixBody = document.querySelector('#matrix tbody');
 KEYS.forEach(k => {
   const t = TERMS.tissues, tr = document.createElement('tr'); tr.dataset.tissue = k; tr.style.cursor = 'pointer';
-  tr.innerHTML = '<td><span class="tchip" style="background:' + t[k].color + '"></span><strong>' + t[k].name + '</strong></td><td>' + t[k].s0 + '</td><td>' + t[k].female + '</td><td>' + t[k].male + '</td>';
+  tr.innerHTML = '<td><span class="tchip" style="background:' + t[k].color + '"></span><strong>' + t[k].name + '</strong></td><td>' + t[k].s0 + '</td><td>' + t[k].femaleAdult + '</td><td>' + t[k].maleAdult + '</td>';
   tr.addEventListener('click', () => togglePin(k));
   matrixBody.appendChild(tr);
 });
 document.getElementById('tissue-descs').innerHTML = KEYS.map(k => {
   const t = TERMS.tissues[k];
-  return '<div class="tissue-desc" style="--c:' + t.color + '"><h5>' + t.name + '</h5><p>' + t.desc + '</p><p><strong>Homologues:</strong> ' + t.female + ' (female) / ' + t.male + ' (male)</p></div>';
+  return '<div class="tissue-desc" style="--c:' + t.color + '"><h5>' + t.name + '</h5><p>' + t.desc + '</p><p><strong>Adult Homologues:</strong> ' + t.femaleAdult + ' (female) / ' + t.maleAdult + ' (male)</p></div>';
 }).join('');
 
-function stageKey(t) { return (t < 1 / 6 || t > 5 / 6) ? 's0' : (t < 0.5 ? 'female' : 'male'); }
+function getStageMeta(t) {
+  if (state.advMode) {
+    if (t < 0.10) return { key: 's0', title: TERMS.s0, sub: 'Gestational Week 7 \u00b7 Bipotential primordium', color: '#8B5CF6' };
+    if (t < 0.35) return { key: 'femaleNeo', title: TERMS.femaleNeo, sub: 'Week 12+ \u00b7 Female differentiation (default pathway)', color: '#F472B6' };
+    if (t < 0.60) return { key: 'femaleAdult', title: TERMS.femaleAdult, sub: 'Post-pubertal \u00b7 Mature estrogen-primed anatomy', color: '#EC4899' };
+    if (t < 0.85) return { key: 'maleNeo', title: TERMS.maleNeo, sub: 'Week 12+ \u00b7 DHT-driven ventral fusion & elongation', color: '#60A5FA' };
+    return { key: 'maleAdult', title: TERMS.maleAdult, sub: 'Post-pubertal \u00b7 Mature testosterone-primed anatomy', color: '#3B82F6' };
+  } else {
+    if (t < 0.15 || t > 0.85) return { key: 's0', title: TERMS.s0, sub: 'Gestational Week 7 \u00b7 Indifferent stage', color: '#8B5CF6' };
+    if (t < 0.50) return { key: 'femaleNeo', title: TERMS.femaleNeo, sub: 'Week 12+ \u00b7 Default 46,XX phenotypic pathway', color: '#EC4899' };
+    return { key: 'maleNeo', title: TERMS.maleNeo, sub: 'Week 12+ \u00b7 Androgen-mediated 46,XY pathway', color: '#3B82F6' };
+  }
+}
 
 function renderInfoCard() {
   const k = state.highlight, card = document.getElementById('info-card');
   if (!k) { card.classList.remove('show'); return; }
-  const t = TERMS.tissues[k], cur = stageKey(state.t);
-  const b = (txt, key) => '<b class="' + (cur === key ? 'now' : '') + '">' + txt + '</b>';
+  const t = TERMS.tissues[k], meta = getStageMeta(state.t);
+  const curKey = meta.key;
+  const b = (txt, key) => '<b class="' + (curKey === key ? 'now' : '') + '">' + txt + '</b>';
   card.classList.add('show');
   document.getElementById('info-chip').style.background = t.color;
   document.getElementById('info-name').textContent = t.name;
-  document.getElementById('info-body').innerHTML = 'Week 7: ' + b(t.s0, 's0') + '<br>Female: ' + b(t.female, 'female') + ' &middot; Male: ' + b(t.male, 'male');
+  document.getElementById('info-body').innerHTML = 'Week 7: ' + b(t.s0, 's0') + '<br>Female: ' + b(t[curKey.startsWith('female') ? curKey : 'femaleAdult'], curKey) + ' &middot; Male: ' + b(t[curKey.startsWith('male') ? curKey : 'maleAdult'], curKey);
 }
 function setHighlight(k) {
   state.highlight = k;
@@ -859,9 +1145,52 @@ function setHighlight(k) {
   renderInfoCard();
 }
 
-// ===== 10. UI BINDINGS =====
+// ===== 10. DYNAMIC DOCK & STAGES BUILDER =====
+const stagesContainer = document.getElementById('stages-container');
+const ticksContainer = document.getElementById('ticks');
+
+const STD_STAGES = [
+  { t: 0, label: 'Week 7 Bipotential', tick: 'W7' },
+  { t: 0.3333, label: 'Female Homology (46,XX)', tick: '♀ 46,XX' },
+  { t: 0.6667, label: 'Male Homology (46,XY)', tick: '♂ 46,XY' },
+  { t: 1.0, label: 'Return to W7', tick: 'W7 ↺' }
+];
+
+const ADV_STAGES = [
+  { t: 0, label: 'W7 Primordium', tick: 'W7' },
+  { t: 0.25, label: '♀ Neonatal', tick: '♀ Neo' },
+  { t: 0.50, label: '♀ Adult Maturation', tick: '♀ Adult' },
+  { t: 0.75, label: '♂ Neonatal', tick: '♂ Neo' },
+  { t: 1.00, label: '♂ Adult Maturation', tick: '♂ Adult' }
+];
+
+function buildDockControls() {
+  const list = state.advMode ? ADV_STAGES : STD_STAGES;
+  stagesContainer.innerHTML = ''; ticksContainer.innerHTML = '';
+  list.forEach((s, idx) => {
+    // Only add jump button if not duplicate return
+    if (idx < list.length - (state.advMode ? 0 : 1)) {
+      const b = document.createElement('button');
+      b.className = 'stg'; b.dataset.t = String(s.t);
+      b.innerHTML = '<i></i>' + s.label;
+      b.addEventListener('click', () => jumpTo(s.t));
+      stagesContainer.appendChild(b);
+    }
+    const tb = document.createElement('button');
+    tb.dataset.t = String(s.t);
+    tb.style.left = (s.t * 100) + '%';
+    tb.title = s.label;
+    tb.textContent = s.tick;
+    tb.addEventListener('click', () => jumpTo(s.t));
+    ticksContainer.appendChild(tb);
+  });
+  document.getElementById('arousal-box').classList.toggle('show', state.advMode);
+}
+
+// ===== 11. UI BINDINGS =====
 const $ = id => document.getElementById(id);
 const scrubber = $('scrubber');
+const arousalSlider = $('arousal-slider');
 
 function updatePlayIcon() { $('ic-play').style.display = state.playing ? 'none' : 'block'; $('ic-pause').style.display = state.playing ? 'block' : 'none'; }
 function setPlaying(v) {
@@ -883,7 +1212,66 @@ function jumpTo(target) {
   state.tweening = true;
   gsap.to(state, { t: target, duration: 1.6, ease: 'power2.inOut', onComplete: () => { state.tweening = false; state.dwell = state.dwell > 0 ? state.dwell : 1.2; } });
 }
-document.querySelectorAll('.stg, .ticks button').forEach(b => b.addEventListener('click', () => jumpTo(parseFloat(b.dataset.t))));
+
+// Advanced Development toggle
+function setAdvMode(v) {
+  state.advMode = v;
+  $('btn-adv').classList.toggle('on', v);
+  $('btn-adv').setAttribute('aria-pressed', String(v));
+  buildDockControls();
+  if (v && state.t === 0.3333) state.t = 0.50; // Jump to adult if in female
+  if (v && state.t === 0.6667) state.t = 1.00; // Jump to adult if in male
+  updateUIFromT();
+  updateMorph(state.t);
+}
+$('btn-adv').addEventListener('click', () => setAdvMode(!state.advMode));
+
+// Arousal slider & presets
+function setArousal(val, animate) {
+  const num = clamp(val / 100, 0, 1);
+  if (animate) {
+    gsap.to(state, { arousal: num, duration: 1.2, ease: 'power2.out', onUpdate: () => { arousalSlider.value = Math.round(state.arousal * 100); syncArousalUI(); updateMorph(state.t); } });
+  } else {
+    state.arousal = num; arousalSlider.value = Math.round(num * 100);
+    syncArousalUI(); updateMorph(state.t);
+  }
+}
+function syncArousalUI() {
+  const pct = Math.round(state.arousal * 100);
+  const isMale = state.derived ? state.derived.folds.fuse > 0.5 : false;
+  let statusText;
+  if (pct === 0) statusText = 'Resting / Flaccid (0%)';
+  else if (pct < 60) statusText = isMale ? `Tumescent / Engorging (${pct}%)` : `Plateau Vasocongestion (${pct}%)`;
+  else statusText = isMale ? `Peak Rigid Erection (${pct}%)` : `Peak Arousal \u00b7 Parted Labia Minora (${pct}%)`;
+  $('arousal-badge').textContent = statusText;
+  $('btn-arousal-0').classList.toggle('active', pct === 0);
+  $('btn-arousal-50').classList.toggle('active', pct >= 40 && pct <= 60);
+  $('btn-arousal-100').classList.toggle('active', pct === 100);
+}
+arousalSlider.addEventListener('input', e => setArousal(parseFloat(e.target.value), false));
+$('btn-arousal-0').addEventListener('click', () => setArousal(0, true));
+$('btn-arousal-50').addEventListener('click', () => setArousal(50, true));
+$('btn-arousal-100').addEventListener('click', () => setArousal(100, true));
+
+let arousalPulseTween = null;
+$('btn-arousal-pulse').addEventListener('click', () => {
+  state.arousalPulse = !state.arousalPulse;
+  $('btn-arousal-pulse').classList.toggle('active', state.arousalPulse);
+  $('btn-arousal-pulse').textContent = state.arousalPulse ? '■ Stop Pulse' : '▶ Auto Pulse';
+  if (state.arousalPulse) {
+    const loopPulse = () => {
+      if (!state.arousalPulse) return;
+      gsap.to(state, {
+        arousal: state.arousal > 0.5 ? 0 : 1, duration: 2.2, ease: 'power1.inOut',
+        onUpdate: () => { arousalSlider.value = Math.round(state.arousal * 100); syncArousalUI(); updateMorph(state.t); },
+        onComplete: loopPulse
+      });
+    };
+    loopPulse();
+  } else {
+    gsap.killTweensOf(state, 'arousal');
+  }
+});
 
 $('btn-style-clay').addEventListener('click', () => setStyle('clay'));
 $('btn-style-atlas').addEventListener('click', () => setStyle('atlas'));
@@ -908,47 +1296,60 @@ if (window.innerWidth <= 900) { panel.classList.add('collapsed'); $('btn-panel')
 
 window.addEventListener('keydown', e => {
   const tag = e.target.tagName;
-  if (tag === 'INPUT' && e.code !== 'Space' && !/^[123sSlL]$/.test(e.key)) return;
+  if (tag === 'INPUT' && e.code !== 'Space' && !/^[12345sSaAlL]$/.test(e.key)) return;
   if (e.code === 'Space') { if (tag === 'BUTTON') return; e.preventDefault(); setPlaying(!state.playing); }
   else if (e.key === '1') jumpTo(0);
-  else if (e.key === '2') jumpTo(1 / 3);
-  else if (e.key === '3') jumpTo(2 / 3);
+  else if (e.key === '2') jumpTo(state.advMode ? 0.25 : 1 / 3);
+  else if (e.key === '3') jumpTo(state.advMode ? 0.50 : 2 / 3);
+  else if (e.key === '4' && state.advMode) jumpTo(0.75);
+  else if (e.key === '5' && state.advMode) jumpTo(1.0);
   else if (e.key === 's' || e.key === 'S') setStyle(state.style === 'clay' ? 'atlas' : 'clay');
   else if (e.key === 'l' || e.key === 'L') setLabels(!state.labels);
+  else if (e.key === 'a' || e.key === 'A') setAdvMode(!state.advMode);
 });
 
-// Stage badge / legend derivative text
+// Stage badge / UI updates
 let lastStageSig = '';
 function updateUIFromT() {
   const t = state.t, pct = Math.round(t * 100);
   $('stage-pct').textContent = pct + '%';
   scrubber.value = Math.round(t * 1000);
-  const near = [0, 1 / 3, 2 / 3, 1].findIndex(m => Math.abs(t - m) <= 0.04);
-  let title, sub, color;
-  if (near === 0 || near === 3) { title = TERMS.s0; sub = 'Week 7 \u00b7 indifferent stage'; color = '#8B5CF6'; }
-  else if (near === 1) { title = TERMS.female; sub = 'Week 12+ \u00b7 default pathway (absence of DHT)'; color = '#EC4899'; }
-  else if (near === 2) { title = TERMS.male; sub = 'Week 12+ \u00b7 DHT-driven fusion and elongation'; color = '#3B82F6'; }
-  else {
-    const seg = Math.min(2, Math.floor(t * 3));
-    title = 'Transition: ' + ['Week 7 \u2192 Female (46,XX)', 'Female \u2192 Male (46,XY)', 'Male \u2192 Week 7'][seg];
-    sub = seg === 1 ? 'Comparative homology morph (not a biological transition)' : 'Morphological interpolation';
-    color = ['#F472B6', '#60A5FA', '#A78BFA'][seg];
-  }
-  const sig = title + sub;
+
+  const meta = getStageMeta(t);
+  const sig = meta.title + meta.sub + (state.arousal > 0.05 ? `[Ar:${Math.round(state.arousal*100)}]` : '');
   if (sig !== lastStageSig) {
     lastStageSig = sig;
-    $('stage-title').textContent = title; $('stage-sub').textContent = sub;
-    const d = $('status-dot'); d.style.background = color; d.style.color = color;
+    $('stage-title').textContent = meta.title;
+    $('stage-sub').textContent = meta.sub;
+    const d = $('status-dot'); d.style.background = meta.color; d.style.color = meta.color;
   }
-  document.querySelectorAll('.stg').forEach((b, i) => b.classList.toggle('active', near === i || (i === 0 && near === 3)));
-  document.querySelectorAll('.ticks button').forEach((b, i) => b.classList.toggle('on', near === i));
-  const sk = stageKey(t);
-  KEYS.forEach(k => { $('der-' + k).textContent = '\u2192 ' + TERMS.tissues[k][sk]; });
-  lblEls && KEYS.forEach(k => { const txt = sk === 's0' ? TERMS.tissues[k].name : TERMS.tissues[k][sk]; if (lblEls[k].textContent !== txt) lblEls[k].textContent = txt; });
+
+  // Active stage button sync
+  const stepList = state.advMode ? [0, 0.25, 0.50, 0.75, 1.0] : [0, 1 / 3, 2 / 3, 1];
+  const nearIdx = stepList.findIndex(m => Math.abs(t - m) <= 0.04);
+  document.querySelectorAll('.stg').forEach((b, i) => b.classList.toggle('active', nearIdx === i || (i === 0 && nearIdx === stepList.length - 1)));
+  document.querySelectorAll('.ticks button').forEach((b, i) => b.classList.toggle('on', nearIdx === i));
+
+  // Legend derivatives text
+  KEYS.forEach(k => { $('der-' + k).textContent = '\u2192 ' + TERMS.tissues[k][meta.key] || TERMS.tissues[k].s0; });
+  if (lblEls) {
+    KEYS.forEach(k => {
+      const el = lblEls[k];
+      let txt = meta.key === 's0' ? TERMS.tissues[k].name : (TERMS.tissues[k][meta.key] || TERMS.tissues[k].name);
+      if (state.arousal > 0.4) {
+        if (k === 'urogenitalFolds' && meta.key.startsWith('female')) txt = 'Parted / Engorged Labia Minora';
+        if (k === 'genitalTubercle' && meta.key.startsWith('female')) txt = 'Tumescent Clitoris';
+        if (k === 'genitalTubercle' && meta.key.startsWith('male')) txt = 'Erect Glans & Shaft';
+        if (k === 'urogenitalSinus' && meta.key.startsWith('female')) txt = 'Exposed Patent Vestibule';
+      }
+      if (el.textContent !== txt) el.textContent = txt;
+    });
+  }
   if (state.highlight) renderInfoCard();
+  syncArousalUI();
 }
 
-// ===== 11. LABEL OVERLAY =====
+// ===== 12. ANATOMICAL LABELS OVERLAY =====
 const labelsEl = $('labels'), leaders = $('leaders');
 const lblEls = {}, lineEls = {}, dotEls = {};
 KEYS.forEach(k => {
@@ -970,16 +1371,17 @@ const _v = new THREE.Vector3();
 function updateLabels() {
   if (!state.labels || !state.derived) return;
   const p = state.derived, w = viewport.clientWidth, h = viewport.clientHeight;
-  const tp = axisPoint(0.97, p.tubercle), tr = tubRadius(0.9, p.tubercle);
-  const fp = foldPoint(p.folds.phalicFrac + (1 - p.folds.phalicFrac) * 0.5, 1, p.folds, p.tubercle, 0);
-  const swX = p.swellings.xBase + p.swellings.xBulge * 0.75 + p.swellings.rx0;
-  const swY = (p.swellings.yStart + p.swellings.yEnd) * 0.5;
+  const tp = getTubFrame(0.96, p.tubercle).pos;
+  const tr = tubRadius(0.90, p.tubercle, Math.PI / 2);
+  const fp = foldPoint(p.folds.phalicFrac + (1 - p.folds.phalicFrac) * 0.45, 1, p.folds, p.tubercle, 0);
+  const swX = p.swellings.xBase + p.swellings.xBulge * 0.70 + p.swellings.rx0;
+  const swY = (p.swellings.yStart + p.swellings.yEnd) * 0.50;
   const swZ = p.swellings.zBase + p.swellings.zBulge * 0.65;
   const anchors = {
     genitalTubercle: [tp[0], tp[1], tp[2] + tr * 0.85],
     urogenitalFolds: [fp[0], fp[1], fp[2] + 0.04],
     labioscrotalSwellings: [swX, swY, swZ],
-    urogenitalSinus: [0, p.sinus.y, 0.05]
+    urogenitalSinus: [0, p.sinus.y, 0.04]
   };
   KEYS.forEach(k => {
     _v.set(...anchors[k]).project(camera);
@@ -987,22 +1389,20 @@ function updateLabels() {
     if (_v.z > 1) { el.style.display = 'none'; ln.style.display = 'none'; dt.style.display = 'none'; return; }
     el.style.display = ''; ln.style.display = ''; dt.style.display = '';
     const sx = (_v.x * 0.5 + 0.5) * w, sy = (-_v.y * 0.5 + 0.5) * h;
-    // Fixed screen column: tissues on the right half go to the right margin, otherwise left
     const right = k === 'labioscrotalSwellings' || k === 'urogenitalFolds' || k === 'genitalTubercle';
     const ew = el.offsetWidth;
     const tx = right ? w - ew - 14 : 14;
-    const ty = { genitalTubercle: 0.24, urogenitalFolds: 0.42, labioscrotalSwellings: 0.62, urogenitalSinus: 0.5 }[k] * h;
+    const ty = { genitalTubercle: 0.24, urogenitalFolds: 0.42, labioscrotalSwellings: 0.62, urogenitalSinus: 0.50 }[k] * h;
     el.style.transform = 'translate3d(' + tx + 'px,' + ty + 'px,0)';
     ln.setAttribute('x1', sx); ln.setAttribute('y1', sy); ln.setAttribute('x2', right ? tx : tx + ew); ln.setAttribute('y2', ty + 12);
     dt.setAttribute('cx', sx); dt.setAttribute('cy', sy);
   });
 }
 
-// ===== 12. MAIN LOOP =====
+// ===== 13. MAIN LOOP =====
 function resize() {
   const w = viewport.clientWidth, h = viewport.clientHeight; if (!w || !h) return;
   renderer.setSize(w, h, false); camera.aspect = w / h;
-  // Keep the whole anatomy in frame on narrow viewports
   camera.fov = w / h < 0.9 ? 40 / Math.max(0.55, w / h * 1.05) : 40;
   camera.updateProjectionMatrix();
 }
@@ -1011,11 +1411,12 @@ new ResizeObserver(resize).observe(viewport);
 function advanceT(dt) {
   if (state.dwell > 0) { state.dwell -= dt; return; }
   const prev = state.t; let nt = prev + dt / state.duration;
-  for (const m of [1 / 3, 2 / 3, 1]) {
-    if (prev < m - 1e-9 && nt >= m) { nt = m; state.dwell = 1.2; break; }   // dwell on each keyframe
+  const milestones = state.advMode ? [0.25, 0.50, 0.75, 1.0] : [1 / 3, 2 / 3, 1];
+  for (const m of milestones) {
+    if (prev < m - 1e-9 && nt >= m) { nt = m; state.dwell = 1.2; break; }
   }
   if (nt >= 1) {
-    if (state.loop) { nt = 0; }                         // t=1 is identical to t=0
+    if (state.loop) { nt = 0; }
     else { nt = 1; state.playing = false; updatePlayIcon(); }
   }
   state.t = nt;
@@ -1027,7 +1428,11 @@ function frame(now) {
   if (document.hidden) { last = now; return; }
   const dt = Math.min(0.05, (now - last) / 1000); last = now;
   if (state.playing && !state.scrubbing && !state.tweening) advanceT(dt);
-  if (state.t !== lastT) { updateMorph(state.t); lastT = state.t; updateUIFromT(); }
+  if (state.t !== lastT || state.arousal !== lastArousal) {
+    updateMorph(state.t);
+    lastT = state.t; lastArousal = state.arousal;
+    updateUIFromT();
+  }
   if (mouseIn && !state.pinned) {
     const k = pickAt(mouse);
     if (k !== state.highlight) setHighlight(k);
@@ -1039,13 +1444,17 @@ function frame(now) {
 }
 
 resize();
+buildDockControls();
 setStyle('clay');
+
 const urlParams = typeof window !== 'undefined' && window.location ? new URLSearchParams(window.location.search) : null;
 if (urlParams) {
   if (urlParams.has('t')) { state.t = parseFloat(urlParams.get('t')); state.playing = false; }
   if (urlParams.has('play')) { state.playing = urlParams.get('play') === '1'; }
   if (urlParams.has('style')) { setStyle(urlParams.get('style')); }
   if (urlParams.has('labels')) { setLabels(urlParams.get('labels') === '1'); }
+  if (urlParams.has('adv')) { setAdvMode(urlParams.get('adv') === '1'); }
+  if (urlParams.has('arousal')) { setArousal(parseFloat(urlParams.get('arousal')), false); }
 }
 updatePlayIcon();
 updateMorph(state.t);
