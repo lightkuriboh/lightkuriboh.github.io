@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>External Genital Homology &amp; Morphogenesis: Embryology to Adult &amp; Physiological Response</title>
-<meta name="description" content="Interactive 3D medical visualization of human external genitalia homology: embryonic differentiation from gestational Week 7 bipotential primordium along 46,XX and 46,XY pathways, post-pubertal adult maturation, and physiological arousal (vasocongestion and erection).">
+<meta name="description" content="Interactive 3D medical visualization of human external genitalia homology: embryonic differentiation from gestational Week 7 bipotential primordium along 46,XX and 46,XY pathways, post-pubertal adult maturation, and physiological arousal (vasocongestion and erection) on an open-leg lithotomy pelvic base.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -12,12 +12,12 @@
 <style>
 /* ======================= DESIGN TOKENS ======================= */
 :root{
-  --bg:#090d1a; --panel:rgba(15,22,41,.68); --panel-solid:rgba(11,16,32,.96);
+  --bg:#080c18; --panel:rgba(15,22,41,.72); --panel-solid:rgba(11,16,32,.96);
   --border:rgba(148,163,184,.18); --border-hi:rgba(148,163,184,.42);
   --text:#e2e8f0; --muted:#94a3b8; --dim:#64748b; --accent:#8B5CF6; --cyan:#38bdf8;
   --rose:#ec4899; --amber:#f59e0b; --emerald:#10b981;
   --c-tub:#8B5CF6; --c-fold:#F59E0B; --c-swell:#10B981; --c-sinus:#475569;
-  --a-tub:#E9BBA3; --a-fold:#D9958A; --a-swell:#E3B09A; --a-sinus:#802838;
+  --a-tub:#E5989B; --a-fold:#DF7986; --a-swell:#E8BEAC; --a-sinus:#802838;
   --r-sm:8px; --r-md:12px; --r-lg:16px;
   --ease:cubic-bezier(.16,1,.3,1);
   --glass:blur(16px) saturate(140%);
@@ -32,7 +32,7 @@ button{cursor:pointer}
 
 /* ======================= HEADER ======================= */
 header{height:58px;flex:none;padding:0 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;
-  background:rgba(7,10,19,.88);backdrop-filter:var(--glass);-webkit-backdrop-filter:var(--glass);
+  background:rgba(7,10,19,.90);backdrop-filter:var(--glass);-webkit-backdrop-filter:var(--glass);
   border-bottom:1px solid var(--border);z-index:40}
 .brand{display:flex;align-items:center;gap:12px;min-width:0}
 .brand-logo{width:32px;height:32px;border-radius:9px;flex:none;display:grid;place-items:center;
@@ -50,13 +50,14 @@ h1{font-size:.92rem;font-weight:600;letter-spacing:-.01em;color:#fff;white-space
   font-size:.74rem;padding:6px 11px;display:inline-flex;align-items:center;gap:6px;transition:all .25s var(--ease);white-space:nowrap}
 .ghost-btn:hover{background:rgba(30,41,59,.85);color:var(--text);border-color:var(--border-hi);transform:translateY(-1px)}
 .ghost-btn.on{color:var(--cyan);border-color:var(--cyan)}
-.ghost-btn.adv-btn.on{color:#f472b6;border-color:rgba(244,114,182,.6);background:rgba(236,72,153,.14);box-shadow:0 0 12px rgba(236,72,153,.25)}
+.ghost-btn.adv-btn.on{color:#f472b6;border-color:rgba(244,114,182,.6);background:rgba(236,72,153,.15);box-shadow:0 0 12px rgba(236,72,153,.3)}
+.ghost-btn.info-btn.on{color:var(--cyan);border-color:rgba(56,189,248,.6);background:rgba(56,189,248,.15);box-shadow:0 0 12px rgba(56,189,248,.3)}
 
 /* ======================= WORKSPACE ======================= */
 main{flex:1;display:flex;position:relative;min-height:0}
 #viewport{flex:1;position:relative;min-width:0;overflow:hidden;
-  background:radial-gradient(circle at 50% 38%,#161e38 0%,#090d1a 62%,#04060c 100%);transition:background .5s ease}
-#viewport.atlas{background:radial-gradient(circle at 50% 38%,#dcd4c7 0%,#bfb4a2 62%,#a59a88 100%)}
+  background:radial-gradient(circle at 50% 36%,#17203b 0%,#080c18 64%,#03050a 100%);transition:background .5s ease}
+#viewport.atlas{background:radial-gradient(circle at 50% 36%,#ded6c9 0%,#bfb4a2 64%,#9e9280 100%)}
 canvas{width:100%;height:100%;display:block;cursor:grab;touch-action:none}
 canvas:active{cursor:grabbing}
 #gl-error{position:absolute;inset:0;display:none;place-items:center;text-align:center;padding:24px;color:#fca5a5;z-index:50;font-weight:500}
@@ -82,7 +83,7 @@ canvas:active{cursor:grabbing}
 @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
 
 /* legend */
-.legend{position:absolute;left:16px;bottom:140px;z-index:20;width:316px;padding:10px 12px;display:flex;flex-direction:column;gap:6px}
+.legend{position:absolute;left:16px;bottom:148px;z-index:20;width:316px;padding:10px 12px;display:flex;flex-direction:column;gap:6px}
 .legend-head{display:flex;align-items:center;justify-content:space-between;background:none;border:0;width:100%;text-align:left;padding:2px 0 6px;
   border-bottom:1px solid rgba(148,163,184,.14)}
 .legend-head span:first-child{font-size:.7rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
@@ -165,64 +166,161 @@ input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;bac
 .mini-btn.active{background:rgba(236,72,153,.22);color:#fff;border-color:#ec4899}
 
 /* ======================= SIDE PANEL ======================= */
-aside{width:380px;flex:none;position:relative;background:var(--panel-solid);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
-  border-left:1px solid var(--border);z-index:30;transition:width .35s var(--ease),transform .35s var(--ease)}
-aside.collapsed{width:0;border-left-color:transparent}
-.inner{height:100%;width:380px;overflow-y:auto;padding:20px 20px 40px;display:flex;flex-direction:column;gap:14px}
-aside.collapsed .inner{visibility:hidden}
-.inner::-webkit-scrollbar{width:5px}
-.inner::-webkit-scrollbar-thumb{background:rgba(148,163,184,.25);border-radius:3px}
-.ptab{position:absolute;top:50%;left:-32px;transform:translateY(-50%);width:32px;height:56px;background:var(--panel-solid);border:1px solid var(--border);
-  border-right:0;border-radius:9px 0 0 9px;display:grid;place-items:center;color:var(--muted);z-index:35}
-.ptab:hover{color:#fff}
-.ptab svg{width:16px;height:16px;transition:transform .3s}
+aside{
+  width:410px;flex:0 0 410px;position:relative;display:flex;flex-direction:column;height:100%;max-height:100%;min-height:0;
+  background:var(--panel-solid);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+  border-left:1px solid var(--border);z-index:35;transition:width .32s var(--ease),flex-basis .32s var(--ease),transform .32s var(--ease)
+}
+aside.collapsed{width:0;flex:0 0 0;border-left-color:transparent;overflow:visible}
+aside.collapsed .inner,
+aside.collapsed .panel-header{visibility:hidden;pointer-events:none}
+
+/* Panel Header */
+.panel-header{
+  display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-bottom:1px solid var(--border);
+  background:rgba(15,22,41,.94);gap:10px;flex:none;z-index:2
+}
+.panel-header-main{min-width:0;display:flex;flex-direction:column;gap:3px}
+.panel-badge{
+  font-size:.62rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--cyan);
+  background:rgba(56,189,248,.12);border:1px solid rgba(56,189,248,.25);border-radius:10px;padding:1px 7px;display:inline-block;align-self:flex-start
+}
+.panel-header h2{font-size:.92rem;font-weight:700;color:#fff;letter-spacing:-.01em;line-height:1.25}
+.panel-header-actions{display:flex;align-items:center;gap:6px;flex:none}
+.panel-action-btn{font-size:.68rem;padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:rgba(255,255,255,.05);color:var(--text);transition:all .2s ease}
+.panel-action-btn:hover{background:rgba(255,255,255,.12);border-color:var(--border-hi);color:#fff}
+.panel-close-btn{
+  width:30px;height:30px;border-radius:7px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--muted);
+  display:grid;place-items:center;transition:all .2s ease;cursor:pointer
+}
+.panel-close-btn:hover{background:rgba(239,68,68,.18);color:#fca5a5;border-color:rgba(239,68,68,.4);transform:scale(1.05)}
+.sheet-handle{display:none}
+
+/* Inner Scrollable Container */
+.inner{
+  flex:1;min-height:0;width:100%;overflow-y:auto;overflow-x:hidden;padding:16px 18px 40px;display:flex;flex-direction:column;gap:12px;
+  overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;
+  scrollbar-width:thin;scrollbar-color:rgba(148,163,184,.35) rgba(15,23,42,.3)
+}
+.inner>*{flex-shrink:0}
+.inner::-webkit-scrollbar{width:7px}
+.inner::-webkit-scrollbar-track{background:rgba(15,23,42,.3);border-radius:4px}
+.inner::-webkit-scrollbar-thumb{background:rgba(148,163,184,.3);border-radius:4px;border:1px solid transparent;background-clip:padding-box}
+.inner::-webkit-scrollbar-thumb:hover{background:rgba(148,163,184,.55)}
+
+/* Desktop Floating Tab */
+.ptab{
+  position:absolute;top:50%;left:-34px;transform:translateY(-50%);width:34px;height:60px;background:var(--panel-solid);
+  border:1px solid var(--border);border-right:0;border-radius:10px 0 0 10px;display:grid;place-items:center;color:var(--muted);
+  z-index:40;box-shadow:-4px 0 14px rgba(0,0,0,.35);transition:all .2s ease;cursor:pointer
+}
+.ptab:hover{color:#fff;background:rgba(26,35,64,.95);border-color:var(--cyan)}
+.ptab svg{width:16px;height:16px;transition:transform .3s ease;transform:rotate(0deg)}
 aside.collapsed .ptab svg{transform:rotate(180deg)}
-h2{font-size:1.02rem;font-weight:700;color:#fff;letter-spacing:-.01em}
-.pdesc{font-size:.76rem;color:var(--muted);line-height:1.5;padding-bottom:12px;border-bottom:1px solid var(--border)}
-.acc{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:var(--r-sm);overflow:hidden}
-.acc>button{width:100%;background:none;border:0;padding:11px 14px;display:flex;align-items:center;justify-content:space-between;
-  font-size:.8rem;font-weight:600;color:#fff;text-align:left}
-.acc>button svg{width:14px;height:14px;transition:transform .25s}
-.acc.open>button svg{transform:rotate(180deg)}
-.acc-body{max-height:0;overflow:hidden;padding:0 14px;font-size:.74rem;line-height:1.55;color:var(--muted);transition:max-height .35s var(--ease)}
-.acc.open .acc-body{max-height:2200px;padding-bottom:14px}
-.acc-body p{margin-top:6px}
-.acc-body strong{color:var(--text)}
-table{width:100%;border-collapse:collapse;font-size:.67rem;margin-top:10px}
-th{text-align:left;padding:6px 4px;color:var(--dim);border-bottom:1px solid var(--border);font-weight:600}
-td{padding:6px 4px;border-bottom:1px solid rgba(148,163,184,.08);color:var(--text);vertical-align:top}
-tr.hl td{background:rgba(139,92,246,.18);color:#fff}
-td .tchip{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px}
-.step{border-left:2px solid var(--cyan);padding:6px 10px;margin-top:8px;background:rgba(255,255,255,.025);border-radius:0 5px 5px 0}
+aside.collapsed .ptab{
+  border-right:1px solid var(--border);border-radius:10px;box-shadow:0 0 16px rgba(56,189,248,.35);animation:pulseTab 3s infinite ease-in-out
+}
+@keyframes pulseTab{
+  0%,100%{border-color:var(--border)}
+  50%{border-color:var(--cyan)}
+}
+
+/* Paragraph Description */
+.pdesc{font-size:.76rem;color:var(--muted);line-height:1.52;padding-bottom:10px;border-bottom:1px solid var(--border);flex-shrink:0}
+
+/* Accordions with CSS Grid Animation */
+.acc{
+  flex-shrink:0;width:100%;
+  background:rgba(255,255,255,.025);border:1px solid var(--border);border-radius:var(--r-sm);overflow:hidden;
+  transition:border-color .2s ease,background .2s ease,box-shadow .2s ease
+}
+.acc.open{
+  border-color:rgba(139,92,246,.32);background:rgba(255,255,255,.04);box-shadow:0 4px 14px rgba(0,0,0,.25)
+}
+.acc>button{
+  width:100%;background:none;border:0;padding:12px 14px;min-height:44px;display:flex;align-items:center;justify-content:space-between;
+  font-size:.82rem;font-weight:600;color:#fff;text-align:left;cursor:pointer;user-select:none;transition:background .2s ease,color .2s ease
+}
+.acc>button:hover{background:rgba(255,255,255,.05);color:var(--cyan)}
+.acc>button svg{width:14px;height:14px;flex:none;transition:transform .28s var(--ease);color:var(--muted)}
+.acc.open>button svg{transform:rotate(180deg);color:var(--cyan)}
+.acc-body{display:grid;grid-template-rows:0fr;transition:grid-template-rows .28s var(--ease)}
+.acc.open .acc-body{grid-template-rows:1fr}
+.acc-content{overflow:hidden;min-height:0;padding:0 14px;font-size:.74rem;line-height:1.55;color:var(--muted);transition:padding .28s var(--ease)}
+.acc.open .acc-content{padding-bottom:14px}
+.acc-content p{margin-top:6px}
+.acc-content strong{color:var(--text)}
+
+/* Table & Scroll Container */
+.table-scroll-wrap{
+  width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;margin-top:10px;border:1px solid var(--border);
+  border-radius:var(--r-sm);background:rgba(8,12,24,.75);scrollbar-width:thin
+}
+.table-scroll-wrap::-webkit-scrollbar{height:5px}
+.table-scroll-wrap::-webkit-scrollbar-thumb{background:rgba(148,163,184,.3);border-radius:3px}
+table{width:100%;min-width:320px;border-collapse:collapse;font-size:.69rem}
+th{
+  text-align:left;padding:8px 8px;color:var(--cyan);background:rgba(15,22,41,.95);position:sticky;top:0;
+  border-bottom:1px solid var(--border-hi);font-weight:600;letter-spacing:.02em;z-index:2
+}
+td{padding:7px 8px;border-bottom:1px solid rgba(148,163,184,.08);color:var(--text);vertical-align:top;line-height:1.4}
+tr{cursor:pointer;transition:background .15s ease}
+tr:hover td{background:rgba(255,255,255,.07)}
+tr.hl td{background:rgba(139,92,246,.25);color:#fff;font-weight:500}
+td .tchip{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px;vertical-align:middle}
+
+.step{border-left:2.5px solid var(--cyan);padding:7px 10px;margin-top:8px;background:rgba(255,255,255,.03);border-radius:0 5px 5px 0}
 .step.f{border-left-color:#EC4899}
 .step.p{border-left-color:#a855f7}
 .callout{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);border-radius:var(--r-sm);padding:8px 10px;margin-top:8px}
-.callout h5{color:#f87171;font-size:.72rem;margin-bottom:3px}
-.tissue-desc{border-left:3px solid var(--c);padding:2px 0 2px 10px;margin-top:10px}
-.tissue-desc h5{color:#fff;font-size:.74rem}
+.callout h5{color:#f87171;font-size:.73rem;margin-bottom:3px}
+.tissue-desc{border-left:3px solid var(--c);padding:4px 0 4px 10px;margin-top:10px;background:rgba(255,255,255,.02);border-radius:0 5px 5px 0}
+.tissue-desc h5{color:#fff;font-size:.75rem}
+.tissue-desc p{margin-top:3px}
 .notice{font-size:.66rem;color:var(--dim);line-height:1.45;padding:10px;border:1px dashed rgba(148,163,184,.2);border-radius:var(--r-sm)}
+
+/* Mobile Backdrop */
+.panel-backdrop{display:none}
 
 /* ======================= RESPONSIVE ======================= */
 @media (max-width:900px){
-  aside{position:absolute;left:0;right:0;bottom:0;width:100%;height:58%;border-left:0;border-top:1px solid var(--border);box-shadow:0 -10px 30px rgba(0,0,0,.6)}
-  aside.collapsed{width:100%;transform:translateY(100%);border-top-color:transparent}
-  aside.collapsed .inner{visibility:visible}
-  .inner{width:100%}
-  .ptab{left:50%;top:-30px;transform:translateX(-50%) rotate(90deg);transform-origin:center}
-  .legend{width:260px;bottom:180px}
+  .panel-backdrop{
+    display:block;position:fixed;inset:0;background:rgba(3,5,10,.65);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);
+    z-index:50;opacity:0;pointer-events:none;transition:opacity .3s ease
+  }
+  .panel-backdrop.active{opacity:1;pointer-events:auto}
+  aside{
+    position:fixed;left:0;right:0;bottom:0;top:auto;width:100%;max-width:100%;flex:none;height:76vh;max-height:84vh;
+    border-left:0;border-top:1px solid var(--border-hi);border-radius:20px 20px 0 0;box-shadow:0 -12px 48px rgba(0,0,0,.85);
+    z-index:55;transform:translateY(0);transition:transform .32s var(--ease),visibility .32s ease;visibility:visible
+  }
+  aside.collapsed{width:100%;flex:none;transform:translateY(105%);visibility:hidden;pointer-events:none;border-top-color:transparent}
+  aside.collapsed .inner,
+  aside.collapsed .panel-header{visibility:hidden}
+  .sheet-handle{display:flex;justify-content:center;align-items:center;padding:8px 0 2px;width:100%;cursor:pointer;flex:none}
+  .sheet-handle::after{content:"";width:42px;height:4.5px;border-radius:3px;background:rgba(148,163,184,.4)}
+  .inner{width:100%;padding:12px 16px 36px}
+  .ptab{display:none}
+  .legend{width:250px;bottom:210px}
 }
 @media (max-width:700px){
-  header{padding:0 12px}
+  header{padding:0 10px;gap:6px}
   .subtitle,.ghost-btn span{display:none}
-  h1{font-size:.8rem}
-  .seg button{padding:5px 8px;font-size:.68rem}
-  .dock{padding:8px 10px;gap:8px}
+  h1{font-size:.78rem;max-width:130px}
+  .header-actions{gap:4px}
+  .seg button{padding:5px 7px;font-size:.66rem}
+  .dock{padding:8px 10px;gap:8px;bottom:10px}
   .stg{font-size:.66rem;padding:5px 6px}
-  .legend{bottom:200px;width:230px}
+  .legend{bottom:220px;width:220px;left:10px}
   .legend:not(.userOpen) .legend-list{display:none}
   .legend .hint{display:none}
   .hud-tl{top:10px;left:10px}
   .ticks{font-size:.56rem}
+}
+@media (max-width:440px){
+  .brand-text{display:none}
+  .seg button{padding:4px 6px;font-size:.63rem}
+  .ghost-btn{padding:5px 8px}
 }
 </style>
 
@@ -255,6 +353,9 @@ td .tchip{display:inline-block;width:8px;height:8px;border-radius:2px;margin-rig
     </button>
     <button id="btn-reset" class="ghost-btn" aria-label="Reset camera view" title="Reset view">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg><span>Reset view</span>
+    </button>
+    <button id="btn-info" class="ghost-btn info-btn on" aria-pressed="true" aria-label="Toggle Development Information Guide" title="Educational Guide &amp; Homology (I)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span>Guide</span>
     </button>
   </div>
 </header>
@@ -330,53 +431,80 @@ td .tchip{display:inline-block;width:8px;height:8px;border-radius:2px;margin-rig
     </div>
   </section>
 
-  <aside id="panel" aria-label="Educational panel">
-    <button id="btn-panel" class="ptab" aria-label="Collapse or expand educational panel" aria-expanded="true">
+  <div id="panel-backdrop" class="panel-backdrop" aria-hidden="true"></div>
+
+  <aside id="panel" aria-label="Development information and embryological homology panel">
+    <button id="btn-panel" class="ptab" aria-label="Toggle educational guide panel" aria-expanded="true" title="Toggle Educational Guide (I)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
     </button>
-    <div class="inner">
-      <div>
-        <h2>Embryological Organogenesis &amp; Adult Homology</h2>
-      </div>
-      <p class="pdesc">Comprehensive comparative anatomy of human external genitalia: primordial origins, sex steroid-driven differentiation, pubertal maturation, and neurovascular arousal physiology.</p>
+    
+    <div class="sheet-handle" aria-hidden="true" title="Swipe or tap to close"></div>
 
-      <div class="acc open"><button aria-expanded="true">Anatomical Homology Matrix<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></button>
+    <div class="panel-header">
+      <div class="panel-header-main">
+        <span class="panel-badge">Interactive Guide</span>
+        <h2>Embryological Organogenesis &amp; Homology</h2>
+      </div>
+      <div class="panel-header-actions">
+        <button id="btn-acc-toggle" class="panel-action-btn" title="Expand or collapse all accordions">Collapse All</button>
+        <button id="btn-panel-close" class="panel-close-btn" aria-label="Close information panel" title="Close guide (Esc)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="inner" id="panel-inner" tabindex="0" role="region" aria-label="Educational panel content">
+      <p class="pdesc">Comprehensive comparative anatomy of human external genitalia: primordial origins, sex steroid-driven differentiation, pubertal maturation, and neurovascular arousal physiology displayed in standard lithotomy clinical examination posture.</p>
+
+      <div class="acc open" id="acc-matrix"><button aria-expanded="true"><span>Anatomical Homology Matrix</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></button>
         <div class="acc-body">
-          <p>Click any row to isolate and trace that tissue across all developmental stages.</p>
-          <table id="matrix"><thead><tr><th>Tissue</th><th>Week 7</th><th>Female</th><th>Male</th></tr></thead><tbody></tbody></table>
+          <div class="acc-content">
+            <p>Click any row to isolate and trace that tissue across all developmental stages.</p>
+            <div class="table-scroll-wrap" tabindex="0" role="region" aria-label="Homology matrix table">
+              <table id="matrix"><thead><tr><th>Tissue</th><th>Week 7</th><th>Female</th><th>Male</th></tr></thead><tbody></tbody></table>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div class="acc"><button aria-expanded="false">Tissue Origins &amp; Adult Derivatives<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></button>
-        <div class="acc-body" id="tissue-descs"></div>
-      </div>
-
-      <div class="acc open"><button aria-expanded="true">Endocrine Drivers (SRY &rarr; DHT)<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></button>
+      <div class="acc" id="acc-origins"><button aria-expanded="false"><span>Tissue Origins &amp; Adult Derivatives</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></button>
         <div class="acc-body">
-          <div class="step"><strong>1. SRY</strong> on the Y chromosome (Yp11.2) triggers testis determination (Sertoli &amp; Leydig cells).</div>
-          <div class="step"><strong>2. Fetal Testosterone.</strong> Secreted by Leydig cells beginning Week 8.</div>
-          <div class="step"><strong>3. 5&alpha;-reductase type 2</strong> converts testosterone locally to <strong>dihydrotestosterone (DHT)</strong>.</div>
-          <div class="step"><strong>4. Androgen receptor signalling.</strong> Drives phallic elongation, ventral fold fusion (penile raphe/spongy urethra), and scrotal swelling fusion.</div>
-          <div class="step f"><strong>5. Absence of DHT (46,XX).</strong> Yields default female morphology: glans clitoridis, unfused labia minora, labia majora, and patent vestibule.</div>
+          <div class="acc-content" id="tissue-descs"></div>
         </div>
       </div>
 
-      <div class="acc open"><button aria-expanded="true">Pubertal Maturation &amp; Sexual Response<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></button>
+      <div class="acc open" id="acc-endocrine"><button aria-expanded="true"><span>Endocrine Drivers (SRY &rarr; DHT)</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></button>
         <div class="acc-body">
-          <div class="step p"><strong>Pubertal Steroid Surge.</strong> Hypothalamic GnRH stimulates pituitary LH/FSH. In 46,XX, ovarian estrogens expand labial adipose, clitoral vascularity, and vaginal lubrication. In 46,XY, testicular testosterone/DHT expands penile corpora, glans volume, and scrotal dartos rugae.</div>
-          <div class="step p"><strong>Parasympathetic Erection &amp; Vasocongestion (S2&ndash;S4).</strong> Pelvic splanchnic nerves release <strong>Nitric Oxide (NO)</strong> &rarr; soluble guanylyl cyclase &rarr; <strong>cGMP</strong> &rarr; smooth muscle relaxation of helicine arterioles.
-            <br>&bull; <em>Male:</em> Cavernosal spaces engorge; subtunical venules compress against tunica albuginea (veno-occlusive mechanism), producing rigid erection (+55% length, +35% girth). Scrotum contracts and ascends.
-            <br>&bull; <em>Female:</em> Clitoral corpora and vestibular bulbs engorge; labia minora swell, blush, and <strong>part laterally</strong> to reveal the vaginal introitus; labia majora flatten slightly; epithelial transudation produces lubrication.</div>
-          <div class="step"><strong>Sympathetic Resolution (T11&ndash;L2).</strong> Norepinephrine &rarr; vasoconstriction &rarr; PDE5 degrades cGMP &rarr; detumescence back to resting flaccid state.</div>
+          <div class="acc-content">
+            <div class="step"><strong>1. SRY</strong> on the Y chromosome (Yp11.2) triggers testis determination (Sertoli &amp; Leydig cells).</div>
+            <div class="step"><strong>2. Fetal Testosterone.</strong> Secreted by Leydig cells beginning Week 8.</div>
+            <div class="step"><strong>3. 5&alpha;-reductase type 2</strong> converts testosterone locally to <strong>dihydrotestosterone (DHT)</strong>.</div>
+            <div class="step"><strong>4. Androgen receptor signalling.</strong> Drives phallic elongation, ventral fold fusion (penile raphe/spongy urethra), and scrotal swelling fusion.</div>
+            <div class="step f"><strong>5. Absence of DHT (46,XX).</strong> Yields default female morphology: glans clitoridis, unfused labia minora, labia majora, and patent vestibule.</div>
+          </div>
         </div>
       </div>
 
-      <div class="acc"><button aria-expanded="false">Clinical Correlates<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></button>
+      <div class="acc open" id="acc-pubertal"><button aria-expanded="true"><span>Pubertal Maturation &amp; Sexual Response</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></button>
         <div class="acc-body">
-          <div class="callout"><h5>Hypospadias</h5>Incomplete ventral fusion of urethral folds leaves the urethral meatus proximal on the ventral shaft.</div>
-          <div class="callout"><h5>Androgen Insensitivity Syndrome (CAIS)</h5>46,XY individuals with non-functional AR exhibit female-typical external anatomy despite intra-abdominal testes.</div>
-          <div class="callout"><h5>5&alpha;-Reductase Type 2 Deficiency</h5>Impaired conversion of T to DHT causes under-virilized neonatal genitalia, often with significant virilization at puberty under high testosterone.</div>
-          <div class="callout"><h5>Congenital Adrenal Hyperplasia (46,XX)</h5>Adrenal androgen excess virilizes female external genitalia (clitoromegaly and partial labioscrotal fusion).</div>
+          <div class="acc-content">
+            <div class="step p"><strong>Pubertal Steroid Surge.</strong> Hypothalamic GnRH stimulates pituitary LH/FSH. In 46,XX, ovarian estrogens expand labial adipose, clitoral vascularity, and vaginal lubrication. In 46,XY, testicular testosterone/DHT expands penile corpora, glans volume, and scrotal dartos rugae.</div>
+            <div class="step p"><strong>Parasympathetic Erection &amp; Vasocongestion (S2&ndash;S4).</strong> Pelvic splanchnic nerves release <strong>Nitric Oxide (NO)</strong> &rarr; soluble guanylyl cyclase &rarr; <strong>cGMP</strong> &rarr; smooth muscle relaxation of helicine arterioles.
+              <br>&bull; <em>Male:</em> Cavernosal spaces engorge; subtunical venules compress against tunica albuginea (veno-occlusive mechanism), producing rigid erection (+55% length, +35% girth). Scrotum contracts and ascends.
+              <br>&bull; <em>Female:</em> Clitoral corpora and vestibular bulbs engorge; labia minora swell, blush, and <strong>part laterally</strong> to reveal the vaginal introitus; labia majora flatten slightly; epithelial transudation produces lubrication.</div>
+            <div class="step"><strong>Sympathetic Resolution (T11&ndash;L2).</strong> Norepinephrine &rarr; vasoconstriction &rarr; PDE5 degrades cGMP &rarr; detumescence back to resting flaccid state.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="acc" id="acc-clinical"><button aria-expanded="false"><span>Clinical Correlates</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></button>
+        <div class="acc-body">
+          <div class="acc-content">
+            <div class="callout"><h5>Hypospadias</h5>Incomplete ventral fusion of urethral folds leaves the urethral meatus proximal on the ventral shaft.</div>
+            <div class="callout"><h5>Androgen Insensitivity Syndrome (CAIS)</h5>46,XY individuals with non-functional AR exhibit female-typical external anatomy despite intra-abdominal testes.</div>
+            <div class="callout"><h5>5&alpha;-Reductase Type 2 Deficiency</h5>Impaired conversion of T to DHT causes under-virilized neonatal genitalia, often with significant virilization at puberty under high testosterone.</div>
+            <div class="callout"><h5>Congenital Adrenal Hyperplasia (46,XX)</h5>Adrenal androgen excess virilizes female external genitalia (clitoromegaly and partial labioscrotal fusion).</div>
+          </div>
         </div>
       </div>
 
@@ -440,7 +568,7 @@ const state = {
   duration: 20, dwell: 1.2, tweening: false, scrubbing: false, labels: false, derived: null,
   advMode: false, arousal: 0, arousalPulse: false
 };
-const CAM = { pos: [0, 0.2, 7.2], target: [0, -0.05, 0.2] };
+const CAM = { pos: [0, 0.05, 7.8], target: [0, 0.0, 0.0] };
 
 // ===== 3. PARAMETER KEYFRAMES =====
 const P = {
@@ -457,9 +585,9 @@ const P = {
     sinus:     { sx: 0.15, sy: 0.52, y: -0.22, depth: 0.90, open: 1.0, orifices: 1.0, meatus: 0.0 }
   },
   F_Adult: { // Mature Adult Female (Post-pubertal, resting baseline)
-    tubercle:  { yBase: 0.22, L: 0.46, r0: 0.145, taper: 0.05, tilt: 0.12, bend: 0.02, glans: 0.32, glansU: 0.78, glansW: 0.14, corona: 0.00, sulcus: 0.00, hood: 0.76, shaftFlat: 0.00 },
-    folds:     { dOpen: 0.09, dPeri: 0.12, fuse: 0.00, a: 0.026, b: 0.120, periLen: 0.96, phalicFrac: 0.09, ruffle: 0.55, flange: 0.92 },
-    swellings: { yStart: 0.56, yEnd: -0.86, xBase: 0.06, xBulge: 0.27, zBase: 0.12, zBulge: 0.16, rx0: 0.21, rxBulge: 0.09, rz0: 0.17, rzBulge: 0.09, archPow: 0.80, taperPow: 0.26, fuse: 0.00, antComm: 0.92, postComm: 0.88, bilobe: 0.00, rugae: 0.00 },
+    tubercle:  { yBase: 0.22, L: 0.44, r0: 0.140, taper: 0.05, tilt: 0.12, bend: 0.02, glans: 0.35, glansU: 0.80, glansW: 0.14, corona: 0.00, sulcus: 0.00, hood: 0.78, shaftFlat: 0.00 },
+    folds:     { dOpen: 0.09, dPeri: 0.12, fuse: 0.00, a: 0.026, b: 0.118, periLen: 0.95, phalicFrac: 0.09, ruffle: 0.55, flange: 0.90 },
+    swellings: { yStart: 0.55, yEnd: -0.88, xBase: 0.06, xBulge: 0.28, zBase: 0.12, zBulge: 0.16, rx0: 0.22, rxBulge: 0.09, rz0: 0.17, rzBulge: 0.09, archPow: 0.80, taperPow: 0.26, fuse: 0.00, antComm: 0.92, postComm: 0.88, bilobe: 0.00, rugae: 0.00 },
     sinus:     { sx: 0.17, sy: 0.58, y: -0.22, depth: 0.95, open: 1.0, orifices: 1.0, meatus: 0.0 }
   },
   M_Neo: { // Male Neonatal (46,XY early differentiation)
@@ -469,9 +597,9 @@ const P = {
     sinus:     { sx: 0.02, sy: 0.10, y: -0.65, depth: 0.00, open: 0.0, orifices: 0.0, meatus: 1.0 }
   },
   M_Adult: { // Mature Adult Male (Post-pubertal, resting flaccid)
-    tubercle:  { yBase: 0.06, L: 2.80, r0: 0.36, taper: 0.02, tilt: 0.08, bend: 0.18, glans: 0.30, glansU: 0.85, glansW: 0.08, corona: 0.36, sulcus: 0.16, hood: 0.00, shaftFlat: 0.24 },
-    folds:     { dOpen: 0.20, dPeri: 0.22, fuse: 1.00, a: 0.042, b: 0.052, periLen: 0.02, phalicFrac: 0.96, ruffle: 0.00, flange: 0.00 },
-    swellings: { yStart: 0.14, yEnd: -1.52, xBase: 0.02, xBulge: 0.29, zBase: 0.14, zBulge: 0.27, rx0: 0.25, rxBulge: 0.19, rz0: 0.23, rzBulge: 0.21, archPow: 0.94, taperPow: 0.36, fuse: 1.00, antComm: 0.00, postComm: 0.00, bilobe: 0.92, rugae: 0.92 },
+    tubercle:  { yBase: 0.08, L: 2.70, r0: 0.35, taper: 0.02, tilt: 0.08, bend: 0.16, glans: 0.30, glansU: 0.85, glansW: 0.08, corona: 0.36, sulcus: 0.16, hood: 0.00, shaftFlat: 0.22 },
+    folds:     { dOpen: 0.20, dPeri: 0.22, fuse: 1.00, a: 0.042, b: 0.052, periLen: 0.02, phalicFrac: 0.95, ruffle: 0.00, flange: 0.00 },
+    swellings: { yStart: 0.15, yEnd: -1.55, xBase: 0.02, xBulge: 0.30, zBase: 0.14, zBulge: 0.28, rx0: 0.26, rxBulge: 0.20, rz0: 0.24, rzBulge: 0.22, archPow: 0.94, taperPow: 0.36, fuse: 1.00, antComm: 0.00, postComm: 0.00, bilobe: 0.94, rugae: 0.92 },
     sinus:     { sx: 0.02, sy: 0.10, y: -0.68, depth: 0.00, open: 0.0, orifices: 0.0, meatus: 1.0 }
   }
 };
@@ -499,7 +627,7 @@ function applyArousal(baseP, isMale, arousal) {
     // Penile erection: length, girth, dorsal erection angle, glans engorgement
     p.tubercle.L = lerp(p.tubercle.L, p.tubercle.L * 1.55, E);
     p.tubercle.r0 = lerp(p.tubercle.r0, p.tubercle.r0 * 1.35, E);
-    p.tubercle.tilt = lerp(p.tubercle.tilt, 0.65, E); // elevates forward / up
+    p.tubercle.tilt = lerp(p.tubercle.tilt, 0.65, E); // elevates forward / up (erect angle)
     p.tubercle.bend = lerp(p.tubercle.bend, 0.02, E); // straightens erect shaft
     p.tubercle.corona = lerp(p.tubercle.corona, p.tubercle.corona * 1.30, E);
 
@@ -511,13 +639,13 @@ function applyArousal(baseP, isMale, arousal) {
     p.swellings.rugae = lerp(p.swellings.rugae, 1.35, E);
   } else {
     // Female vasocongestion: clitoral glans tumescence & elevation
-    p.tubercle.L = lerp(p.tubercle.L, p.tubercle.L * 1.40, E);
-    p.tubercle.r0 = lerp(p.tubercle.r0, p.tubercle.r0 * 1.35, E);
-    p.tubercle.tilt = lerp(p.tubercle.tilt, p.tubercle.tilt + 0.10, E);
+    p.tubercle.L = lerp(p.tubercle.L, p.tubercle.L * 1.38, E);
+    p.tubercle.r0 = lerp(p.tubercle.r0, p.tubercle.r0 * 1.38, E);
+    p.tubercle.tilt = lerp(p.tubercle.tilt, p.tubercle.tilt + 0.12, E);
 
     // Labia minora engorge and part laterally, widely exposing the vestibule
-    p.folds.dOpen = lerp(p.folds.dOpen, p.folds.dOpen + 0.15, E);
-    p.folds.dPeri = lerp(p.folds.dPeri, p.folds.dPeri + 0.18, E);
+    p.folds.dOpen = lerp(p.folds.dOpen, p.folds.dOpen + 0.16, E);
+    p.folds.dPeri = lerp(p.folds.dPeri, p.folds.dPeri + 0.20, E);
     p.folds.b = lerp(p.folds.b, p.folds.b * 1.35, E);
     p.folds.ruffle = lerp(p.folds.ruffle, p.folds.ruffle + 0.25, E);
 
@@ -537,25 +665,30 @@ function sampleParams(t) {
   let baseP, isMale = false;
 
   if (state.advMode) {
-    // 5-Stage Sequence: S0 -> F_Neo -> F_Adult -> M_Neo -> M_Adult -> S0
-    const stages = [P.S0, P.F_Neo, P.F_Adult, P.M_Neo, P.M_Adult, P.S0];
-    const numSegs = stages.length - 1;
-    const segFloat = t * numSegs;
-    const seg = Math.min(numSegs - 1, Math.floor(segFloat));
-    const local = easeInOutCubic(segFloat - seg);
-    baseP = mixParams(stages[seg], stages[seg + 1], local);
-    isMale = baseP.folds.fuse > 0.5;
+    // 4 Clean intervals: [0, 0.25], [0.25, 0.50], [0.50, 0.75], [0.75, 1.00]
+    const stages = [P.S0, P.F_Neo, P.F_Adult, P.M_Neo, P.M_Adult];
+    if (t >= 1) {
+      baseP = P.M_Adult;
+      isMale = true;
+    } else {
+      const segFloat = t * 4;
+      const idx = Math.min(3, Math.floor(segFloat));
+      const local = easeInOutCubic(segFloat - idx);
+      baseP = mixParams(stages[idx], stages[idx + 1], local);
+      isMale = (idx >= 3) || (idx === 2 && local > 0.5);
+    }
   } else {
-    // 3-Stage Classic Embryonic Sequence: S0 -> F_Neo -> M_Neo -> S0
-    const seg = Math.min(2, Math.floor(t * 3));
-    const local = easeInOutCubic(t * 3 - seg);
+    // 3 Clean intervals: [0, 1/3], [1/3, 2/3], [2/3, 1]
+    const segFloat = t * 3;
+    const seg = Math.min(2, Math.floor(segFloat));
+    const local = easeInOutCubic(segFloat - seg);
     const [A, B] = [[P.S0, P.F_Neo], [P.F_Neo, P.M_Neo], [P.M_Neo, P.S0]][seg];
     baseP = mixParams(A, B, local);
     isMale = baseP.folds.fuse > 0.5;
   }
 
-  // Arousal applies when user engages arousal slider (primarily in adult/differentiation phases)
-  const isPrimordial = (t < 0.08 || t > 0.95);
+  // Arousal applies when user engages arousal slider (in adult/differentiation phases)
+  const isPrimordial = (t < 0.08);
   const effectiveArousal = isPrimordial ? 0 : state.arousal;
   return applyArousal(baseP, isMale, effectiveArousal);
 }
@@ -570,7 +703,7 @@ function getTubFrame(u, p) {
   const len = Math.hypot(dy, dz) || 1;
   const Ty = dy / len, Tz = dz / len;
   const B = [1, 0, 0];
-  const N = [0, -Tz, Ty]; // normal perpendicular to tangent pointing ventrally (+Z)
+  const N = [0, -Tz, Ty]; // normal in YZ plane pointing ventrally (+Z)
   return { pos: [0, y, z], T: [0, Ty, Tz], B, N };
 }
 
@@ -579,35 +712,37 @@ function tubRadius(u, p, v) {
   const cosV = Math.cos(v);
   const sinV = Math.sin(v);
 
-  // Dorsal corpora cavernosa twin-ridge on penile shaft
-  if (p.shaftFlat > 0 && u < p.glansU - 0.12) {
-    const shaftMask = Math.pow(Math.sin(Math.PI * clamp(u / (p.glansU - 0.12), 0, 1)), 0.5);
-    const dorsalTwin = 0.08 * p.shaftFlat * Math.cos(2 * v) * Math.max(0, -sinV);
+  // Dorsal corpora cavernosa twin-ridge on penile shaft (male)
+  if (p.shaftFlat > 0 && u < p.glansU - 0.10) {
+    const shaftMask = Math.pow(Math.sin(Math.PI * clamp(u / (p.glansU - 0.10), 0, 1)), 0.5);
+    const dorsalTwin = 0.09 * p.shaftFlat * Math.cos(2 * v) * Math.max(0, -sinV);
     const ventralNarrow = -0.05 * p.shaftFlat * Math.max(0, sinV);
     r *= (1 + shaftMask * (dorsalTwin + ventralNarrow));
   }
 
   // Glans enlargement
-  r += p.r0 * p.glans * gauss(u, p.glansU, p.glansW);
+  const glansVentralBias = (p.hood > 0) ? (1 + 0.18 * sinV) : 1.0;
+  r += p.r0 * p.glans * gauss(u, p.glansU, p.glansW) * glansVentralBias;
 
-  // Corona glandis (male): prominent dorsal/lateral ledge, dipping ventrally at frenular notch
+  // Corona glandis (male)
   if (p.corona > 0) {
     const coronaFlare = p.r0 * p.corona * gauss(u, p.glansU - 0.08, 0.038);
     const coronaProfile = 1.0 - 0.65 * Math.max(0, sinV);
     r += coronaFlare * coronaProfile;
   }
 
-  // Coronal sulcus (neck groove):
+  // Coronal sulcus (neck groove)
   if (p.sulcus > 0) {
     const sulcusDip = p.r0 * p.sulcus * gauss(u, p.glansU - 0.15, 0.042);
     const sulcusProfile = 1.0 - 0.35 * Math.max(0, sinV);
     r -= sulcusDip * sulcusProfile;
   }
 
-  // Preputial hood (female clitoral prepuce):
+  // Enhanced Preputial Hood (female clitoral prepuce)
   if (p.hood > 0) {
-    const hoodMask = Math.max(0, -sinV + 0.35);
-    r += p.hood * 0.85 * p.r0 * gauss(u, 0.68, 0.18) * hoodMask;
+    const hoodDorsalCowl = Math.max(0, -sinV + 0.40) * (1 + 0.22 * Math.cos(2 * v));
+    const hoodFlare = p.hood * 1.25 * p.r0 * gauss(u, 0.68, 0.18) * hoodDorsalCowl;
+    r += hoodFlare;
   }
 
   // Proximal root closure
@@ -624,7 +759,7 @@ const canvas = document.getElementById('gl');
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 60);
 camera.position.set(...CAM.pos);
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, preserveDrawingBuffer: true });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.outputEncoding = THREE.sRGBEncoding;
 
@@ -641,31 +776,64 @@ const fillLight = new THREE.DirectionalLight(0xdce7ff, 0.45); fillLight.position
 const rim = new THREE.PointLight(0x8b5cf6, 0.35, 14); rim.position.set(-4, 2, -2);
 scene.add(ambient, hemi, sun, fillLight, rim);
 
-// High-resolution anatomical pelvic floor & mons pubis base
-const baseGeo = new THREE.PlaneGeometry(8, 7.5, 64, 64);
+// High-resolution anatomical open-leg lithotomy pelvic base (giving birth / clinical examination position)
+const baseGeo = new THREE.PlaneGeometry(9.5, 8.5, 96, 96);
 {
   const a = baseGeo.attributes.position;
   for (let i = 0; i < a.count; i++) {
     const x = a.getX(i), y = a.getY(i);
-    let z = -0.06 - 0.035 * x * x - 0.008 * y * y;
-    // Mons pubis soft fatty prominence
-    if (y > 0.25 && Math.abs(x) < 1.6) {
-      z += 0.12 * Math.exp(-0.5 * ((x / 0.75) ** 2 + ((y - 0.95) / 0.65) ** 2));
+    const absX = Math.abs(x);
+    let z = -0.15; // baseline recessed floor
+
+    // Urogenital hiatus basin depression (ensures zero clipping with genitalia)
+    const dBasinX = x / 0.60, dBasinY = (y + 0.15) / 0.70;
+    const basin = -0.05 * Math.exp(-0.5 * (dBasinX * dBasinX + dBasinY * dBasinY));
+    z += basin;
+
+    // 1. Mons Pubis (anterior adipose mound at y > 0.35)
+    if (y > 0.35) {
+      const dX = x / 0.85, dY = (y - 1.10) / 0.55;
+      z += 0.24 * Math.exp(-0.5 * (dX * dX + dY * dY));
+    }
+
+    // 2. Open Thighs in Lithotomy Position (abducted at |x| > 0.60)
+    if (absX > 0.60) {
+      const thighX = (absX - 1.85) / 0.85;
+      const thighY = (y + 0.25) / 1.35;
+      const thighBump = 0.35 * Math.exp(-0.5 * (thighX * thighX + thighY * thighY));
+      const sulcus = -0.06 * Math.exp(-0.5 * Math.pow((absX - 0.78) / 0.12, 2));
+      z += thighBump + sulcus;
+    }
+
+    // 3. Perineal body & Posterior Pelvic Floor / Gluteal cleft (y < -0.80)
+    if (y < -0.80) {
+      const dAnalX = x / 0.25, dAnalY = (y + 1.30) / 0.35;
+      const analDepression = -0.08 * Math.exp(-0.5 * (dAnalX * dAnalX + dAnalY * dAnalY));
+      const buttockX = (absX - 1.05) / 0.55, buttockY = (y + 1.45) / 0.55;
+      const buttockMound = 0.20 * Math.exp(-0.5 * (buttockX * buttockX + buttockY * buttockY));
+      z += analDepression + buttockMound;
+    }
+
+    // Soft natural perimeter edge falloff
+    const rEdge = Math.hypot(x / 4.4, y / 3.9);
+    if (rEdge > 0.68) {
+      const tEdge = Math.min(1, (rEdge - 0.68) / 0.32);
+      z = lerp(z, -0.32, tEdge * tEdge);
     }
     a.setZ(i, z);
   }
   baseGeo.computeVertexNormals();
 }
-const baseMat = new THREE.MeshStandardMaterial({ color: 0x1a2333, roughness: 1 });
+const baseMat = new THREE.MeshStandardMaterial({ color: 0x243248, roughness: 0.88 });
 const perinealBase = new THREE.Mesh(baseGeo, baseMat);
-perinealBase.position.set(0, -0.8, 0);
+perinealBase.position.set(0, 0, 0);
 scene.add(perinealBase);
 
 const depthRings = new THREE.Group();
 [0.9, 1.8, 2.7].forEach(r => {
   const m = new THREE.Mesh(new THREE.RingGeometry(r - 0.01, r, 72),
     new THREE.MeshBasicMaterial({ color: 0x475569, transparent: true, opacity: 0.25, side: THREE.DoubleSide }));
-  m.position.set(0, -0.8, -0.05); depthRings.add(m);
+  m.position.set(0, 0, -0.05); depthRings.add(m);
 });
 depthRings.visible = false; scene.add(depthRings);
 
@@ -751,7 +919,7 @@ function makeOutline(geometry, tissue, offset, parent) {
   return m;
 }
 
-// 1. Tubercle Mesh
+// 1. Tubercle Mesh (Clitoral complex in female; Glans penis & shaft in male)
 const nU_T = 56, nV_T = 40;
 const geoTub = makeGridGeometry(nU_T, nV_T);
 const TubercleMesh = new THREE.Mesh(geoTub, MAT.clay.genitalTubercle);
@@ -759,7 +927,7 @@ TubercleMesh.name = 'TubercleMesh'; TubercleMesh.userData.tissue = 'genitalTuber
 scene.add(TubercleMesh); pickables.push(TubercleMesh);
 makeOutline(geoTub, 'genitalTubercle', 0.022);
 
-// 2. Urogenital Folds Mesh (paired tubes + ventral raphe)
+// 2. Urogenital Folds Mesh (paired mucosal tubes + ventral raphe)
 const nU_F = 60, nV_F = 28;
 const geoFoldL = makeGridGeometry(nU_F, nV_F), geoFoldR = makeGridGeometry(nU_F, nV_F), geoRaphe = makeGridGeometry(nU_F, 16);
 const UrogenitalFoldsMesh = new THREE.Group(); UrogenitalFoldsMesh.name = 'UrogenitalFoldsMesh';
@@ -772,7 +940,7 @@ scene.add(UrogenitalFoldsMesh);
 makeOutline(geoFoldL, 'urogenitalFolds', 0.016, UrogenitalFoldsMesh);
 makeOutline(geoFoldR, 'urogenitalFolds', 0.016, UrogenitalFoldsMesh);
 
-// 3. Labioscrotal Swellings Mesh (continuous anatomical cushions / scrotal sac)
+// 3. Labioscrotal Swellings Mesh (continuous anatomical cushions / bilobate scrotal sac)
 const nU_S = 60, nV_S = 36;
 const geoSwellingL = makeGridGeometry(nU_S, nV_S), geoSwellingR = makeGridGeometry(nU_S, nV_S);
 const geoScrotalRaphe = makeGridGeometry(44, 12);
@@ -891,7 +1059,7 @@ function writeSwelling(geo, side, p) {
     const rz = (p.rz0 + p.rzBulge * q) * tq;
 
     // Transverse dartos rugae for male scrotum
-    const rugae = p.rugae > 0 ? 0.038 * p.rugae * Math.sin(36 * y) * q : 0;
+    const rugae = p.rugae > 0 ? 0.045 * p.rugae * Math.sin(34 * y) * (0.45 + 0.55 * Math.sin(phi)) * q : 0;
 
     for (let j = 0; j <= nV; j++) {
       const th = -side * (j / nV) * Math.PI * 2;
@@ -904,7 +1072,7 @@ function writeSwelling(geo, side, p) {
         dx = Math.max(0.003, xArch + cth * medR);
         // Bilobate median sulcus indentation
         if (p.bilobe > 0 && p.fuse > 0.1) {
-          const furrow = 0.055 * p.bilobe * Math.exp(-Math.pow(dx / 0.07, 2));
+          const furrow = 0.065 * p.bilobe * Math.exp(-Math.pow(dx / 0.065, 2));
           dx += furrow * 0.5;
         }
       }
@@ -913,9 +1081,9 @@ function writeSwelling(geo, side, p) {
         const midBlend = -cth;
         const domeZ = zArch + (rz + rugae) * (sth + midBlend * (1 - sth) * 0.88);
         z = lerp(z, domeZ, p.fuse);
-        // Scrotal median sulcus
+        // Distinct bilobate scrotal cleft along the median raphe
         if (p.bilobe > 0) {
-          z -= 0.05 * p.bilobe * Math.exp(-Math.pow(dx / 0.06, 2)) * p.fuse;
+          z -= 0.075 * p.bilobe * Math.exp(-Math.pow(dx / 0.055, 2)) * p.fuse;
         }
       }
       pos.setXYZ(k++, side * dx, y, z);
@@ -930,7 +1098,7 @@ function writeScrotalRaphe(geo, p) {
     const y = lerp(p.yStart, p.yEnd, s);
     const q = Math.sin(Math.PI * s);
     const zSurface = lerp(p.zBase, p.zBase + p.zBulge, q) + (p.rz0 + p.rzBulge * q) * 0.88 * p.fuse;
-    const rRaphe = 0.018 * p.fuse * Math.pow(q, 0.35);
+    const rRaphe = 0.016 * p.fuse * Math.pow(q, 0.35);
     for (let j = 0; j <= nV; j++) {
       const ph = j / nV * Math.PI * 2;
       const x = rRaphe * Math.cos(ph);
@@ -1009,8 +1177,8 @@ function updateMorph(t) {
 
 // ===== 8. MATERIALS & STYLE SWITCHING =====
 const styleSets = {
-  clay:  { amb: 0.22, hemi: 0.65, sun: 1.05, rim: 0.35, base: 0x1a2333 },
-  atlas: { amb: 0.35, hemi: 0.90, sun: 0.70, rim: 0.00, base: 0xc8bfaf }
+  clay:  { amb: 0.22, hemi: 0.65, sun: 1.05, rim: 0.35, base: 0x243248 },
+  atlas: { amb: 0.35, hemi: 0.90, sun: 0.70, rim: 0.00, base: 0xd2c7b5 }
 };
 const meshTissue = [
   [TubercleMesh, 'genitalTubercle'], [foldL, 'urogenitalFolds'], [foldR, 'urogenitalFolds'], [rapheMesh, 'urogenitalFolds'],
@@ -1022,7 +1190,7 @@ function setStyle(name) {
   state.style = name;
   const atlas = name === 'atlas', S = styleSets[name];
   meshTissue.forEach(([m, k]) => { m.material = MAT[name][k]; });
-  baseMat.color.setHex(S.base); baseMat.roughness = atlas ? 0.85 : 1;
+  baseMat.color.setHex(S.base); baseMat.roughness = 0.88;
   depthRings.visible = atlas;
   gsap.to(ambient, { intensity: S.amb, duration: 0.4 });
   gsap.to(hemi, { intensity: S.hemi, duration: 0.4 });
@@ -1115,10 +1283,10 @@ document.getElementById('tissue-descs').innerHTML = KEYS.map(k => {
 
 function getStageMeta(t) {
   if (state.advMode) {
-    if (t < 0.10) return { key: 's0', title: TERMS.s0, sub: 'Gestational Week 7 \u00b7 Bipotential primordium', color: '#8B5CF6' };
-    if (t < 0.35) return { key: 'femaleNeo', title: TERMS.femaleNeo, sub: 'Week 12+ \u00b7 Female differentiation (default pathway)', color: '#F472B6' };
-    if (t < 0.60) return { key: 'femaleAdult', title: TERMS.femaleAdult, sub: 'Post-pubertal \u00b7 Mature estrogen-primed anatomy', color: '#EC4899' };
-    if (t < 0.85) return { key: 'maleNeo', title: TERMS.maleNeo, sub: 'Week 12+ \u00b7 DHT-driven ventral fusion & elongation', color: '#60A5FA' };
+    if (t < 0.12) return { key: 's0', title: TERMS.s0, sub: 'Gestational Week 7 \u00b7 Bipotential primordium', color: '#8B5CF6' };
+    if (t < 0.38) return { key: 'femaleNeo', title: TERMS.femaleNeo, sub: 'Week 12+ \u00b7 Female differentiation (default pathway)', color: '#F472B6' };
+    if (t < 0.62) return { key: 'femaleAdult', title: TERMS.femaleAdult, sub: 'Post-pubertal \u00b7 Mature estrogen-primed anatomy', color: '#EC4899' };
+    if (t < 0.88) return { key: 'maleNeo', title: TERMS.maleNeo, sub: 'Week 12+ \u00b7 DHT-driven ventral fusion & elongation', color: '#60A5FA' };
     return { key: 'maleAdult', title: TERMS.maleAdult, sub: 'Post-pubertal \u00b7 Mature testosterone-primed anatomy', color: '#3B82F6' };
   } else {
     if (t < 0.15 || t > 0.85) return { key: 's0', title: TERMS.s0, sub: 'Gestational Week 7 \u00b7 Indifferent stage', color: '#8B5CF6' };
@@ -1219,8 +1387,8 @@ function setAdvMode(v) {
   $('btn-adv').classList.toggle('on', v);
   $('btn-adv').setAttribute('aria-pressed', String(v));
   buildDockControls();
-  if (v && state.t === 0.3333) state.t = 0.50; // Jump to adult if in female
-  if (v && state.t === 0.6667) state.t = 1.00; // Jump to adult if in male
+  if (v && Math.abs(state.t - 0.3333) < 0.05) state.t = 0.50; // Jump to adult if in female
+  if (v && Math.abs(state.t - 0.6667) < 0.05) state.t = 1.00; // Jump to adult if in male
   updateUIFromT();
   updateMorph(state.t);
 }
@@ -1282,21 +1450,97 @@ $('btn-reset').addEventListener('click', () => {
 });
 
 const panel = $('panel');
-$('btn-panel').addEventListener('click', () => {
-  panel.classList.toggle('collapsed'); $('btn-panel').setAttribute('aria-expanded', String(!panel.classList.contains('collapsed')));
+const panelBackdrop = $('panel-backdrop');
+const btnPanel = $('btn-panel');
+const btnInfo = $('btn-info');
+const btnPanelClose = $('btn-panel-close');
+const btnAccToggle = $('btn-acc-toggle');
+const sheetHandle = document.querySelector('.sheet-handle');
+
+function setPanelOpen(open) {
+  panel.classList.toggle('collapsed', !open);
+  if (btnPanel) btnPanel.setAttribute('aria-expanded', String(open));
+  if (btnInfo) {
+    btnInfo.classList.toggle('on', open);
+    btnInfo.setAttribute('aria-pressed', String(open));
+  }
+  if (panelBackdrop) {
+    panelBackdrop.classList.toggle('active', open && window.innerWidth <= 900);
+  }
+}
+
+function togglePanel() {
+  const isCurrentlyOpen = !panel.classList.contains('collapsed');
+  setPanelOpen(!isCurrentlyOpen);
+}
+
+btnPanel?.addEventListener('click', togglePanel);
+btnInfo?.addEventListener('click', togglePanel);
+btnPanelClose?.addEventListener('click', () => setPanelOpen(false));
+panelBackdrop?.addEventListener('click', () => setPanelOpen(false));
+sheetHandle?.addEventListener('click', () => setPanelOpen(false));
+
+// Isolate panel scrolling and touch events so they NEVER bleed into OrbitControls
+['wheel', 'touchmove', 'touchstart', 'touchend', 'pointerdown'].forEach(ev => {
+  panel.addEventListener(ev, e => e.stopPropagation(), { passive: true });
 });
+
+function updateAccToggleLabel() {
+  const accs = document.querySelectorAll('.acc');
+  const allOpen = Array.from(accs).every(a => a.classList.contains('open'));
+  if (btnAccToggle) btnAccToggle.textContent = allOpen ? 'Collapse All' : 'Expand All';
+}
+
 document.querySelectorAll('.acc > button').forEach(b => b.addEventListener('click', () => {
-  const a = b.parentElement; a.classList.toggle('open'); b.setAttribute('aria-expanded', String(a.classList.contains('open')));
+  const a = b.parentElement;
+  const willOpen = !a.classList.contains('open');
+  a.classList.toggle('open', willOpen);
+  b.setAttribute('aria-expanded', String(willOpen));
+  updateAccToggleLabel();
+  if (willOpen) {
+    setTimeout(() => {
+      const panelInner = document.getElementById('panel-inner');
+      if (!panelInner) return;
+      const bRect = b.getBoundingClientRect();
+      const pRect = panelInner.getBoundingClientRect();
+      if (bRect.bottom > pRect.bottom - 40) {
+        b.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }, 150);
+  }
 }));
+
+btnAccToggle?.addEventListener('click', () => {
+  const accs = document.querySelectorAll('.acc');
+  const allOpen = Array.from(accs).every(a => a.classList.contains('open'));
+  const targetState = !allOpen;
+  accs.forEach(a => {
+    a.classList.toggle('open', targetState);
+    a.querySelector('button')?.setAttribute('aria-expanded', String(targetState));
+  });
+  updateAccToggleLabel();
+});
+
 $('legend-toggle').addEventListener('click', () => {
   const lg = $('legend'); lg.classList.toggle('collapsed'); lg.classList.toggle('userOpen', !lg.classList.contains('collapsed'));
   $('legend-toggle').setAttribute('aria-expanded', String(!lg.classList.contains('collapsed')));
 });
-if (window.innerWidth <= 900) { panel.classList.add('collapsed'); $('btn-panel').setAttribute('aria-expanded', 'false'); }
+
+if (window.innerWidth <= 900) {
+  setPanelOpen(false);
+} else {
+  setPanelOpen(true);
+}
+
+window.addEventListener('resize', () => {
+  if (window.innerWidth > 900 && panelBackdrop && panelBackdrop.classList.contains('active')) {
+    panelBackdrop.classList.remove('active');
+  }
+});
 
 window.addEventListener('keydown', e => {
   const tag = e.target.tagName;
-  if (tag === 'INPUT' && e.code !== 'Space' && !/^[12345sSaAlL]$/.test(e.key)) return;
+  if (tag === 'INPUT' && e.code !== 'Space' && !/^[12345sSaAlLiI]$/.test(e.key)) return;
   if (e.code === 'Space') { if (tag === 'BUTTON') return; e.preventDefault(); setPlaying(!state.playing); }
   else if (e.key === '1') jumpTo(0);
   else if (e.key === '2') jumpTo(state.advMode ? 0.25 : 1 / 3);
@@ -1306,6 +1550,8 @@ window.addEventListener('keydown', e => {
   else if (e.key === 's' || e.key === 'S') setStyle(state.style === 'clay' ? 'atlas' : 'clay');
   else if (e.key === 'l' || e.key === 'L') setLabels(!state.labels);
   else if (e.key === 'a' || e.key === 'A') setAdvMode(!state.advMode);
+  else if (e.key === 'i' || e.key === 'I') togglePanel();
+  else if (e.key === 'Escape' && !panel.classList.contains('collapsed')) setPanelOpen(false);
 });
 
 // Stage badge / UI updates
@@ -1331,7 +1577,7 @@ function updateUIFromT() {
   document.querySelectorAll('.ticks button').forEach((b, i) => b.classList.toggle('on', nearIdx === i));
 
   // Legend derivatives text
-  KEYS.forEach(k => { $('der-' + k).textContent = '\u2192 ' + TERMS.tissues[k][meta.key] || TERMS.tissues[k].s0; });
+  KEYS.forEach(k => { $('der-' + k).textContent = '\u2192 ' + (TERMS.tissues[k][meta.key] || TERMS.tissues[k].s0); });
   if (lblEls) {
     KEYS.forEach(k => {
       const el = lblEls[k];
@@ -1405,6 +1651,7 @@ function resize() {
   renderer.setSize(w, h, false); camera.aspect = w / h;
   camera.fov = w / h < 0.9 ? 40 / Math.max(0.55, w / h * 1.05) : 40;
   camera.updateProjectionMatrix();
+  renderer.render(scene, camera);
 }
 new ResizeObserver(resize).observe(viewport);
 
@@ -1455,6 +1702,11 @@ if (urlParams) {
   if (urlParams.has('labels')) { setLabels(urlParams.get('labels') === '1'); }
   if (urlParams.has('adv')) { setAdvMode(urlParams.get('adv') === '1'); }
   if (urlParams.has('arousal')) { setArousal(parseFloat(urlParams.get('arousal')), false); }
+  if (urlParams.has('panel')) { setPanelOpen(urlParams.get('panel') === '1'); }
+  if (urlParams.has('panelScroll')) {
+    const scrollVal = parseFloat(urlParams.get('panelScroll'));
+    setTimeout(() => { const p = $('panel-inner'); if (p) p.scrollTop = scrollVal; }, 100);
+  }
 }
 updatePlayIcon();
 updateMorph(state.t);
