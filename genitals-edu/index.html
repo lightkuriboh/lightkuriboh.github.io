@@ -52,6 +52,18 @@ h1{font-size:.92rem;font-weight:600;letter-spacing:-.01em;color:#fff;white-space
 .ghost-btn.on{color:var(--cyan);border-color:var(--cyan)}
 .ghost-btn.adv-btn.on{color:#f472b6;border-color:rgba(244,114,182,.6);background:rgba(236,72,153,.15);box-shadow:0 0 12px rgba(236,72,153,.3)}
 .ghost-btn.info-btn.on{color:var(--cyan);border-color:rgba(56,189,248,.6);background:rgba(56,189,248,.15);box-shadow:0 0 12px rgba(56,189,248,.3)}
+.lang-wrap{position:relative;display:inline-flex;align-items:center}
+.lang-select{
+  appearance:none;-webkit-appearance:none;
+  background:rgba(15,23,42,.7);border:1px solid var(--border);border-radius:var(--r-sm);
+  color:#fff;font-size:.74rem;font-weight:600;padding:6px 26px 6px 10px;
+  cursor:pointer;transition:all .25s var(--ease);outline:none;font-family:inherit;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 8px center;background-size:11px
+}
+.lang-select:hover{background-color:rgba(30,41,59,.9);border-color:var(--cyan);color:var(--cyan)}
+.lang-select:focus-visible{border-color:var(--cyan);outline:2px solid var(--cyan);outline-offset:2px}
+.lang-select option{background:#0b1020;color:#e2e8f0;font-weight:500;padding:6px 10px}
 
 /* ======================= WORKSPACE ======================= */
 main{flex:1;display:flex;position:relative;min-height:0}
@@ -303,12 +315,18 @@ td .tchip{display:inline-block;width:8px;height:8px;border-radius:2px;margin-rig
   .ptab{display:none}
   .legend{width:250px;bottom:210px}
 }
+.seg-short{display:none}
+@media (max-width:540px){
+  .seg-full{display:none}
+  .seg-short{display:inline}
+}
 @media (max-width:700px){
   header{padding:0 10px;gap:6px}
   .subtitle,.ghost-btn span{display:none}
   h1{font-size:.78rem;max-width:130px}
   .header-actions{gap:4px}
   .seg button{padding:5px 7px;font-size:.66rem}
+  .lang-select{padding:5px 20px 5px 6px;font-size:.68rem;background-position:right 5px center;background-size:10px}
   .dock{padding:8px 10px;gap:8px;bottom:10px}
   .stg{font-size:.66rem;padding:5px 6px}
   .legend{bottom:220px;width:220px;left:10px}
@@ -318,9 +336,13 @@ td .tchip{display:inline-block;width:8px;height:8px;border-radius:2px;margin-rig
   .ticks{font-size:.56rem}
 }
 @media (max-width:440px){
+  header{padding:0 6px;gap:3px}
   .brand-text{display:none}
-  .seg button{padding:4px 6px;font-size:.63rem}
-  .ghost-btn{padding:5px 8px}
+  .brand-logo{width:26px;height:26px;border-radius:7px}
+  .brand-logo svg{width:15px;height:15px}
+  .seg button{padding:4px 6px;font-size:.62rem}
+  .ghost-btn{padding:5px 6px}
+  .lang-select{padding:4px 17px 4px 5px;font-size:.64rem}
 }
 </style>
 
@@ -336,27 +358,33 @@ td .tchip{display:inline-block;width:8px;height:8px;border-radius:2px;margin-rig
       <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 3v4M12 17v4M3 12h4M17 12h4"/></svg>
     </div>
     <div class="brand-text">
-      <h1>External Genital Homology &amp; Morphogenesis</h1>
-      <div class="subtitle">Embryonic primordium (Week 7) &rarr; Neonatal &rarr; Adult maturation &amp; Arousal response</div>
+      <h1 id="brand-title">External Genital Homology &amp; Morphogenesis</h1>
+      <div id="brand-sub" class="subtitle">Embryonic primordium (Week 7) &rarr; Neonatal &rarr; Adult maturation &amp; Arousal response</div>
     </div>
   </div>
   <div class="header-actions">
     <div class="seg" role="group" aria-label="Rendering style">
-      <button id="btn-style-clay" class="active" aria-pressed="true" title="Sculpted Clay (Stylized/Tactile)">Sculpted Clay</button>
-      <button id="btn-style-atlas" aria-pressed="false" title="Clinical Atlas (Realistic/Medical Diagram)">Clinical Atlas</button>
+      <button id="btn-style-clay" class="active" aria-pressed="true" title="Sculpted Clay (Stylized/Tactile)"><span class="seg-full">Sculpted Clay</span><span class="seg-short">Clay</span></button>
+      <button id="btn-style-atlas" aria-pressed="false" title="Clinical Atlas (Realistic/Medical Diagram)"><span class="seg-full">Clinical Atlas</span><span class="seg-short">Atlas</span></button>
     </div>
     <button id="btn-adv" class="ghost-btn adv-btn" aria-pressed="false" aria-label="Toggle Advanced Development (Adult maturation &amp; Arousal response)" title="Toggle Adult Maturation &amp; Arousal (A)">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg><span>Advanced Development</span>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg><span id="txt-adv">Advanced Development</span>
     </button>
     <button id="btn-labels" class="ghost-btn" aria-pressed="false" aria-label="Toggle anatomical labels" title="Labels (L)">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L2 12V2h10l8.6 8.6a2 2 0 0 1 0 2.8z"/><circle cx="7" cy="7" r="1.5"/></svg><span>Labels</span>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L2 12V2h10l8.6 8.6a2 2 0 0 1 0 2.8z"/><circle cx="7" cy="7" r="1.5"/></svg><span id="txt-labels">Labels</span>
     </button>
     <button id="btn-reset" class="ghost-btn" aria-label="Reset camera view" title="Reset view">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg><span>Reset view</span>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg><span id="txt-reset">Reset view</span>
     </button>
     <button id="btn-info" class="ghost-btn info-btn on" aria-pressed="true" aria-label="Toggle Development Information Guide" title="Educational Guide &amp; Homology (I)">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span>Guide</span>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span id="txt-info">Guide</span>
     </button>
+    <div class="lang-wrap">
+      <select id="lang-select" class="lang-select" aria-label="Select language">
+        <option value="en" selected>EN</option>
+        <option value="vi">VI</option>
+      </select>
+    </div>
   </div>
 </header>
 
@@ -386,7 +414,7 @@ td .tchip{display:inline-block;width:8px;height:8px;border-radius:2px;margin-rig
     </div>
 
     <div id="legend" class="glass legend">
-      <button id="legend-toggle" class="legend-head" aria-expanded="true"><span>Embryological Origin</span><span class="hint">Hover / click to trace homologues</span></button>
+      <button id="legend-toggle" class="legend-head" aria-expanded="true"><span id="legend-title">Embryological Origin</span><span id="legend-hint" class="hint">Hover / click to trace homologues</span></button>
       <div class="legend-list" id="legend-list"></div>
     </div>
 
@@ -417,9 +445,9 @@ td .tchip{display:inline-block;width:8px;height:8px;border-radius:2px;margin-rig
           <span id="arousal-badge" class="arousal-badge">Resting (0%)</span>
         </div>
         <div class="arousal-slider-wrap">
-          <span class="arousal-sub">Resting (Flaccid)</span>
+          <span id="arousal-sub-min" class="arousal-sub">Resting (Flaccid)</span>
           <input id="arousal-slider" type="range" min="0" max="100" value="0" aria-label="Arousal vasocongestion level">
-          <span class="arousal-sub">Peak Vasocongestion (Erect)</span>
+          <span id="arousal-sub-max" class="arousal-sub">Peak Vasocongestion (Erect)</span>
         </div>
         <div class="arousal-presets">
           <button id="btn-arousal-0" class="mini-btn active" data-val="0">Resting (0%)</button>
@@ -442,8 +470,8 @@ td .tchip{display:inline-block;width:8px;height:8px;border-radius:2px;margin-rig
 
     <div class="panel-header">
       <div class="panel-header-main">
-        <span class="panel-badge">Interactive Guide</span>
-        <h2>Embryological Organogenesis &amp; Homology</h2>
+        <span id="panel-badge" class="panel-badge">Interactive Guide</span>
+        <h2 id="panel-title">Embryological Organogenesis &amp; Homology</h2>
       </div>
       <div class="panel-header-actions">
         <button id="btn-acc-toggle" class="panel-action-btn" title="Expand or collapse all accordions">Collapse All</button>
@@ -454,61 +482,44 @@ td .tchip{display:inline-block;width:8px;height:8px;border-radius:2px;margin-rig
     </div>
 
     <div class="inner" id="panel-inner" tabindex="0" role="region" aria-label="Educational panel content">
-      <p class="pdesc">Comprehensive comparative anatomy of human external genitalia: primordial origins, sex steroid-driven differentiation, pubertal maturation, and neurovascular arousal physiology displayed in standard lithotomy clinical examination posture.</p>
+      <p id="panel-desc" class="pdesc">Comprehensive comparative anatomy of human external genitalia: primordial origins, sex steroid-driven differentiation, pubertal maturation, and neurovascular arousal physiology displayed in standard lithotomy clinical examination posture.</p>
 
-      <div class="acc open" id="acc-matrix"><button aria-expanded="true"><span>Anatomical Homology Matrix</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></button>
+      <div class="acc open" id="acc-matrix"><button aria-expanded="true"><span id="acc-matrix-title">Anatomical Homology Matrix</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></button>
         <div class="acc-body">
           <div class="acc-content">
-            <p>Click any row to isolate and trace that tissue across all developmental stages.</p>
+            <p id="matrix-hint">Click any row to isolate and trace that tissue across all developmental stages.</p>
             <div class="table-scroll-wrap" tabindex="0" role="region" aria-label="Homology matrix table">
-              <table id="matrix"><thead><tr><th>Tissue</th><th>Week 7</th><th>Female</th><th>Male</th></tr></thead><tbody></tbody></table>
+              <table id="matrix"><thead><tr><th id="th-tissue">Tissue</th><th id="th-s0">Week 7</th><th id="th-female">Female</th><th id="th-male">Male</th></tr></thead><tbody></tbody></table>
             </div>
           </div>
         </div>
       </div>
 
-      <div class="acc" id="acc-origins"><button aria-expanded="false"><span>Tissue Origins &amp; Adult Derivatives</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></button>
+      <div class="acc" id="acc-origins"><button aria-expanded="false"><span id="acc-origins-title">Tissue Origins &amp; Adult Derivatives</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></button>
         <div class="acc-body">
           <div class="acc-content" id="tissue-descs"></div>
         </div>
       </div>
 
-      <div class="acc open" id="acc-endocrine"><button aria-expanded="true"><span>Endocrine Drivers (SRY &rarr; DHT)</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></button>
+      <div class="acc open" id="acc-endocrine"><button aria-expanded="true"><span id="acc-endocrine-title">Endocrine Drivers (SRY &rarr; DHT)</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></button>
         <div class="acc-body">
-          <div class="acc-content">
-            <div class="step"><strong>1. SRY</strong> on the Y chromosome (Yp11.2) triggers testis determination (Sertoli &amp; Leydig cells).</div>
-            <div class="step"><strong>2. Fetal Testosterone.</strong> Secreted by Leydig cells beginning Week 8.</div>
-            <div class="step"><strong>3. 5&alpha;-reductase type 2</strong> converts testosterone locally to <strong>dihydrotestosterone (DHT)</strong>.</div>
-            <div class="step"><strong>4. Androgen receptor signalling.</strong> Drives phallic elongation, ventral fold fusion (penile raphe/spongy urethra), and scrotal swelling fusion.</div>
-            <div class="step f"><strong>5. Absence of DHT (46,XX).</strong> Yields default female morphology: glans clitoridis, unfused labia minora, labia majora, and patent vestibule.</div>
-          </div>
+          <div class="acc-content" id="endocrine-steps"></div>
         </div>
       </div>
 
-      <div class="acc open" id="acc-pubertal"><button aria-expanded="true"><span>Pubertal Maturation &amp; Sexual Response</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></button>
+      <div class="acc open" id="acc-pubertal"><button aria-expanded="true"><span id="acc-pubertal-title">Pubertal Maturation &amp; Sexual Response</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></button>
         <div class="acc-body">
-          <div class="acc-content">
-            <div class="step p"><strong>Pubertal Steroid Surge.</strong> Hypothalamic GnRH stimulates pituitary LH/FSH. In 46,XX, ovarian estrogens expand labial adipose, clitoral vascularity, and vaginal lubrication. In 46,XY, testicular testosterone/DHT expands penile corpora, glans volume, and scrotal dartos rugae.</div>
-            <div class="step p"><strong>Parasympathetic Erection &amp; Vasocongestion (S2&ndash;S4).</strong> Pelvic splanchnic nerves release <strong>Nitric Oxide (NO)</strong> &rarr; soluble guanylyl cyclase &rarr; <strong>cGMP</strong> &rarr; smooth muscle relaxation of helicine arterioles.
-              <br>&bull; <em>Male:</em> Cavernosal spaces engorge; subtunical venules compress against tunica albuginea (veno-occlusive mechanism), producing rigid erection (+55% length, +35% girth). Scrotum contracts and ascends.
-              <br>&bull; <em>Female:</em> Clitoral corpora and vestibular bulbs engorge; labia minora swell, blush, and <strong>part laterally</strong> to reveal the vaginal introitus; labia majora flatten slightly; epithelial transudation produces lubrication.</div>
-            <div class="step"><strong>Sympathetic Resolution (T11&ndash;L2).</strong> Norepinephrine &rarr; vasoconstriction &rarr; PDE5 degrades cGMP &rarr; detumescence back to resting flaccid state.</div>
-          </div>
+          <div class="acc-content" id="pubertal-steps"></div>
         </div>
       </div>
 
-      <div class="acc" id="acc-clinical"><button aria-expanded="false"><span>Clinical Correlates</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></button>
+      <div class="acc" id="acc-clinical"><button aria-expanded="false"><span id="acc-clinical-title">Clinical Correlates</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></button>
         <div class="acc-body">
-          <div class="acc-content">
-            <div class="callout"><h5>Hypospadias</h5>Incomplete ventral fusion of urethral folds leaves the urethral meatus proximal on the ventral shaft.</div>
-            <div class="callout"><h5>Androgen Insensitivity Syndrome (CAIS)</h5>46,XY individuals with non-functional AR exhibit female-typical external anatomy despite intra-abdominal testes.</div>
-            <div class="callout"><h5>5&alpha;-Reductase Type 2 Deficiency</h5>Impaired conversion of T to DHT causes under-virilized neonatal genitalia, often with significant virilization at puberty under high testosterone.</div>
-            <div class="callout"><h5>Congenital Adrenal Hyperplasia (46,XX)</h5>Adrenal androgen excess virilizes female external genitalia (clitoromegaly and partial labioscrotal fusion).</div>
-          </div>
+          <div class="acc-content" id="clinical-callouts"></div>
         </div>
       </div>
 
-      <p class="notice">Educational anatomical simulation based on classical embryology (Langman) and human sexual neurovascular physiology (Masters &amp; Johnson / Guyton &amp; Hall).</p>
+      <p id="panel-notice" class="notice">Educational anatomical simulation based on classical embryology (Langman) and human sexual neurovascular physiology (Masters &amp; Johnson / Guyton &amp; Hall).</p>
     </div>
   </aside>
 </main>
@@ -522,52 +533,381 @@ if (typeof THREE === 'undefined' || typeof gsap === 'undefined' || !THREE.OrbitC
   return;
 }
 
-// ===== 1. CONSTANTS & TERMINOLOGY =====
-const TERMS = {
-  s0: 'Bipotential primordial genitalia (Gestational Week 7)',
-  femaleNeo: 'Female Phenotypic Differentiation (46,XX Neonatal)',
-  femaleAdult: 'Adult Female Genital Anatomy (Post-Pubertal)',
-  maleNeo: 'Male Phenotypic Differentiation (46,XY Neonatal)',
-  maleAdult: 'Adult Male Genital Anatomy (Post-Pubertal)',
-  tissues: {
-    genitalTubercle: {
-      name: 'Genital Tubercle', color: '#8B5CF6', atlas: '#E5989B',
-      s0: 'Primordial phallus',
-      femaleNeo: 'Glans clitoridis & prepuce', femaleAdult: 'Glans clitoridis (erectile)',
-      maleNeo: 'Glans penis & shaft', maleAdult: 'Glans penis & shaft (erectile corpora)',
-      desc: 'Midline phallic precursor cranial to the urogenital membrane. In females it forms the glans clitoridis and hood; in males under DHT it elongates into the penile shaft (paired corpora cavernosa) and glans penis.'
+// ===== 1. CONSTANTS, I18N & TERMINOLOGY =====
+const TISSUE_COLORS = {
+  genitalTubercle: { color: '#8B5CF6', atlas: '#E5989B' },
+  urogenitalFolds: { color: '#F59E0B', atlas: '#DF7986' },
+  labioscrotalSwellings: { color: '#10B981', atlas: '#E8BEAC' },
+  urogenitalSinus: { color: '#475569', atlas: '#802838' }
+};
+const KEYS = Object.keys(TISSUE_COLORS);
+
+const I18N = {
+  en: {
+    pageTitle: "External Genital Homology & Morphogenesis: Embryology to Adult & Physiological Response",
+    brandTitle: "External Genital Homology & Morphogenesis",
+    brandSub: "Embryonic primordium (Week 7) &rarr; Neonatal &rarr; Adult maturation &amp; Arousal response",
+    clayBtn: "Sculpted Clay",
+    clayBtnShort: "Clay",
+    clayTitle: "Sculpted Clay (Stylized/Tactile)",
+    atlasBtn: "Clinical Atlas",
+    atlasBtnShort: "Atlas",
+    atlasTitle: "Clinical Atlas (Realistic/Medical Diagram)",
+    advBtn: "Advanced Development",
+    advTitle: "Toggle Adult Maturation & Arousal (A)",
+    labelsBtn: "Labels",
+    labelsTitle: "Labels (L)",
+    resetBtn: "Reset view",
+    resetTitle: "Reset view",
+    guideBtn: "Guide",
+    guideTitle: "Educational Guide & Homology (I)",
+    glError: "Failed to load three.js. Check your internet connection and reload.",
+    legendTitle: "Embryological Origin",
+    legendHint: "Hover / click to trace homologues",
+    btnPlayTitle: "Play / Pause (Space)",
+    btnLoopTitle: "Continuous loop",
+    scrubberLabel: "Developmental timeline scrubber",
+    arousalTitle: "Physiological Vasocongestion & Tumescence (Arousal)",
+    arousalResting: "Resting (Flaccid)",
+    arousalPeak: "Peak Vasocongestion (Erect)",
+    arousalPreset0: "Resting (0%)",
+    arousalPreset50: "Plateau (50%)",
+    arousalPreset100: "Peak Arousal (100%)",
+    arousalPulsePlay: "\u25B6 Auto Pulse",
+    arousalPulseStop: "\u25A0 Stop Pulse",
+    arousalPulseTitle: "Animate physiological cycle",
+    arousalBadgeResting: "Resting / Flaccid (0%)",
+    arousalBadgeMalePlat: pct => `Tumescent / Engorging (${pct}%)`,
+    arousalBadgeMalePeak: pct => `Peak Rigid Erection (${pct}%)`,
+    arousalBadgeFemalePlat: pct => `Plateau Vasocongestion (${pct}%)`,
+    arousalBadgeFemalePeak: pct => `Peak Arousal \u00b7 Parted Labia Minora (${pct}%)`,
+    panelBadge: "Interactive Guide",
+    panelTitle: "Embryological Organogenesis & Homology",
+    collapseAll: "Collapse All",
+    expandAll: "Expand All",
+    closeGuide: "Close guide (Esc)",
+    panelDesc: "Comprehensive comparative anatomy of human external genitalia: primordial origins, sex steroid-driven differentiation, pubertal maturation, and neurovascular arousal physiology displayed in standard lithotomy clinical examination posture.",
+    matrixTitle: "Anatomical Homology Matrix",
+    matrixHint: "Click any row to isolate and trace that tissue across all developmental stages.",
+    thTissue: "Tissue",
+    thS0: "Week 7",
+    thFemale: "Female",
+    thMale: "Male",
+    originsTitle: "Tissue Origins & Adult Derivatives",
+    adultHomologuesLabel: "Adult Homologues:",
+    femaleLabel: "female",
+    maleLabel: "male",
+    endocrineTitle: "Endocrine Drivers (SRY \u2192 DHT)",
+    endocrineSteps: [
+      { num: "1. SRY", text: "on the Y chromosome (Yp11.2) triggers testis determination (Sertoli &amp; Leydig cells).", cls: "" },
+      { num: "2. Fetal Testosterone.", text: "Secreted by Leydig cells beginning Week 8.", cls: "" },
+      { num: "3. 5&alpha;-reductase type 2", text: "converts testosterone locally to <strong>dihydrotestosterone (DHT)</strong>.", cls: "" },
+      { num: "4. Androgen receptor signalling.", text: "Drives phallic elongation, ventral fold fusion (penile raphe/spongy urethra), and scrotal swelling fusion.", cls: "" },
+      { num: "5. Absence of DHT (46,XX).", text: "Yields default female morphology: glans clitoridis, unfused labia minora, labia majora, and patent vestibule.", cls: "f" }
+    ],
+    pubertalTitle: "Pubertal Maturation & Sexual Response",
+    pubertalSteps: [
+      {
+        lead: "Pubertal Steroid Surge.",
+        body: "Hypothalamic GnRH stimulates pituitary LH/FSH. In 46,XX, ovarian estrogens expand labial adipose, clitoral vascularity, and vaginal lubrication. In 46,XY, testicular testosterone/DHT expands penile corpora, glans volume, and scrotal dartos rugae.",
+        cls: "p"
+      },
+      {
+        lead: "Parasympathetic Erection & Vasocongestion (S2&ndash;S4).",
+        body: "Pelvic splanchnic nerves release <strong>Nitric Oxide (NO)</strong> &rarr; soluble guanylyl cyclase &rarr; <strong>cGMP</strong> &rarr; smooth muscle relaxation of helicine arterioles.<br>&bull; <em>Male:</em> Cavernosal spaces engorge; subtunical venules compress against tunica albuginea (veno-occlusive mechanism), producing rigid erection (+55% length, +35% girth). Scrotum contracts and ascends.<br>&bull; <em>Female:</em> Clitoral corpora and vestibular bulbs engorge; labia minora swell, blush, and <strong>part laterally</strong> to reveal the vaginal introitus; labia majora flatten slightly; epithelial transudation produces lubrication.",
+        cls: "p"
+      },
+      {
+        lead: "Sympathetic Resolution (T11&ndash;L2).",
+        body: "Norepinephrine &rarr; vasoconstriction &rarr; PDE5 degrades cGMP &rarr; detumescence back to resting flaccid state.",
+        cls: ""
+      }
+    ],
+    clinicalTitle: "Clinical Correlates",
+    clinicalItems: [
+      { head: "Hypospadias", text: "Incomplete ventral fusion of urethral folds leaves the urethral meatus proximal on the ventral shaft." },
+      { head: "Androgen Insensitivity Syndrome (CAIS)", text: "46,XY individuals with non-functional AR exhibit female-typical external anatomy despite intra-abdominal testes." },
+      { head: "5&alpha;-Reductase Type 2 Deficiency", text: "Impaired conversion of T to DHT causes under-virilized neonatal genitalia, often with significant virilization at puberty under high testosterone." },
+      { head: "Congenital Adrenal Hyperplasia (46,XX)", text: "Adrenal androgen excess virilizes female external genitalia (clitoromegaly and partial labioscrotal fusion)." }
+    ],
+    notice: "Educational anatomical simulation based on classical embryology (Langman) and human sexual neurovascular physiology (Masters &amp; Johnson / Guyton &amp; Hall).",
+    stagesStd: [
+      { t: 0, label: "Week 7 Bipotential", tick: "W7" },
+      { t: 0.3333, label: "Female Homology (46,XX)", tick: "\u2640 46,XX" },
+      { t: 0.6667, label: "Male Homology (46,XY)", tick: "\u2642 46,XY" },
+      { t: 1.0, label: "Return to W7", tick: "W7 \u21BA" }
+    ],
+    stagesAdv: [
+      { t: 0, label: "W7 Primordium", tick: "W7" },
+      { t: 0.25, label: "\u2640 Neonatal", tick: "\u2640 Neo" },
+      { t: 0.50, label: "\u2640 Adult Maturation", tick: "\u2640 Adult" },
+      { t: 0.75, label: "\u2642 Neonatal", tick: "\u2642 Neo" },
+      { t: 1.00, label: "\u2642 Adult Maturation", tick: "\u2642 Adult" }
+    ],
+    stageMeta: {
+      s0Title: "Bipotential primordial genitalia (Gestational Week 7)",
+      s0Sub: "Gestational Week 7 \u00b7 Bipotential primordium",
+      s0SubStd: "Gestational Week 7 \u00b7 Indifferent stage",
+      femaleNeoTitle: "Female Phenotypic Differentiation (46,XX Neonatal)",
+      femaleNeoSub: "Week 12+ \u00b7 Female differentiation (default pathway)",
+      femaleNeoSubStd: "Week 12+ \u00b7 Default 46,XX phenotypic pathway",
+      femaleAdultTitle: "Adult Female Genital Anatomy (Post-Pubertal)",
+      femaleAdultSub: "Post-pubertal \u00b7 Mature estrogen-primed anatomy",
+      maleNeoTitle: "Male Phenotypic Differentiation (46,XY Neonatal)",
+      maleNeoSub: "Week 12+ \u00b7 DHT-driven ventral fusion & elongation",
+      maleNeoSubStd: "Week 12+ \u00b7 Androgen-mediated 46,XY pathway",
+      maleAdultTitle: "Adult Male Genital Anatomy (Post-Pubertal)",
+      maleAdultSub: "Post-pubertal \u00b7 Mature testosterone-primed anatomy"
     },
-    urogenitalFolds: {
-      name: 'Urogenital / Urethral Folds', color: '#F59E0B', atlas: '#DF7986',
-      s0: 'Unfused medial folds',
-      femaleNeo: 'Labia minora', femaleAdult: 'Labia minora (vascular folds)',
-      maleNeo: 'Ventral penile raphe & spongy urethra', maleAdult: 'Ventral penile raphe & penile urethra',
-      desc: 'Paired medial folds flanking the urogenital groove. In females they remain unfused as the delicate, vascular labia minora that part during arousal; in males they fuse ventrally along the penile raphe to enclose the spongy urethra.'
+    infoLabels: {
+      w7: "Week 7",
+      female: "Female",
+      male: "Male"
     },
-    labioscrotalSwellings: {
-      name: 'Labioscrotal / Genital Swellings', color: '#10B981', atlas: '#E8BEAC',
-      s0: 'Lateral genital swellings',
-      femaleNeo: 'Labia majora', femaleAdult: 'Labia majora (cutaneous adipose cushions)',
-      maleNeo: 'Scrotum & scrotal raphe', maleAdult: 'Scrotal sac & dartos rugae',
-      desc: 'Paired lateral swellings. In females they develop into the labia majora meeting at the commissures; in males they migrate inferomedially and fuse into the bilobate scrotal sac with median raphe.'
+    arousalLabels: {
+      partedLabia: "Parted / Engorged Labia Minora",
+      tumescentClitoris: "Tumescent Clitoris",
+      erectPenis: "Erect Glans & Shaft",
+      patentVestibule: "Exposed Patent Vestibule"
     },
-    urogenitalSinus: {
-      name: 'Urogenital Sinus / Vestibule', color: '#475569', atlas: '#802838',
-      s0: 'Urogenital groove',
-      femaleNeo: 'Vestibule (urethral & vaginal orifices)', femaleAdult: 'Vestibule, urethral papilla & vaginal introitus',
-      maleNeo: 'Spongy (penile) urethra lumen', maleAdult: 'Spongy urethra & external urethral meatus',
-      desc: 'Central groove and endodermal sinus. In females it broadens into the vestibule containing the external urethral orifice and vaginal introitus; in males fold fusion closes it over to form the lumen of the spongy urethra.'
+    tissues: {
+      genitalTubercle: {
+        name: "Genital Tubercle",
+        s0: "Primordial phallus",
+        femaleNeo: "Glans clitoridis & prepuce",
+        femaleAdult: "Glans clitoridis (erectile)",
+        maleNeo: "Glans penis & shaft",
+        maleAdult: "Glans penis & shaft (erectile corpora)",
+        desc: "Midline phallic precursor cranial to the urogenital membrane. In females it forms the glans clitoridis and hood; in males under DHT it elongates into the penile shaft (paired corpora cavernosa) and glans penis."
+      },
+      urogenitalFolds: {
+        name: "Urogenital / Urethral Folds",
+        s0: "Unfused medial folds",
+        femaleNeo: "Labia minora",
+        femaleAdult: "Labia minora (vascular folds)",
+        maleNeo: "Ventral penile raphe & spongy urethra",
+        maleAdult: "Ventral penile raphe & penile urethra",
+        desc: "Paired medial folds flanking the urogenital groove. In females they remain unfused as the delicate, vascular labia minora that part during arousal; in males they fuse ventrally along the penile raphe to enclose the spongy urethra."
+      },
+      labioscrotalSwellings: {
+        name: "Labioscrotal / Genital Swellings",
+        s0: "Lateral genital swellings",
+        femaleNeo: "Labia majora",
+        femaleAdult: "Labia majora (cutaneous adipose cushions)",
+        maleNeo: "Scrotum & scrotal raphe",
+        maleAdult: "Scrotal sac & dartos rugae",
+        desc: "Paired lateral swellings. In females they develop into the labia majora meeting at the commissures; in males they migrate inferomedially and fuse into the bilobate scrotal sac with median raphe."
+      },
+      urogenitalSinus: {
+        name: "Urogenital Sinus / Vestibule",
+        s0: "Urogenital groove",
+        femaleNeo: "Vestibule (urethral & vaginal orifices)",
+        femaleAdult: "Vestibule, urethral papilla & vaginal introitus",
+        maleNeo: "Spongy (penile) urethra lumen",
+        maleAdult: "Spongy urethra & external urethral meatus",
+        desc: "Central groove and endodermal sinus. In females it broadens into the vestibule containing the external urethral orifice and vaginal introitus; in males fold fusion closes it over to form the lumen of the spongy urethra."
+      }
+    }
+  },
+  vi: {
+    pageTitle: "Sự Đồng Đẳng & Phát Sinh Hình Thái Cơ Quan Sinh Dục Ngoài: Từ Phôi Thai Đến Người Lớn & Đáp Ứng Sinh Lý",
+    brandTitle: "Sự Đồng Đẳng & Phát Sinh Hình Thái Cơ Quan Sinh Dục Ngoài",
+    brandSub: "Mầm phôi nguyên thủy (Tuần 7) &rarr; Sơ sinh &rarr; Trưởng thành &amp; Đáp ứng kích thích sinh lý",
+    clayBtn: "Đất sét giải phẫu",
+    clayBtnShort: "Đất sét",
+    clayTitle: "Đất sét giải phẫu (Mô phỏng xúc giác / Trực quan)",
+    atlasBtn: "Tập bản đồ lâm sàng",
+    atlasBtnShort: "Bản đồ",
+    atlasTitle: "Tập bản đồ lâm sàng (Màu mô học / Sơ đồ giải phẫu)",
+    advBtn: "Phát triển nâng cao",
+    advTitle: "Bật/tắt Trưởng thành sinh dục & Cương tụ sinh lý (A)",
+    labelsBtn: "Nhãn giải phẫu",
+    labelsTitle: "Nhãn giải phẫu (L)",
+    resetBtn: "Đặt lại góc nhìn",
+    resetTitle: "Đặt lại góc nhìn camera",
+    guideBtn: "Cẩm nang",
+    guideTitle: "Cẩm nang phôi thai học & Đồng đẳng (I)",
+    glError: "Không thể tải thư viện Three.js. Vui lòng kiểm tra kết nối mạng và tải lại trang.",
+    legendTitle: "Nguồn Gốc Phôi Thai Học",
+    legendHint: "Rê chuột / chạm để đối chiếu cơ quan đồng đẳng",
+    btnPlayTitle: "Phát / Tạm dừng (Phím cách)",
+    btnLoopTitle: "Lặp vô tận",
+    scrubberLabel: "Thanh trượt mốc phát triển phôi thai",
+    arousalTitle: "Hiện Tượng Sung Huyết Mạch & Cương Cứng Sinh Lý",
+    arousalResting: "Nghỉ (Mềm xẹp)",
+    arousalPeak: "Cương tụ cực đại (Cương cứng)",
+    arousalPreset0: "Nghỉ (0%)",
+    arousalPreset50: "Bình nguyên (50%)",
+    arousalPreset100: "Cực đại (100%)",
+    arousalPulsePlay: "\u25B6 Tự động lặp",
+    arousalPulseStop: "\u25A0 Dừng lặp",
+    arousalPulseTitle: "Mô phỏng chu kỳ đáp ứng sinh lý",
+    arousalBadgeResting: "Nghỉ / Mềm xẹp (0%)",
+    arousalBadgeMalePlat: pct => `Bắt đầu cương / Đang dồn máu (${pct}%)`,
+    arousalBadgeMalePeak: pct => `Cương cứng cực đại (${pct}%)`,
+    arousalBadgeFemalePlat: pct => `Sung huyết giai đoạn bình nguyên (${pct}%)`,
+    arousalBadgeFemalePeak: pct => `Cương tụ cực đại \u00b7 Môi bé tách mở (${pct}%)`,
+    panelBadge: "Cẩm nang tương tác",
+    panelTitle: "Phát Sinh Cơ Quan & Tính Đồng Đẳng Phôi Thai",
+    collapseAll: "Thu gọn tất cả",
+    expandAll: "Mở rộng tất cả",
+    closeGuide: "Đóng cẩm nang (Esc)",
+    panelDesc: "Giải phẫu học so sánh toàn diện cơ quan sinh dục ngoài ở người: nguồn gốc mầm phôi, sự biệt hóa dưới tác động của hormone sinh dục, quá trình hoàn thiện sau dậy thì và sinh lý đáp ứng cương tụ mạch thần kinh được thể hiện trên tư thế sản khoa / khám lâm sàng tiêu chuẩn.",
+    matrixTitle: "Ma Trận Cơ Quan Đồng Đẳng",
+    matrixHint: "Nhấp vào bất kỳ hàng nào để làm nổi bật và theo dõi mô đó qua các giai đoạn phát triển.",
+    thTissue: "Mô phôi",
+    thS0: "Tuần 7",
+    thFemale: "Nữ giới",
+    thMale: "Nam giới",
+    originsTitle: "Nguồn Gốc Mô & Cơ Quan Dẫn Xuất Ở Người Lớn",
+    adultHomologuesLabel: "Đồng đẳng ở người lớn:",
+    femaleLabel: "nữ",
+    maleLabel: "nam",
+    endocrineTitle: "Các Yếu Tố Nội Tiết Điều Hòa (SRY \u2192 DHT)",
+    endocrineSteps: [
+      { num: "1. Gen SRY", text: "trên nhánh ngắn nhiễm sắc thể Y (Yp11.2) kích hoạt sự biệt hóa tinh hoàn (tế bào Sertoli &amp; Leydig).", cls: "" },
+      { num: "2. Testosterone thai nhi.", text: "Do tế bào Leydig tiết ra bắt đầu từ tuần thứ 8 của thai kỳ.", cls: "" },
+      { num: "3. Enzyme 5&alpha;-reductase type 2", text: "chuyển hóa testosterone tại chỗ thành <strong>dihydrotestosterone (DHT)</strong> có hoạt lực mạnh hơn.", cls: "" },
+      { num: "4. Tín hiệu thụ thể Androgen (AR).", text: "Thúc đẩy củ sinh dục dài ra tạo thân dương vật, khép dính hai nếp niệu dục mặt bụng (đường ráp dương vật/niệu đạo xốp) và hợp nhất hai gờ môi bìu tạo túi bìu.", cls: "" },
+      { num: "5. Khi không có DHT (46,XX).", text: "Cơ quan phát triển theo con đường mặc định của nữ giới: quy đầu âm vật, môi bé tách rời không dính, môi lớn và tiền đình âm đạo mở thông thoáng.", cls: "f" }
+    ],
+    pubertalTitle: "Sự Hoàn Thiện Dậy Thì & Đáp Ứng Sinh Lý Tình Dục",
+    pubertalSteps: [
+      {
+        lead: "Đợt bùng phát hormone dậy thì.",
+        body: "Vùng dưới đồi tiết GnRH kích thích tuyến yên giải phóng LH/FSH. Ở người 46,XX, estrogen từ buồng trứng làm nở mô mỡ môi lớn, tăng sinh mạch máu âm vật và dịch nhờn biểu mô âm đạo. Ở người 46,XY, testosterone/DHT từ tinh hoàn làm nở rộng các thể hang dương vật, tăng thể tích quy đầu và tạo các nếp nhăn cơ bám da (dartos rugae) ở túi bìu.",
+        cls: "p"
+      },
+      {
+        lead: "Phản xạ cương & sung huyết phó giao cảm (S2&ndash;S4).",
+        body: "Các nhánh thần kinh tạng chậu giải phóng <strong>Nitric Oxide (NO)</strong> &rarr; kích hoạt guanylyl cyclase hòa tan &rarr; tăng sinh <strong>cGMP</strong> &rarr; giãn cơ trơn các tiểu động mạch xoắn.<br>&bull; <em>Ở nam giới:</em> Các xoang thể hang được bơm đầy máu áp lực cao; các tĩnh mạch dưới bao trắng bị chèn ép vào màng bao sợi (cơ chế tĩnh mạch tắc nghẽn - veno-occlusive), tạo nên trạng thái cương cứng hoàn toàn (+55% chiều dài, +35% chu vi). Bìu co lại và nâng lên cao.<br>&bull; <em>Ở nữ giới:</em> Thể hang âm vật và hành tiền đình sung huyết phồng to; môi bé cương tụ dồn máu, đỏ sẫm và <strong>tách mở sang hai bên</strong> làm lộ rõ lỗ âm đạo; môi lớn hơi phẳng ra; dịch thẩm thấu qua thành biểu mô tạo độ trơn nhờn sinh lý.",
+        cls: "p"
+      },
+      {
+        lead: "Giai đoạn thoái trào giao cảm (T11&ndash;L2).",
+        body: "Thần kinh giao cảm giải phóng Norepinephrine &rarr; co mạch máu &rarr; enzyme PDE5 thoái giáng cGMP &rarr; máu thoát ra khỏi các xoang hang, cơ quan xẹp dần trở về trạng thái nghỉ mềm ban đầu.",
+        cls: ""
+      }
+    ],
+    clinicalTitle: "Ý Nghĩa Lâm Sàng & Bệnh Học",
+    clinicalItems: [
+      { head: "Tật lỗ tiểu lệch thấp (Hypospadias)", text: "Sự khép dính không hoàn toàn của các nếp niệu đạo ở mặt bụng khiến lỗ niệu đạo ngoài nằm lệch về phía sau trên thân dương vật." },
+      { head: "Hội chứng bất nhạy cảm Androgen hoàn toàn (CAIS)", text: "Người có bộ NST 46,XY nhưng thụ thể androgen mất chức năng sẽ biểu hiện hình thái cơ quan sinh dục ngoài hoàn toàn là nữ dù có tinh hoàn nằm trong ổ bụng." },
+      { head: "Thiếu hụt enzyme 5&alpha;-Reductase Type 2", text: "Sự khiếm khuyết trong chuyển hóa Testosterone thành DHT khiến cơ quan sinh dục sơ sinh chưa nam hóa rõ rệt, nhưng sẽ nam hóa mạnh mẽ khi bước vào tuổi dậy thì nhờ lượng testosterone dồi dào." },
+      { head: "Tăng sản thượng thận bẩm sinh (CAH - 46,XX)", text: "Tuyến thượng thận tăng tiết androgen quá mức dẫn đến hiện tượng nam hóa cơ quan sinh dục ngoài ở nữ (âm vật phì đại và hai gờ môi bìu khép dính một phần)." }
+    ],
+    notice: "Mô phỏng giải phẫu học phục vụ giáo dục y khoa dựa trên phôi thai học cổ điển (Langman) và sinh lý học mạch-thần kinh tình dục người (Masters &amp; Johnson / Guyton &amp; Hall).",
+    stagesStd: [
+      { t: 0, label: "Tuần 7 Lưỡng tiềm năng", tick: "T7" },
+      { t: 0.3333, label: "Đồng đẳng Nữ (46,XX)", tick: "\u2640 46,XX" },
+      { t: 0.6667, label: "Đồng đẳng Nam (46,XY)", tick: "\u2642 46,XY" },
+      { t: 1.0, label: "Trở lại Tuần 7", tick: "T7 \u21BA" }
+    ],
+    stagesAdv: [
+      { t: 0, label: "Mầm phôi T7", tick: "T7" },
+      { t: 0.25, label: "\u2640 Sơ sinh", tick: "\u2640 Sơ sinh" },
+      { t: 0.50, label: "\u2640 Trưởng thành", tick: "\u2640 Trưởng thành" },
+      { t: 0.75, label: "\u2642 Sơ sinh", tick: "\u2642 Sơ sinh" },
+      { t: 1.00, label: "\u2642 Trưởng thành", tick: "\u2642 Trưởng thành" }
+    ],
+    stageMeta: {
+      s0Title: "Cơ quan sinh dục nguyên thủy lưỡng tiềm năng (Tuần thai thứ 7)",
+      s0Sub: "Tuần thai thứ 7 \u00b7 Mầm phôi lưỡng tiềm năng",
+      s0SubStd: "Tuần thai thứ 7 \u00b7 Giai đoạn mầm phôi trung tính chưa biệt hóa",
+      femaleNeoTitle: "Biệt hóa hình thái nữ (46,XX sơ sinh)",
+      femaleNeoSub: "Tuần 12+ \u00b7 Biệt hóa hình thái nữ (con đường tự nhiên)",
+      femaleNeoSubStd: "Tuần 12+ \u00b7 Con đường biệt hóa hình thái nữ tự nhiên",
+      femaleAdultTitle: "Giải phẫu cơ quan sinh dục nữ trưởng thành (Sau dậy thì)",
+      femaleAdultSub: "Sau dậy thì \u00b7 Hoàn thiện dưới tác động estrogen",
+      maleNeoTitle: "Biệt hóa hình thái nam (46,XY sơ sinh)",
+      maleNeoSub: "Tuần 12+ \u00b7 Khép nếp mặt bụng & dài ra dưới tác động DHT",
+      maleNeoSubStd: "Tuần 12+ \u00b7 Con đường biệt hóa phụ thuộc Androgen",
+      maleAdultTitle: "Giải phẫu cơ quan sinh dục nam trưởng thành (Sau dậy thì)",
+      maleAdultSub: "Sau dậy thì \u00b7 Hoàn thiện dưới tác động testosterone"
+    },
+    infoLabels: {
+      w7: "Tuần 7",
+      female: "Nữ",
+      male: "Nam"
+    },
+    arousalLabels: {
+      partedLabia: "Môi bé tách mở & cương tụ",
+      tumescentClitoris: "Âm vật cương tụ nhô cao",
+      erectPenis: "Quy đầu & Thân dương vật cương cứng",
+      patentVestibule: "Tiền đình âm đạo mở rộng lộ rõ"
+    },
+    tissues: {
+      genitalTubercle: {
+        name: "Củ sinh dục",
+        s0: "Mầm củ sinh dục nguyên thủy",
+        femaleNeo: "Quy đầu & mũ quy đầu âm vật",
+        femaleAdult: "Quy đầu âm vật (mô cương)",
+        maleNeo: "Quy đầu & thân dương vật",
+        maleAdult: "Quy đầu & thân dương vật (thể hang cương)",
+        desc: "Tiền thân đường giữa của cơ quan cương, nằm ở phía đầu màng niệu dục. Ở nữ giới, mầm này phát triển thành quy đầu và mũ âm vật; ở nam giới dưới tác động của DHT, nó dài ra tạo thân dương vật (hai thể hang) và quy đầu dương vật."
+      },
+      urogenitalFolds: {
+        name: "Nếp niệu dục / Nếp niệu đạo",
+        s0: "Nếp gấp trong chưa khép dính",
+        femaleNeo: "Môi bé",
+        femaleAdult: "Môi bé (nếp niêm mạc giàu mạch máu)",
+        maleNeo: "Đường ráp dương vật & niệu đạo xốp",
+        maleAdult: "Đường ráp mặt bụng & niệu đạo dương vật",
+        desc: "Đôi nếp gấp trong nằm dọc hai bên rãnh niệu dục. Ở nữ giới, hai nếp này không khép dính mà tồn tại tách rời tạo thành môi bé (tách mở rộng khi kích thích); ở nam giới, chúng khép dính lại ở mặt bụng dọc theo đường ráp dương vật để bọc kín niệu đạo xốp."
+      },
+      labioscrotalSwellings: {
+        name: "Gờ môi bìu / Gờ sinh dục",
+        s0: "Đôi gờ sinh dục hai bên",
+        femaleNeo: "Môi lớn",
+        femaleAdult: "Môi lớn (đệm mỡ dưới da)",
+        maleNeo: "Bìu & đường ráp bìu",
+        maleAdult: "Túi bìu & các nếp nhăn cơ bám da",
+        desc: "Đôi gờ nằm phía ngoài. Ở nữ giới, chúng phát triển thành môi lớn tiếp giáp nhau ở mép môi trước và sau; ở nam giới, chúng di chuyển xuống dưới vào trong và hợp nhất hoàn toàn tạo thành túi bìu hai thùy với đường ráp bìu ở giữa."
+      },
+      urogenitalSinus: {
+        name: "Xoang niệu dục / Tiền đình",
+        s0: "Rãnh niệu dục nguyên thủy",
+        femaleNeo: "Tiền đình âm đạo (lỗ niệu đạo & âm đạo)",
+        femaleAdult: "Tiền đình, nhú niệu đạo & lỗ âm đạo",
+        maleNeo: "Lòng niệu đạo xốp (dương vật)",
+        maleAdult: "Niệu đạo xốp & lỗ niệu đạo ngoài",
+        desc: "Rãnh trung tâm và xoang nội bì. Ở nữ giới, xoang mở rộng tạo thành tiền đình âm đạo chứa lỗ niệu đạo ngoài và lỗ âm đạo; ở nam giới, sự khép kín của các nếp niệu dục bao bọc xoang lại tạo thành lòng ống niệu đạo xốp."
+      }
     }
   }
 };
-const KEYS = Object.keys(TERMS.tissues);
 
-// ===== 2. STATE =====
+// State definition
 const state = {
+  lang: 'en',
   t: 0, playing: true, loop: true, style: 'clay', highlight: null, pinned: null,
   duration: 20, dwell: 1.2, tweening: false, scrubbing: false, labels: false, derived: null,
   advMode: false, arousal: 0, arousalPulse: false
 };
+
+const curI18n = () => I18N[state.lang] || I18N.en;
+
+const TERMS = {
+  get s0() { return curI18n().stageMeta.s0Title; },
+  get femaleNeo() { return curI18n().stageMeta.femaleNeoTitle; },
+  get femaleAdult() { return curI18n().stageMeta.femaleAdultTitle; },
+  get maleNeo() { return curI18n().stageMeta.maleNeoTitle; },
+  get maleAdult() { return curI18n().stageMeta.maleAdultTitle; },
+  tissues: {}
+};
+KEYS.forEach(k => {
+  TERMS.tissues[k] = {
+    get color() { return TISSUE_COLORS[k].color; },
+    get atlas() { return TISSUE_COLORS[k].atlas; },
+    get name() { return curI18n().tissues[k].name; },
+    get s0() { return curI18n().tissues[k].s0; },
+    get femaleNeo() { return curI18n().tissues[k].femaleNeo; },
+    get femaleAdult() { return curI18n().tissues[k].femaleAdult; },
+    get maleNeo() { return curI18n().tissues[k].maleNeo; },
+    get maleAdult() { return curI18n().tissues[k].maleAdult; },
+    get desc() { return curI18n().tissues[k].desc; }
+  };
+});
 const CAM = { pos: [0, 0.05, 7.8], target: [0, 0.0, 0.0] };
 
 // ===== 3. PARAMETER KEYFRAMES =====
@@ -1269,29 +1609,65 @@ KEYS.forEach(k => {
   b.addEventListener('click', () => togglePin(k));
   legendList.appendChild(b);
 });
+
 const matrixBody = document.querySelector('#matrix tbody');
-KEYS.forEach(k => {
-  const t = TERMS.tissues, tr = document.createElement('tr'); tr.dataset.tissue = k; tr.style.cursor = 'pointer';
-  tr.innerHTML = '<td><span class="tchip" style="background:' + t[k].color + '"></span><strong>' + t[k].name + '</strong></td><td>' + t[k].s0 + '</td><td>' + t[k].femaleAdult + '</td><td>' + t[k].maleAdult + '</td>';
-  tr.addEventListener('click', () => togglePin(k));
-  matrixBody.appendChild(tr);
-});
-document.getElementById('tissue-descs').innerHTML = KEYS.map(k => {
-  const t = TERMS.tissues[k];
-  return '<div class="tissue-desc" style="--c:' + t.color + '"><h5>' + t.name + '</h5><p>' + t.desc + '</p><p><strong>Adult Homologues:</strong> ' + t.femaleAdult + ' (female) / ' + t.maleAdult + ' (male)</p></div>';
-}).join('');
+function renderMatrix() {
+  if (!matrixBody) return;
+  matrixBody.innerHTML = '';
+  KEYS.forEach(k => {
+    const t = TERMS.tissues, tr = document.createElement('tr');
+    tr.dataset.tissue = k; tr.style.cursor = 'pointer';
+    if (state.highlight === k) tr.classList.add('hl');
+    tr.innerHTML = '<td><span class="tchip" style="background:' + t[k].color + '"></span><strong>' + t[k].name + '</strong></td><td>' + t[k].s0 + '</td><td>' + t[k].femaleAdult + '</td><td>' + t[k].maleAdult + '</td>';
+    tr.addEventListener('click', () => togglePin(k));
+    matrixBody.appendChild(tr);
+  });
+}
+
+function renderTissueDescs() {
+  const container = document.getElementById('tissue-descs');
+  if (!container) return;
+  const L = curI18n();
+  container.innerHTML = KEYS.map(k => {
+    const t = TERMS.tissues[k];
+    return '<div class="tissue-desc" style="--c:' + t.color + '"><h5>' + t.name + '</h5><p>' + t.desc + '</p><p><strong>' + L.adultHomologuesLabel + '</strong> ' + t.femaleAdult + ' (' + L.femaleLabel + ') / ' + t.maleAdult + ' (' + L.maleLabel + ')</p></div>';
+  }).join('');
+}
+
+function renderPanelStatic() {
+  const L = curI18n();
+  const endo = $('endocrine-steps');
+  if (endo) {
+    endo.innerHTML = L.endocrineSteps.map(s => 
+      '<div class="step ' + s.cls + '"><strong>' + s.num + '</strong> ' + s.text + '</div>'
+    ).join('');
+  }
+  const pub = $('pubertal-steps');
+  if (pub) {
+    pub.innerHTML = L.pubertalSteps.map(s => 
+      '<div class="step ' + s.cls + '"><strong>' + s.lead + '</strong> ' + s.body + '</div>'
+    ).join('');
+  }
+  const clin = $('clinical-callouts');
+  if (clin) {
+    clin.innerHTML = L.clinicalItems.map(c => 
+      '<div class="callout"><h5>' + c.head + '</h5>' + c.text + '</div>'
+    ).join('');
+  }
+}
 
 function getStageMeta(t) {
+  const L = curI18n().stageMeta;
   if (state.advMode) {
-    if (t < 0.12) return { key: 's0', title: TERMS.s0, sub: 'Gestational Week 7 \u00b7 Bipotential primordium', color: '#8B5CF6' };
-    if (t < 0.38) return { key: 'femaleNeo', title: TERMS.femaleNeo, sub: 'Week 12+ \u00b7 Female differentiation (default pathway)', color: '#F472B6' };
-    if (t < 0.62) return { key: 'femaleAdult', title: TERMS.femaleAdult, sub: 'Post-pubertal \u00b7 Mature estrogen-primed anatomy', color: '#EC4899' };
-    if (t < 0.88) return { key: 'maleNeo', title: TERMS.maleNeo, sub: 'Week 12+ \u00b7 DHT-driven ventral fusion & elongation', color: '#60A5FA' };
-    return { key: 'maleAdult', title: TERMS.maleAdult, sub: 'Post-pubertal \u00b7 Mature testosterone-primed anatomy', color: '#3B82F6' };
+    if (t < 0.12) return { key: 's0', title: L.s0Title, sub: L.s0Sub, color: '#8B5CF6' };
+    if (t < 0.38) return { key: 'femaleNeo', title: L.femaleNeoTitle, sub: L.femaleNeoSub, color: '#F472B6' };
+    if (t < 0.62) return { key: 'femaleAdult', title: L.femaleAdultTitle, sub: L.femaleAdultSub, color: '#EC4899' };
+    if (t < 0.88) return { key: 'maleNeo', title: L.maleNeoTitle, sub: L.maleNeoSub, color: '#60A5FA' };
+    return { key: 'maleAdult', title: L.maleAdultTitle, sub: L.maleAdultSub, color: '#3B82F6' };
   } else {
-    if (t < 0.15 || t > 0.85) return { key: 's0', title: TERMS.s0, sub: 'Gestational Week 7 \u00b7 Indifferent stage', color: '#8B5CF6' };
-    if (t < 0.50) return { key: 'femaleNeo', title: TERMS.femaleNeo, sub: 'Week 12+ \u00b7 Default 46,XX phenotypic pathway', color: '#EC4899' };
-    return { key: 'maleNeo', title: TERMS.maleNeo, sub: 'Week 12+ \u00b7 Androgen-mediated 46,XY pathway', color: '#3B82F6' };
+    if (t < 0.15 || t > 0.85) return { key: 's0', title: L.s0Title, sub: L.s0SubStd, color: '#8B5CF6' };
+    if (t < 0.50) return { key: 'femaleNeo', title: L.femaleNeoTitle, sub: L.femaleNeoSubStd, color: '#EC4899' };
+    return { key: 'maleNeo', title: L.maleNeoTitle, sub: L.maleNeoSubStd, color: '#3B82F6' };
   }
 }
 
@@ -1300,11 +1676,14 @@ function renderInfoCard() {
   if (!k) { card.classList.remove('show'); return; }
   const t = TERMS.tissues[k], meta = getStageMeta(state.t);
   const curKey = meta.key;
+  const L = curI18n().infoLabels;
   const b = (txt, key) => '<b class="' + (curKey === key ? 'now' : '') + '">' + txt + '</b>';
   card.classList.add('show');
   document.getElementById('info-chip').style.background = t.color;
   document.getElementById('info-name').textContent = t.name;
-  document.getElementById('info-body').innerHTML = 'Week 7: ' + b(t.s0, 's0') + '<br>Female: ' + b(t[curKey.startsWith('female') ? curKey : 'femaleAdult'], curKey) + ' &middot; Male: ' + b(t[curKey.startsWith('male') ? curKey : 'maleAdult'], curKey);
+  document.getElementById('info-body').innerHTML = L.w7 + ': ' + b(t.s0, 's0') + '<br>' +
+    L.female + ': ' + b(t[curKey.startsWith('female') ? curKey : 'femaleAdult'], curKey) + ' &middot; ' +
+    L.male + ': ' + b(t[curKey.startsWith('male') ? curKey : 'maleAdult'], curKey);
 }
 function setHighlight(k) {
   state.highlight = k;
@@ -1317,23 +1696,9 @@ function setHighlight(k) {
 const stagesContainer = document.getElementById('stages-container');
 const ticksContainer = document.getElementById('ticks');
 
-const STD_STAGES = [
-  { t: 0, label: 'Week 7 Bipotential', tick: 'W7' },
-  { t: 0.3333, label: 'Female Homology (46,XX)', tick: '♀ 46,XX' },
-  { t: 0.6667, label: 'Male Homology (46,XY)', tick: '♂ 46,XY' },
-  { t: 1.0, label: 'Return to W7', tick: 'W7 ↺' }
-];
-
-const ADV_STAGES = [
-  { t: 0, label: 'W7 Primordium', tick: 'W7' },
-  { t: 0.25, label: '♀ Neonatal', tick: '♀ Neo' },
-  { t: 0.50, label: '♀ Adult Maturation', tick: '♀ Adult' },
-  { t: 0.75, label: '♂ Neonatal', tick: '♂ Neo' },
-  { t: 1.00, label: '♂ Adult Maturation', tick: '♂ Adult' }
-];
-
 function buildDockControls() {
-  const list = state.advMode ? ADV_STAGES : STD_STAGES;
+  const L = curI18n();
+  const list = state.advMode ? L.stagesAdv : L.stagesStd;
   stagesContainer.innerHTML = ''; ticksContainer.innerHTML = '';
   list.forEach((s, idx) => {
     // Only add jump button if not duplicate return
@@ -1407,10 +1772,11 @@ function setArousal(val, animate) {
 function syncArousalUI() {
   const pct = Math.round(state.arousal * 100);
   const isMale = state.derived ? state.derived.folds.fuse > 0.5 : false;
+  const L = curI18n();
   let statusText;
-  if (pct === 0) statusText = 'Resting / Flaccid (0%)';
-  else if (pct < 60) statusText = isMale ? `Tumescent / Engorging (${pct}%)` : `Plateau Vasocongestion (${pct}%)`;
-  else statusText = isMale ? `Peak Rigid Erection (${pct}%)` : `Peak Arousal \u00b7 Parted Labia Minora (${pct}%)`;
+  if (pct === 0) statusText = L.arousalBadgeResting;
+  else if (pct < 60) statusText = isMale ? L.arousalBadgeMalePlat(pct) : L.arousalBadgeFemalePlat(pct);
+  else statusText = isMale ? L.arousalBadgeMalePeak(pct) : L.arousalBadgeFemalePeak(pct);
   $('arousal-badge').textContent = statusText;
   $('btn-arousal-0').classList.toggle('active', pct === 0);
   $('btn-arousal-50').classList.toggle('active', pct >= 40 && pct <= 60);
@@ -1425,7 +1791,8 @@ let arousalPulseTween = null;
 $('btn-arousal-pulse').addEventListener('click', () => {
   state.arousalPulse = !state.arousalPulse;
   $('btn-arousal-pulse').classList.toggle('active', state.arousalPulse);
-  $('btn-arousal-pulse').textContent = state.arousalPulse ? '■ Stop Pulse' : '▶ Auto Pulse';
+  const L = curI18n();
+  $('btn-arousal-pulse').textContent = state.arousalPulse ? L.arousalPulseStop : L.arousalPulsePlay;
   if (state.arousalPulse) {
     const loopPulse = () => {
       if (!state.arousalPulse) return;
@@ -1488,7 +1855,102 @@ sheetHandle?.addEventListener('click', () => setPanelOpen(false));
 function updateAccToggleLabel() {
   const accs = document.querySelectorAll('.acc');
   const allOpen = Array.from(accs).every(a => a.classList.contains('open'));
-  if (btnAccToggle) btnAccToggle.textContent = allOpen ? 'Collapse All' : 'Expand All';
+  const L = curI18n();
+  if (btnAccToggle) btnAccToggle.textContent = allOpen ? L.collapseAll : L.expandAll;
+}
+
+function setLanguage(lang) {
+  if (lang !== 'en' && lang !== 'vi') lang = 'en';
+  state.lang = lang;
+  try { localStorage.setItem('genitals_edu_lang', lang); } catch (e) {}
+  document.documentElement.lang = lang;
+
+  const select = document.getElementById('lang-select');
+  if (select && select.value !== lang) select.value = lang;
+
+  const L = curI18n();
+
+  // Document title
+  document.title = L.pageTitle;
+
+  // Header branding & buttons
+  if ($('brand-title')) $('brand-title').textContent = L.brandTitle;
+  if ($('brand-sub')) $('brand-sub').innerHTML = L.brandSub;
+  if ($('btn-style-clay')) {
+    $('btn-style-clay').innerHTML = `<span class="seg-full">${L.clayBtn}</span><span class="seg-short">${L.clayBtnShort || 'Clay'}</span>`;
+    $('btn-style-clay').title = L.clayTitle;
+  }
+  if ($('btn-style-atlas')) {
+    $('btn-style-atlas').innerHTML = `<span class="seg-full">${L.atlasBtn}</span><span class="seg-short">${L.atlasBtnShort || 'Atlas'}</span>`;
+    $('btn-style-atlas').title = L.atlasTitle;
+  }
+  if ($('txt-adv')) $('txt-adv').textContent = L.advBtn;
+  if ($('btn-adv')) $('btn-adv').title = L.advTitle;
+  if ($('txt-labels')) $('txt-labels').textContent = L.labelsBtn;
+  if ($('btn-labels')) $('btn-labels').title = L.labelsTitle;
+  if ($('txt-reset')) $('txt-reset').textContent = L.resetBtn;
+  if ($('btn-reset')) $('btn-reset').title = L.resetTitle;
+  if ($('txt-info')) $('txt-info').textContent = L.guideBtn;
+  if ($('btn-info')) $('btn-info').title = L.guideTitle;
+  if ($('gl-error')) $('gl-error').textContent = L.glError;
+
+  // Legend
+  if ($('legend-title')) $('legend-title').textContent = L.legendTitle;
+  if ($('legend-hint')) $('legend-hint').textContent = L.legendHint;
+  KEYS.forEach(k => {
+    const row = document.querySelector(`.lrow[data-tissue="${k}"] .lname`);
+    if (row) row.textContent = TERMS.tissues[k].name;
+    const lrowBtn = document.querySelector(`.lrow[data-tissue="${k}"]`);
+    if (lrowBtn) lrowBtn.setAttribute('aria-label', TERMS.tissues[k].name);
+  });
+
+  // Dock & Arousal controls
+  if ($('btn-play')) $('btn-play').title = L.btnPlayTitle;
+  if ($('btn-loop')) $('btn-loop').title = L.btnLoopTitle;
+  if (scrubber) scrubber.setAttribute('aria-label', L.scrubberLabel);
+  if ($('arousal-title-text')) $('arousal-title-text').textContent = L.arousalTitle;
+  if ($('arousal-sub-min')) $('arousal-sub-min').textContent = L.arousalResting;
+  if ($('arousal-sub-max')) $('arousal-sub-max').textContent = L.arousalPeak;
+  if ($('btn-arousal-0')) $('btn-arousal-0').textContent = L.arousalPreset0;
+  if ($('btn-arousal-50')) $('btn-arousal-50').textContent = L.arousalPreset50;
+  if ($('btn-arousal-100')) $('btn-arousal-100').textContent = L.arousalPreset100;
+  if ($('btn-arousal-pulse')) {
+    $('btn-arousal-pulse').title = L.arousalPulseTitle;
+    $('btn-arousal-pulse').textContent = state.arousalPulse ? L.arousalPulseStop : L.arousalPulsePlay;
+  }
+
+  // Aside panel
+  if (btnPanel) btnPanel.title = L.guideTitle;
+  if ($('panel-badge')) $('panel-badge').textContent = L.panelBadge;
+  if ($('panel-title')) $('panel-title').textContent = L.panelTitle;
+  if ($('btn-panel-close')) $('btn-panel-close').title = L.closeGuide;
+  if ($('panel-desc')) $('panel-desc').textContent = L.panelDesc;
+  if ($('acc-matrix-title')) $('acc-matrix-title').textContent = L.matrixTitle;
+  if ($('matrix-hint')) $('matrix-hint').textContent = L.matrixHint;
+  if ($('th-tissue')) $('th-tissue').textContent = L.thTissue;
+  if ($('th-s0')) $('th-s0').textContent = L.thS0;
+  if ($('th-female')) $('th-female').textContent = L.thFemale;
+  if ($('th-male')) $('th-male').textContent = L.thMale;
+  if ($('acc-origins-title')) $('acc-origins-title').textContent = L.originsTitle;
+  if ($('acc-endocrine-title')) $('acc-endocrine-title').textContent = L.endocrineTitle;
+  if ($('acc-pubertal-title')) $('acc-pubertal-title').textContent = L.pubertalTitle;
+  if ($('acc-clinical-title')) $('acc-clinical-title').textContent = L.clinicalTitle;
+  if ($('panel-notice')) $('panel-notice').textContent = L.notice;
+
+  // Render matrix, descriptions, static panel accordions
+  renderMatrix();
+  renderTissueDescs();
+  renderPanelStatic();
+  updateAccToggleLabel();
+
+  // Rebuild dock buttons & ticks
+  buildDockControls();
+
+  // Re-sync UI state, info card, and labels
+  lastStageSig = '';
+  updateUIFromT();
+  syncArousalUI();
+  updateLabels();
 }
 
 document.querySelectorAll('.acc > button').forEach(b => b.addEventListener('click', () => {
@@ -1579,14 +2041,15 @@ function updateUIFromT() {
   // Legend derivatives text
   KEYS.forEach(k => { $('der-' + k).textContent = '\u2192 ' + (TERMS.tissues[k][meta.key] || TERMS.tissues[k].s0); });
   if (lblEls) {
+    const aLabels = curI18n().arousalLabels;
     KEYS.forEach(k => {
       const el = lblEls[k];
       let txt = meta.key === 's0' ? TERMS.tissues[k].name : (TERMS.tissues[k][meta.key] || TERMS.tissues[k].name);
       if (state.arousal > 0.4) {
-        if (k === 'urogenitalFolds' && meta.key.startsWith('female')) txt = 'Parted / Engorged Labia Minora';
-        if (k === 'genitalTubercle' && meta.key.startsWith('female')) txt = 'Tumescent Clitoris';
-        if (k === 'genitalTubercle' && meta.key.startsWith('male')) txt = 'Erect Glans & Shaft';
-        if (k === 'urogenitalSinus' && meta.key.startsWith('female')) txt = 'Exposed Patent Vestibule';
+        if (k === 'urogenitalFolds' && meta.key.startsWith('female')) txt = aLabels.partedLabia;
+        if (k === 'genitalTubercle' && meta.key.startsWith('female')) txt = aLabels.tumescentClitoris;
+        if (k === 'genitalTubercle' && meta.key.startsWith('male')) txt = aLabels.erectPenis;
+        if (k === 'urogenitalSinus' && meta.key.startsWith('female')) txt = aLabels.patentVestibule;
       }
       if (el.textContent !== txt) el.textContent = txt;
     });
@@ -1691,10 +2154,32 @@ function frame(now) {
 }
 
 resize();
-buildDockControls();
 setStyle('clay');
 
 const urlParams = typeof window !== 'undefined' && window.location ? new URLSearchParams(window.location.search) : null;
+
+// Resolve initial language (defaults to 'en', but respects URL param ?lang= or localStorage)
+let initialLang = 'en';
+if (urlParams && urlParams.has('lang')) {
+  const pLang = urlParams.get('lang').toLowerCase();
+  if (pLang === 'vi' || pLang === 'en') initialLang = pLang;
+} else {
+  try {
+    const saved = localStorage.getItem('genitals_edu_lang');
+    if (saved === 'vi' || saved === 'en') initialLang = saved;
+  } catch (e) {}
+}
+
+const langSelect = $('lang-select');
+if (langSelect) {
+  langSelect.value = initialLang;
+  langSelect.addEventListener('change', e => {
+    setLanguage(e.target.value);
+  });
+}
+
+setLanguage(initialLang);
+
 if (urlParams) {
   if (urlParams.has('t')) { state.t = parseFloat(urlParams.get('t')); state.playing = false; }
   if (urlParams.has('play')) { state.playing = urlParams.get('play') === '1'; }
