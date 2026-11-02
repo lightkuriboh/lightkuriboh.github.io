@@ -30,10 +30,43 @@ for (const k of KEYS) {
   MAT.atlas[k].emissiveIntensity = emissiveBase.atlas;
 }
 
-export const baseMat = new THREE.MeshStandardMaterial({
-  color: 0x243248,
-  roughness: 0.88
+/**
+ * Alpha fade textures for the body backdrop (alphaMap uses the green channel).
+ * 'radial': torso fades out toward an ellipse matching the plane's UV square.
+ * 'linear': thigh fades out along V (CanvasTexture flipY=true: canvas top row = v 1).
+ */
+function makeFadeTexture(kind) {
+  if (typeof document === 'undefined') return null;
+  const c = document.createElement('canvas');
+  c.width = c.height = 256;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, 256, 256);
+  let g;
+  if (kind === 'radial') {
+    g = ctx.createRadialGradient(128, 128, 0, 128, 128, 128);
+    g.addColorStop(0.00, '#fff');
+    g.addColorStop(0.62, '#fff');
+    g.addColorStop(1.00, '#000');
+  } else {
+    g = ctx.createLinearGradient(0, 0, 0, 256);
+    g.addColorStop(0.00, '#000'); // v = 1 (thigh cut end) fully transparent
+    g.addColorStop(0.30, '#fff'); // v <= 0.70 fully opaque
+    g.addColorStop(1.00, '#fff');
+  }
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, 256, 256);
+  return new THREE.CanvasTexture(c);
+}
+
+export const torsoMat = new THREE.MeshStandardMaterial({
+  color: 0x243248, roughness: 0.88, transparent: true, depthWrite: true, alphaMap: makeFadeTexture('radial')
 });
+export const thighMat = new THREE.MeshStandardMaterial({
+  color: 0x243248, roughness: 0.85, transparent: true, depthWrite: true, alphaMap: makeFadeTexture('linear')
+});
+export const bodyMats = [torsoMat, thighMat];
+export const baseMat = torsoMat; // backward-compatible alias
 
 export const outlineMeshes = [];
 

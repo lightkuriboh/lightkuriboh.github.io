@@ -3,7 +3,7 @@
  */
 import { styleSets, KEYS, emissiveBase } from '../config.js';
 import { state, TERMS } from '../state.js';
-import { MAT, baseMat, outlineMeshes } from '../mesh/materials.js';
+import { MAT, bodyMats, outlineMeshes } from '../mesh/materials.js';
 import { meshContext } from '../mesh/manager.js';
 import { ambient, hemi, sun, rim, viewport } from './scene.js';
 
@@ -30,8 +30,7 @@ export function setStyle(name) {
     });
   }
 
-  baseMat.color.setHex(S.base);
-  baseMat.roughness = 0.88;
+  bodyMats.forEach(m => m.color.setHex(S.base));
 
   if (meshContext && meshContext.pelvic) {
     meshContext.pelvic.depthRings.visible = atlas;
