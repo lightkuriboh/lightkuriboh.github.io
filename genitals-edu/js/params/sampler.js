@@ -1,7 +1,7 @@
 /**
  * Morphological Parameter Sampling, Arousal Modification & Geometric Profiles
  */
-import { clamp, lerp, gauss, easeInOutCubic, mixParams } from '../math/helpers.js';
+import { clamp, lerp, gauss, smoothstep, easeInOutCubic, mixParams } from '../math/helpers.js';
 import { P } from './keyframes.js';
 
 /**
@@ -109,56 +109,63 @@ export function getTubFrame(u, p) {
   return { pos: [0, y, z], T: [0, Ty, Tz], B, N };
 }
 
+const angDist = (a, b) => Math.atan2(Math.sin(a - b), Math.cos(a - b));
+
+/**
+ * Penile (male) longitudinal radius profile:
+ * shaft -> coronal sulcus (neck) -> overhanging corona -> ogive glans -> rounded apex.
+ * Ventrally the corona rim sits more distal and is less flared (frenular "V").
+ */
+function penileProfile(u, p, sinV) {
+  const ventral = Math.max(0, sinV);
+  const uRim = p.glansU - 0.05 + 0.035 * ventral * ventral * ventral;
+  const uNeck = uRim - 0.06;
+  const rShaft = p.r0 * (1 - p.taper * u);
+  const rNeck = p.r0 * (1 - p.sulcus);
+  const rRim = p.r0 * (1 + p.corona * (1 - 0.55 * ventral * ventral));
+  if (u <= uNeck - 0.08) return rShaft;
+  if (u <= uNeck) return lerp(rShaft, rNeck, smoothstep(uNeck - 0.08, uNeck, u));
+  if (u <= uRim) return lerp(rNeck, rRim, smoothstep(uNeck, uRim, u));
+  const t = (u - uRim) / (1 - uRim);                    // 0 at corona rim -> 1 at apex
+  return rRim * Math.pow(Math.max(0, 1 - Math.pow(t, 2.2)), 0.55);
+}
+
 /**
  * Radius profile of the genital tubercle at parametric position u and polar angle v
+ * (v = π/2 ventral / toward viewer, v = 3π/2 dorsal).
  */
 export function tubRadius(u, p, v) {
-  let r = p.r0 * (1 - p.taper * u);
   const cosV = Math.cos(v);
   const sinV = Math.sin(v);
 
-  // Dorsal corpora cavernosa twin-ridge on penile shaft (male)
-  if (p.shaftFlat > 0 && u < p.glansU - 0.10) {
-    const shaftMask = Math.pow(Math.sin(Math.PI * clamp(u / (p.glansU - 0.10), 0, 1)), 0.5);
-    const dorsalTwin = 0.09 * p.shaftFlat * Math.cos(2 * v) * Math.max(0, -sinV);
-    const ventralNarrow = -0.05 * p.shaftFlat * Math.max(0, sinV);
-    r *= (1 + shaftMask * (dorsalTwin + ventralNarrow));
-  }
-
-  // Glans enlargement
+  // A. Generic (primordial / clitoral) profile
+  let rG = p.r0 * (1 - p.taper * u);
   const glansVentralBias = (p.hood > 0) ? (1 + 0.18 * sinV) : 1.0;
-  // Glans: gentle swelling from the neck, widest at the corona, then a smooth
-  // conical taper to the apex (wider distal falloff than proximal rise)
-  const gw = p.corona > 0
-    ? (u < p.glansU ? p.glansW * 0.7 : p.glansW * 1.45)
-    : p.glansW; // female glans: rounded pea-shaped tip
-  r += p.r0 * p.glans * gauss(u, p.glansU, gw) * glansVentralBias;
+  rG += p.r0 * p.glans * gauss(u, p.glansU, p.glansW) * glansVentralBias;
+  // Distal dome sized from the tip radius so the tip is a true hemisphere (no flat tops)
+  const rTip = p.r0 * (1 - p.taper * 0.9) + p.r0 * p.glans * gauss(0.9, p.glansU, p.glansW);
+  const capLen = clamp(rTip / Math.max(p.L, 1e-3), 0.08, 0.40);
+  const uc = 1 - capLen;
+  if (u > uc) rG *= Math.sqrt(Math.max(0, 1 - ((u - uc) / capLen) ** 2));
 
-  // Corona glandis (male)
-  if (p.corona > 0) {
-    const coronaFlare = p.r0 * p.corona * gauss(u, p.glansU - 0.045, 0.034);
-    const coronaProfile = 1.0 - 0.65 * Math.max(0, sinV);
-    r += coronaFlare * coronaProfile;
+  // B. Penile profile, blended in by "male-ness" m (driven by corona flare)
+  const m = clamp(p.corona / 0.15, 0, 1);
+  let r = rG;
+  if (m > 0) {
+    let rM = penileProfile(u, p, sinV);
+    // Shaft cross-section: slightly elliptical, ventral corpus spongiosum ridge, shallow dorsal groove
+    const shaftMask = smoothstep(0.10, 0.25, u) * (1 - smoothstep(p.glansU - 0.22, p.glansU - 0.14, u));
+    if (shaftMask > 0 && p.shaftFlat > 0) {
+      const ellip = 1 - 0.9 * p.shaftFlat;
+      const ell = 1 / Math.sqrt(cosV * cosV + (sinV * sinV) / (ellip * ellip));
+      const spongiosum = 0.55 * p.shaftFlat * gauss(angDist(v, Math.PI / 2), 0, 0.32);
+      const dorsalGroove = -0.25 * p.shaftFlat * gauss(angDist(v, -Math.PI / 2), 0, 0.22);
+      rM *= lerp(1, ell * (1 + spongiosum + dorsalGroove), shaftMask);
+    }
+    r = lerp(rG, rM, m);
   }
 
-  // Coronal sulcus (neck groove)
-  if (p.sulcus > 0) {
-    const sulcusDip = p.r0 * p.sulcus * gauss(u, p.glansU - 0.105, 0.036);
-    const sulcusProfile = 1.0 - 0.35 * Math.max(0, sinV);
-    r -= sulcusDip * sulcusProfile;
-  }
-
-  // Enhanced Preputial Hood (female clitoral prepuce)
-  if (p.hood > 0) {
-    const hoodDorsalCowl = Math.max(0, -sinV + 0.40) * (1 + 0.22 * Math.cos(2 * v));
-    const hoodFlare = p.hood * 1.25 * p.r0 * gauss(u, 0.64, 0.16) * hoodDorsalCowl;
-    r += hoodFlare;
-  }
-
-  // Proximal root closure
+  // Proximal root closure (buried in the body)
   if (u < 0.14) r *= Math.sqrt(Math.max(0, 1 - ((0.14 - u) / 0.14) ** 2));
-  // Distal cap dome
-  const uc = 0.90;
-  if (u > uc) r *= Math.sqrt(Math.max(0, 1 - ((u - uc) / (1 - uc)) ** 2));
   return Math.max(r, 1e-4);
 }

@@ -2,7 +2,7 @@
  * Urogenital / Urethral Folds Mesh Generator & Morphing Algorithm
  * (Forms labia minora in females; ventral raphe and spongy urethra in males)
  */
-import { clamp, lerp } from '../math/helpers.js';
+import { clamp, lerp, smoothstep } from '../math/helpers.js';
 import { getTubFrame, tubRadius } from '../params/sampler.js';
 
 const THREE = window.THREE;
@@ -40,7 +40,8 @@ export function foldPoint(s, side, f, tp, lift) {
   const fuseLocal = clamp(f.fuse * 1.5 - 0.5 * s, 0, 1);
   const pf = f.phalicFrac;
   if (s <= pf) {
-    const u = 0.92 * (1 - s / pf);
+    const uTop = lerp(0.92, tp.glansU - 0.08, clamp(f.fuse, 0, 1)); // male raphe ends at the frenulum
+    const u = uTop * (1 - s / pf);
     const frm = getTubFrame(u, tp);
     const rV = tubRadius(u, tp, Math.PI / 2);
     const dx = Math.min(lerp(f.dOpen, 0.006, fuseLocal) * (0.3 + 0.7 * (s / pf)), rV * 0.88);
@@ -52,7 +53,8 @@ export function foldPoint(s, side, f, tp, lift) {
   const q = (s - pf) / (1 - pf);
   const frm0 = getTubFrame(0, tp);
   const arch = Math.sin(Math.PI * Math.pow(q, 0.85));
-  const dBase = lerp(0.06, f.dPeri, arch);
+  const dEndpoint = lerp(0.06, f.dEnd, smoothstep(0.3, 0.7, q)); // posterior ends meet (fourchette)
+  const dBase = lerp(dEndpoint, f.dPeri, arch);
   const dx = lerp(dBase, 0.006, fuseLocal);
   const y = frm0.pos[1] - q * f.periLen;
   const z = lerp(0.12, 0.04, q) + 0.06 * Math.sin(Math.PI * q) + lift;
@@ -93,14 +95,16 @@ export function writeTube(geo, side, f, tp, a0, b0, lift) {
     for (let j = 0; j <= nV; j++) {
       const ph = (j / nV) * Math.PI * 2;
       const cph = Math.cos(ph), sph = Math.sin(ph);
-      // Delicate mucosal flange taper in female
-      const flangeW = 1 - 0.45 * f.flange * sph * sph;
-      const ruff = sph > 0 ? f.ruffle * 0.016 * Math.sin(18 * s) * sph : 0;
+      const edge = Math.max(0, sph);                                   // 0 at base/sides -> 1 at free edge
+      // Thin mucosal blade toward the free edge only (base stays thick where it attaches)
+      const flangeW = 1 - 0.70 * f.flange * Math.pow(edge, 1.5);
+      const ruff = f.ruffle * 0.018 * Math.sin(18 * s + 2.0) * Math.pow(edge, 3);
       const ca = a * cph * flangeW + ruff;
       const sb = b * sph;
+      const flareX = side * f.flare * b * edge * edge;                 // free edge leans laterally (side 0 = raphe -> 0)
       pos.setXYZ(
         k++,
-        c[0] + Bn[0] * ca + N[0] * sb,
+        c[0] + Bn[0] * ca + N[0] * sb + flareX,
         c[1] + Bn[1] * ca + N[1] * sb,
         c[2] + Bn[2] * ca + N[2] * sb
       );

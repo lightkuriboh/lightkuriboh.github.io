@@ -4,11 +4,12 @@
 import { smoothstep } from '../math/helpers.js';
 import { sampleParams } from '../params/sampler.js';
 import { MAT, makeOutline } from './materials.js';
-import { initPelvicBase } from './base.js';
+import { initPelvicBase, updatePelvicBase } from './base.js';
 import { initTubercleMesh, writeTubercle } from './tubercle.js';
+import { initHoodMesh, writeHood } from './hood.js';
 import { initFoldsMesh, writeTube } from './folds.js';
 import { initSwellingsMesh, writeSwelling, writeScrotalRaphe } from './swellings.js';
-import { initSinusMesh, writeSinus3D, updateMeatus } from './sinus.js';
+import { initSinusMesh, writeSinus3D, updateMeatus, updateOrifices } from './sinus.js';
 
 const THREE = window.THREE;
 
@@ -55,12 +56,14 @@ export let meshContext = null;
 export function initMeshes(scene) {
   const pelvic = initPelvicBase(scene);
   const tub = initTubercleMesh(scene, makeGridGeometry, makeOutline, MAT, pickables);
+  const hood = initHoodMesh(scene, makeGridGeometry, makeOutline, MAT, pickables);
   const folds = initFoldsMesh(scene, makeGridGeometry, makeOutline, MAT, pickables);
   const swell = initSwellingsMesh(scene, makeGridGeometry, makeOutline, MAT, pickables);
   const sinus = initSinusMesh(scene, makeGridGeometry, makeOutline, MAT, pickables);
 
   const meshTissue = [
     [tub.TubercleMesh, 'genitalTubercle'],
+    [hood.HoodMesh, 'genitalTubercle'],
     [folds.foldL, 'urogenitalFolds'],
     [folds.foldR, 'urogenitalFolds'],
     [folds.rapheMesh, 'urogenitalFolds'],
@@ -73,6 +76,7 @@ export function initMeshes(scene) {
   meshContext = {
     pelvic,
     tub,
+    hood,
     folds,
     swell,
     sinus,
@@ -84,10 +88,13 @@ export function initMeshes(scene) {
 
 export function updateMorph(t, state) {
   if (!meshContext) return;
-  const { tub, folds, swell, sinus } = meshContext;
+  const { pelvic, tub, hood, folds, swell, sinus } = meshContext;
   const p = sampleParams(t, state);
 
   writeTubercle(tub.geoTub, p.tubercle);
+  writeHood(hood.geoHood, p.tubercle);
+  hood.HoodMesh.visible = p.tubercle.hood > 0.02;
+
   writeTube(folds.geoFoldL, -1, p.folds, p.tubercle, p.folds.a, p.folds.b, 0);
   writeTube(folds.geoFoldR,  1, p.folds, p.tubercle, p.folds.a, p.folds.b, 0);
 
@@ -101,8 +108,10 @@ export function updateMorph(t, state) {
 
   writeSinus3D(sinus.geoSinus3D, p.sinus);
   sinus.SinusVestibuleMesh.visible = p.sinus.open > 0.02;
+  updateOrifices(sinus, p.sinus);
 
   updateMeatus(sinus.meatus, p.tubercle, p.sinus);
+  updatePelvicBase(pelvic, smoothstep(0, 0.6, p.swellings.fuse));
 
   for (const g of dynamicGeometries) {
     g.attributes.position.needsUpdate = true;
