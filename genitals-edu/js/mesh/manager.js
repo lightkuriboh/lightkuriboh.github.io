@@ -133,3 +133,18 @@ export function updateMorph(t, state) {
 
   state.derived = p;
 }
+
+const _box = new THREE.Box3();
+/** Union bounding box of the visible organ meshes (excludes torso/thighs). */
+export function getOrganBounds() {
+  if (!meshContext) return null;
+  const { tub, folds, swell, hood } = meshContext;
+  _box.makeEmpty();
+  [tub.geoTub, folds.geoFoldL, folds.geoFoldR, swell.geoSwellingL, swell.geoSwellingR].forEach(g => {
+    if (g.boundingBox) _box.union(g.boundingBox);
+  });
+  if (hood && hood.HoodMesh && hood.HoodMesh.visible && hood.geoHood.boundingBox) {
+    _box.union(hood.geoHood.boundingBox);
+  }
+  return _box;
+}

@@ -20,7 +20,8 @@ export const state = {
   derived: null,
   advMode: false,
   arousal: 0,
-  arousalPulse: false
+  arousalPulse: false,
+  autoFrame: true
 };
 
 export const curI18n = () => getI18n(state.lang);

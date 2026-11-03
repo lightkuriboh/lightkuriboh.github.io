@@ -5,7 +5,7 @@ import { CAM } from './config.js';
 import { state } from './state.js';
 import { getInitialLanguage } from './i18n/index.js';
 import { initScene, scene, camera, renderer, controls, checkHoverPick, resizeViewport } from './ui/scene.js';
-import { initMeshes, updateMorph } from './mesh/manager.js';
+import { initMeshes, updateMorph, getOrganBounds } from './mesh/manager.js';
 import { initStyles, setStyle, applyVisuals } from './ui/style.js';
 import { initDock, advanceT, updateUIFromT, updatePlayIcon, jumpTo, setPlaying, setAdvMode, setArousal } from './ui/dock.js';
 import { initPanel, setHighlight, setPanelOpen, togglePanel, renderInfoCard } from './ui/panel.js';
@@ -31,6 +31,8 @@ const gsap = window.gsap;
       // Pin state updated
     }
   });
+
+  controls.addEventListener('start', () => { state.autoFrame = false; });
 
   // 2. Initialize 3D Meshes & Geometry Morph Targets
   initMeshes(scene);
@@ -63,6 +65,7 @@ const gsap = window.gsap;
   const btnReset = document.getElementById('btn-reset');
   if (btnReset) {
     btnReset.addEventListener('click', () => {
+      state.autoFrame = true;
       gsap.to(camera.position, {
         x: CAM.pos[0],
         y: CAM.pos[1],
@@ -165,6 +168,24 @@ const gsap = window.gsap;
   // 14. Main Animation Loop
   let last = performance.now();
   let lastT = -1, lastArousal = -1;
+  const _c = new THREE.Vector3(), _s = new THREE.Vector3(), _dir = new THREE.Vector3();
+
+  function autoFrame(dt) {
+    if (!state.autoFrame || state.scrubbing) return;
+    const b = getOrganBounds();
+    if (!b || b.isEmpty()) return;
+    b.getCenter(_c); b.getSize(_s);
+    const fovV = THREE.MathUtils.degToRad(camera.fov);
+    const fitH = (_s.y * 1.55) / (2 * Math.tan(fovV / 2));                 // 1.55 = margin (organ ≈ 65 % of height)
+    const fitW = (_s.x * 1.55) / (2 * Math.tan(fovV / 2) * camera.aspect);
+    const dist = THREE.MathUtils.clamp(Math.max(fitH, fitW) + _s.z, 4.2, 8.6);
+    const k = 1 - Math.exp(-dt * 2.5);                                     // smooth critically-damped ease
+    controls.target.x += (0 - controls.target.x) * k;
+    controls.target.y += (_c.y * 0.85 - controls.target.y) * k;
+    _dir.copy(camera.position).sub(controls.target).normalize();
+    const cur = camera.position.distanceTo(controls.target);
+    camera.position.copy(controls.target).addScaledVector(_dir, cur + (dist - cur) * k);
+  }
 
   function frame(now) {
     requestAnimationFrame(frame);
@@ -188,6 +209,7 @@ const gsap = window.gsap;
 
     checkHoverPick();
     applyVisuals(now / 1000);
+    autoFrame(dt);
     controls.update();
     renderer.render(scene, camera);
     updateLabels();
