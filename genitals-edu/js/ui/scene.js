@@ -27,6 +27,7 @@ export function initScene(callbacks = {}) {
   canvas = document.getElementById('gl');
 
   scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x0c1220);
   camera = new THREE.PerspectiveCamera(40, 1, 0.1, 60);
   camera.position.set(...CAM.pos);
 

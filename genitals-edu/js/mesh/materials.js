@@ -46,7 +46,8 @@ function makeFadeTexture(kind) {
   if (kind === 'radial') {
     g = ctx.createRadialGradient(128, 128, 0, 128, 128, 128);
     g.addColorStop(0.00, '#fff');
-    g.addColorStop(0.78, '#fff');
+    g.addColorStop(0.45, '#fff');
+    g.addColorStop(0.85, 'rgba(255,255,255,0.3)');
     g.addColorStop(1.00, '#000');
   } else {
     g = ctx.createLinearGradient(0, 0, 0, 256);
@@ -77,7 +78,7 @@ export function makeOutline(geometry, tissue, offset, parent, sceneRef) {
   const mat = new THREE.ShaderMaterial({
     uniforms: { off: { value: offset } },
     vertexShader: 'uniform float off; void main(){ gl_Position = projectionMatrix * modelViewMatrix * vec4(position + normal * off, 1.0); }',
-    fragmentShader: 'void main(){ gl_FragColor = vec4(0.231, 0.114, 0.114, 1.0); }',
+    fragmentShader: 'void main(){ gl_FragColor = vec4(0.18, 0.10, 0.10, 0.85); }',
     side: THREE.BackSide
   });
   const m = new THREE.Mesh(geometry, mat);

@@ -5,7 +5,7 @@ import { styleSets, KEYS, emissiveBase } from '../config.js';
 import { state, TERMS } from '../state.js';
 import { MAT, bodyMats, outlineMeshes } from '../mesh/materials.js';
 import { meshContext } from '../mesh/manager.js';
-import { ambient, hemi, sun, rim, viewport } from './scene.js';
+import { scene, ambient, hemi, sun, rim, viewport } from './scene.js';
 
 const THREE = window.THREE;
 const gsap = window.gsap;
@@ -31,6 +31,7 @@ export function setStyle(name) {
   }
 
   bodyMats.forEach(m => m.color.setHex(S.base));
+  if (scene) scene.background.setHex(S.sceneBg);
 
   if (meshContext && meshContext.pelvic) {
     meshContext.pelvic.depthRings.visible = atlas;

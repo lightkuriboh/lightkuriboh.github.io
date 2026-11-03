@@ -16,8 +16,8 @@ export const CAM = {
 };
 
 export const styleSets = {
-  clay:  { amb: 0.22, hemi: 0.65, sun: 1.05, rim: 0.35, base: 0x3a4a66 },
-  atlas: { amb: 0.30, hemi: 0.75, sun: 0.80, rim: 0.00, base: 0xc9b29c }
+  clay:  { amb: 0.22, hemi: 0.65, sun: 1.05, rim: 0.35, base: 0x3a4a66, sceneBg: 0x0c1220 },
+  atlas: { amb: 0.38, hemi: 0.42, sun: 0.48, rim: 0.00, base: 0xc4b39f, sceneBg: 0xded6c9 }
 };
 
 export const emissiveBase = {

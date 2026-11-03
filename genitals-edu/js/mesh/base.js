@@ -24,8 +24,8 @@ function torsoAO(x, y) {
 }
 
 function buildTorsoGeometry() {
-  const geo = new THREE.PlaneGeometry(10, 9, 160, 144);
-  geo.translate(0, 0.3, 0);
+  const geo = new THREE.PlaneGeometry(16, 14, 180, 160);
+  geo.translate(0, 0.2, 0);
   const pos = geo.attributes.position;
   pos.setUsage(THREE.DynamicDrawUsage);
   const zStatic = new Float32Array(pos.count);
@@ -113,14 +113,6 @@ export function initPelvicBase(scene) {
   scene.add(thighL, thighR);
 
   const depthRings = new THREE.Group();
-  [0.9, 1.8].forEach(r => {
-    const m = new THREE.Mesh(
-      new THREE.RingGeometry(r - 0.01, r, 72),
-      new THREE.MeshBasicMaterial({ color: 0x475569, transparent: true, opacity: 0.25, side: THREE.DoubleSide })
-    );
-    m.position.set(0, 0, -0.05);
-    depthRings.add(m);
-  });
   depthRings.visible = false;
   scene.add(depthRings);
 
