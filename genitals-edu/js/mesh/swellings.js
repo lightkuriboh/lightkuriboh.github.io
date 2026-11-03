@@ -57,9 +57,11 @@ function getFemaleLabiaPoint(s, th, side, p) {
 
   const phiShape = Math.PI * Math.pow(s, 0.82);
   const q = Math.max(0, Math.sin(phiShape));
+  const commWeight = s < 0.5 ? p.antComm : p.postComm;
   const commFalloff = 1 - q;
-  const xComm = lerp(p.xBase, 0.018, commFalloff * (s < 0.5 ? p.antComm : p.postComm));
-  const xArchF = (xComm + p.xBulge * Math.pow(q, p.archPow)) * Math.pow(q, p.endPull);
+  const xComm = lerp(p.xBase, 0.018, commFalloff * commWeight);
+  const endPullFactor = lerp(1.0, Math.pow(q, p.endPull), commWeight);
+  const xArchF = (xComm + p.xBulge * Math.pow(q, p.archPow)) * endPullFactor;
   const zArchF = lerp(p.zBase, p.zBase + p.zBulge, q);
   const tq = Math.pow(q, p.taperPow);
   const rxF = (p.rx0 + p.rxBulge * q) * tq;

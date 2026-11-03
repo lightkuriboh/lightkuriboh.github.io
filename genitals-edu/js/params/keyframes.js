@@ -17,7 +17,7 @@ export const P = {
   F_Adult: { // Mature Adult Female (Post-pubertal, resting baseline)
     tubercle:  { yBase: 0.24, L: 0.34, r0: 0.078, taper: 0.05, tilt: 0.45, bend: 1.40, glans: 0.55, glansU: 0.82, glansW: 0.09, corona: 0.00, sulcus: 0.00, hood: 0.60, shaftFlat: 0.00 },
     folds:     { dOpen: 0.08, dPeri: 0.13, dEnd: 0.018, fuse: 0.00, a: 0.030, b: 0.110, periLen: 0.95, phalicFrac: 0.09, ruffle: 0.45, flange: 0.90, flare: 0.45 },
-    swellings: { yStart: 0.55, yEnd: -0.88, xBase: 0.17, xBulge: 0.13, zBase: -0.02, zBulge: 0.10, rx0: 0.06, rxBulge: 0.07, rz0: 0.07, rzBulge: 0.08, archPow: 0.80, taperPow: 0.40, endPull: 0.22, latK: 1.40, medK: 0.70, fuse: 0.00, antComm: 0.92, postComm: 0.88, bilobe: 0.00, rugae: 0.00 },
+    swellings: { yStart: 0.58, yEnd: -0.92, xBase: 0.20, xBulge: 0.16, zBase: -0.02, zBulge: 0.12, rx0: 0.08, rxBulge: 0.10, rz0: 0.08, rzBulge: 0.10, archPow: 0.80, taperPow: 0.40, endPull: 0.22, latK: 1.45, medK: 0.75, fuse: 0.00, antComm: 0.92, postComm: 0.88, bilobe: 0.00, rugae: 0.00 },
     sinus:     { sx: 0.075, sy: 0.62, y: -0.20, depth: 0.95, open: 1.0, orifices: 1.0, meatus: 0.0 }
   },
   M_Neo: { // Male Neonatal (46,XY early differentiation)
