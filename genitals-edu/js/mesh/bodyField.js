@@ -61,12 +61,12 @@ export function torsoHeight(x, y, maleness) {
 // side = -1 mirrors X.
 // ---------------------------------------------------------------------------
 export const THIGH = {
-  root: [2.05, -0.40, -0.95], // axis point at t = 0 (behind the torso surface)
-  dir: [0.56, 0.30, 0.77],    // outward, slightly anterior, toward the viewer
-  length: 3.8,
+  root: [2.30, -0.55, -0.85], // axis point at t = 0 (behind the torso surface)
+  dir: [0.85, 0.25, 0.35],    // mostly lateral (abducted), slightly anterior, only mildly toward the viewer
+  length: 2.6,
   t0: -0.35,                  // the tube starts buried inside the body (t < 0) so its open root is hidden
-  rRoot: 1.08,
-  rEnd: 0.80,
+  rRoot: 0.90,
+  rEnd: 0.74,
   rootFlare: 0.18,
   ellipW: 0.92                // cross-section squash along the W axis
 };
@@ -74,6 +74,9 @@ export const THIGH = {
 const norm = v => { const l = Math.hypot(v[0], v[1], v[2]) || 1; return [v[0] / l, v[1] / l, v[2] / l]; };
 const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
 const _frames = {};
+
+/** Clears cached thigh frames (call after mutating THIGH, e.g. in tests). */
+export function resetThighFrames() { delete _frames[1]; delete _frames[-1]; }
 
 export function thighFrame(side) {
   if (_frames[side]) return _frames[side];

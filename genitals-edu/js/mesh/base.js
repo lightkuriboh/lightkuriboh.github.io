@@ -2,11 +2,26 @@
  * Anatomical Lithotomy Body Backdrop: sculpted lower torso (mons, groin creases,
  * perineum, buttocks, anus) + two abducted thigh volumes, & Concentric Metric Rings
  */
-import { lerp } from '../math/helpers.js';
-import { torsoStatic, torsoMons, thighPoint, THIGH } from './bodyField.js';
+import { lerp, clamp, smoothstep } from '../math/helpers.js';
+import { torsoStatic, torsoMons, thighPoint, thighClearance, THIGH } from './bodyField.js';
 import { torsoMat, thighMat } from './materials.js';
 
 const THREE = window.THREE;
+
+/**
+ * Cavity AO for the torso: concave regions (positive Laplacian: creases, cleft, anus)
+ * and regions near the thigh roots are darkened. Returns a brightness in [0.45, 1].
+ */
+function torsoAO(x, y) {
+  const h = 0.06;
+  const z = torsoStatic(x, y);
+  const lap = (torsoStatic(x + h, y) + torsoStatic(x - h, y) + torsoStatic(x, y + h) + torsoStatic(x, y - h) - 4 * z) / (h * h);
+  let ao = 1 - clamp(lap * 0.9, 0, 0.45);
+  const P = [x, y, z];
+  const near = Math.min(thighClearance(1, P), thighClearance(-1, P));
+  ao *= lerp(0.62, 1, smoothstep(0.0, 0.55, near)); // contact shadow where the thigh meets the torso
+  return clamp(ao, 0.45, 1);
+}
 
 function buildTorsoGeometry() {
   const geo = new THREE.PlaneGeometry(10, 9, 160, 144);
@@ -15,11 +30,15 @@ function buildTorsoGeometry() {
   pos.setUsage(THREE.DynamicDrawUsage);
   const zStatic = new Float32Array(pos.count);
   const zMons = new Float32Array(pos.count);
+  const col = new Float32Array(pos.count * 3);
   for (let i = 0; i < pos.count; i++) {
     const x = pos.getX(i), y = pos.getY(i);
     zStatic[i] = torsoStatic(x, y);
     zMons[i] = torsoMons(x, y);
+    const a = torsoAO(x, y);
+    col[i * 3] = col[i * 3 + 1] = col[i * 3 + 2] = a;
   }
+  geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
   geo.userData = { zStatic, zMons, maleness: -1 };
   return geo;
 }
@@ -29,6 +48,7 @@ function buildThighGeometry(side) {
   const n = (nT + 1) * (nP + 1);
   const pos = new Float32Array(n * 3);
   const uv = new Float32Array(n * 2);
+  const col = new Float32Array(n * 3);
   let k = 0;
   for (let i = 0; i <= nT; i++) {
     const w = i / nT;
@@ -37,6 +57,9 @@ function buildThighGeometry(side) {
       const P = thighPoint(side, t, (j / nP) * Math.PI * 2);
       pos[k * 3] = P[0]; pos[k * 3 + 1] = P[1]; pos[k * 3 + 2] = P[2];
       uv[k * 2] = j / nP; uv[k * 2 + 1] = w;
+      const gap = P[2] - torsoStatic(P[0], P[1]);           // height above the torso surface
+      const a = lerp(0.55, 1, smoothstep(0.0, 0.7, gap));
+      col[k * 3] = col[k * 3 + 1] = col[k * 3 + 2] = a;
       k++;
     }
   }
@@ -51,6 +74,7 @@ function buildThighGeometry(side) {
   const geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
   geo.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+  geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
   geo.setIndex(idx);
   geo.computeVertexNormals();
   // Average normals across the duplicated phi seam (no lighting seam line)

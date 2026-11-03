@@ -46,12 +46,12 @@ function makeFadeTexture(kind) {
   if (kind === 'radial') {
     g = ctx.createRadialGradient(128, 128, 0, 128, 128, 128);
     g.addColorStop(0.00, '#fff');
-    g.addColorStop(0.62, '#fff');
+    g.addColorStop(0.78, '#fff');
     g.addColorStop(1.00, '#000');
   } else {
     g = ctx.createLinearGradient(0, 0, 0, 256);
     g.addColorStop(0.00, '#000'); // v = 1 (thigh cut end) fully transparent
-    g.addColorStop(0.30, '#fff'); // v <= 0.70 fully opaque
+    g.addColorStop(0.40, '#fff'); // v <= 0.60 fully opaque
     g.addColorStop(1.00, '#fff');
   }
   ctx.fillStyle = g;
@@ -60,10 +60,10 @@ function makeFadeTexture(kind) {
 }
 
 export const torsoMat = new THREE.MeshStandardMaterial({
-  color: 0x243248, roughness: 0.88, transparent: true, depthWrite: true, alphaMap: makeFadeTexture('radial')
+  color: 0x3a4a66, roughness: 0.88, transparent: true, depthWrite: true, alphaMap: makeFadeTexture('radial'), vertexColors: true
 });
 export const thighMat = new THREE.MeshStandardMaterial({
-  color: 0x243248, roughness: 0.85, transparent: true, depthWrite: true, alphaMap: makeFadeTexture('linear')
+  color: 0x3a4a66, roughness: 0.85, transparent: true, depthWrite: true, alphaMap: makeFadeTexture('linear'), vertexColors: true
 });
 export const bodyMats = [torsoMat, thighMat];
 export const baseMat = torsoMat; // backward-compatible alias
