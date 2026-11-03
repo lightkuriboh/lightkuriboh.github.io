@@ -130,15 +130,21 @@ export function updateLabels() {
 
     const sx = (_v.x * 0.5 + 0.5) * w;
     const sy = (-_v.y * 0.5 + 0.5) * h;
-    const right = k === 'labioscrotalSwellings' || k === 'urogenitalFolds' || k === 'genitalTubercle';
+    // Bilateral infographic layout: Clitoris/Phallus and Sinus on Left, Folds and Swellings on Right
+    const isRight = (k === 'urogenitalFolds' || k === 'labioscrotalSwellings');
     const ew = el.offsetWidth;
-    const tx = right ? w - ew - 14 : 14;
-    const ty = { genitalTubercle: 0.24, urogenitalFolds: 0.42, labioscrotalSwellings: 0.62, urogenitalSinus: 0.50 }[k] * h;
+    const tx = isRight ? (w - ew - 16) : 16;
+    const ty = {
+      genitalTubercle: 0.22,
+      urogenitalSinus: 0.54,
+      urogenitalFolds: 0.36,
+      labioscrotalSwellings: 0.64
+    }[k] * h;
 
     el.style.transform = `translate3d(${tx}px,${ty}px,0)`;
     ln.setAttribute('x1', sx);
     ln.setAttribute('y1', sy);
-    ln.setAttribute('x2', right ? tx : tx + ew);
+    ln.setAttribute('x2', isRight ? tx : tx + ew);
     ln.setAttribute('y2', ty + 12);
     dt.setAttribute('cx', sx);
     dt.setAttribute('cy', sy);
