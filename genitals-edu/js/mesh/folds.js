@@ -45,7 +45,8 @@ export function foldPoint(s, side, f, tp, lift) {
     const u = uTop * (1 - s / pf);
     const frm = getTubFrame(u, tp);
     const rV = tubRadius(u, tp, Math.PI / 2);
-    const dx = Math.min(lerp(f.dOpen, 0.006, fuseLocal) * (0.3 + 0.7 * (s / pf)), rV * 0.88);
+    const dxBase = lerp(f.dOpen, 0.006, fuseLocal);
+    const dx = Math.min(dxBase * (0.25 + 0.75 * (s / pf)), rV * 0.90);
     const x = side * dx;
     const y = frm.pos[1] + (rV + lift) * frm.N[1];
     const z = frm.pos[2] + (rV + lift) * frm.N[2];
@@ -57,8 +58,12 @@ export function foldPoint(s, side, f, tp, lift) {
   const dEndpoint = lerp(0.06, f.dEnd, smoothstep(0.3, 0.7, q)); // posterior ends meet (fourchette)
   const dBase = lerp(dEndpoint, f.dPeri, arch);
   const dx = lerp(dBase, 0.006, fuseLocal);
-  const y = frm0.pos[1] - q * f.periLen;
-  const z = lerp(0.12, 0.04, q) + 0.06 * Math.sin(Math.PI * q) + lift;
+  const yPeri = frm0.pos[1] - q * f.periLen;
+  const yMale = lerp(frm0.pos[1], frm0.pos[1] + 0.16, q);
+  const y = lerp(yPeri, yMale, f.fuse);
+  const zPeri = lerp(0.12, 0.04, q) + 0.06 * Math.sin(Math.PI * q) + lift;
+  const zMale = lerp(0.24 + lift, 0.35, q);
+  const z = lerp(zPeri, zMale, f.fuse);
   return [side * dx, y, z];
 }
 
