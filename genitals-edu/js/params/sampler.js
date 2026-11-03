@@ -127,7 +127,7 @@ function penileProfile(u, p, sinV) {
   if (u <= uNeck) return lerp(rShaft, rNeck, smoothstep(uNeck - 0.08, uNeck, u));
   if (u <= uRim) return lerp(rNeck, rRim, smoothstep(uNeck, uRim, u));
   const t = (u - uRim) / (1 - uRim);                    // 0 at corona rim -> 1 at apex
-  return rRim * Math.pow(Math.max(0, 1 - Math.pow(t, 2.2)), 0.55);
+  return rRim * Math.pow(Math.max(0, 1 - Math.pow(t, 1.7)), 0.62);
 }
 
 /**

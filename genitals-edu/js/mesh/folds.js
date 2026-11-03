@@ -40,7 +40,8 @@ export function foldPoint(s, side, f, tp, lift) {
   const fuseLocal = clamp(f.fuse * 1.5 - 0.5 * s, 0, 1);
   const pf = f.phalicFrac;
   if (s <= pf) {
-    const uTop = lerp(0.92, tp.glansU - 0.08, clamp(f.fuse, 0, 1)); // male raphe ends at the frenulum
+    // Unfused folds end below the glans (primordial urethral plate); fused male raphe ends at the frenulum
+    const uTop = lerp(tp.glansU - 0.14, tp.glansU - 0.08, clamp(f.fuse, 0, 1));
     const u = uTop * (1 - s / pf);
     const frm = getTubFrame(u, tp);
     const rV = tubRadius(u, tp, Math.PI / 2);

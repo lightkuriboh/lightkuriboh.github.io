@@ -5,7 +5,7 @@ export const P = {
   S0: { // Week 7 Bipotential Primordium
     tubercle:  { yBase: 0.04, L: 0.82, r0: 0.22, taper: 0.16, tilt: 0.20, bend: 0.00, glans: 0.14, glansU: 0.80, glansW: 0.14, corona: 0.00, sulcus: 0.00, hood: 0.00, shaftFlat: 0.00 },
     folds:     { dOpen: 0.20, dPeri: 0.22, dEnd: 0.10, fuse: 0.00, a: 0.048, b: 0.065, periLen: 0.95, phalicFrac: 0.35, ruffle: 0.00, flange: 0.15, flare: 0.00 },
-    swellings: { yStart: 0.32, yEnd: -0.95, xBase: 0.50, xBulge: 0.08, zBase: 0.02, zBulge: 0.08, rx0: 0.10, rxBulge: 0.10, rz0: 0.07, rzBulge: 0.08, archPow: 0.88, taperPow: 0.30, endPull: 0.05, latK: 1.15, medK: 0.90, fuse: 0.00, antComm: 0.00, postComm: 0.00, bilobe: 0.00, rugae: 0.00 },
+    swellings: { yStart: 0.18, yEnd: -0.78, xBase: 0.56, xBulge: 0.06, zBase: 0.02, zBulge: 0.10, rx0: 0.12, rxBulge: 0.10, rz0: 0.09, rzBulge: 0.09, archPow: 0.90, taperPow: 0.60, endPull: 0.02, latK: 1.15, medK: 0.95, fuse: 0.00, antComm: 0.00, postComm: 0.00, bilobe: 0.00, rugae: 0.00 },
     sinus:     { sx: 0.16, sy: 0.65, y: -0.48, depth: 0.35, open: 1.0, orifices: 0.0, meatus: 0.0 }
   },
   F_Neo: { // Female Neonatal (46,XX early differentiation)

@@ -85,7 +85,7 @@ function scrotumFrame(s, p) {
   const Rmax = p.rx0 + p.rxBulge;
   const Rzmax = p.rz0 + p.rzBulge;
   const R_x = Rmax * prof;
-  const R_z = Rzmax * prof * lerp(0.75, 1.0, smoothstep(-1, 0, a));
+  const R_z = Rzmax * prof * lerp(0.85, 1.18, smoothstep(-1, 0.2, a)); // lower lobe bulges toward viewer
   const X_c = Math.max(R_x * MEDIAL_K, Rmax * 0.30 * smoothstep(0.55, 1.0, a)); // fundus notch between lobes
   const Z_c = p.zBase + p.zBulge * 0.6 * smoothstep(-1, 0.2, a);
   const rootK = 1 - smoothstep(0.15, 0.85, a);                // upper sac rests on perineum; fundus hangs free
@@ -117,7 +117,8 @@ function getMaleScrotumPoint(s, th, side, p) {
           0.20 * Math.cos(48 * F.y + 3.0 * cth * sth)
         )
       : 0;
-    z = F.Z_c + sth * (F.R_z + rugae);
+    // Super-elliptic front (exponent < 1 rounds the "shield" shoulders into egg-like lobes)
+    z = F.Z_c + Math.sign(sth) * Math.pow(Math.abs(sth), 0.80) * (F.R_z + rugae);
     // Median raphe sulcus (shallow groove where the lobes meet)
     const dMid = dx / (F.Rmax * 0.35);
     z -= 0.035 * p.bilobe * Math.exp(-dMid * dMid) * smoothstep(0, 0.3, sth);
