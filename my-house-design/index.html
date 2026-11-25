@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>3D First-Person House Walkthrough — 81.2 m² Redesign</title>
+<title>3D First-Person House Walkthrough</title>
 <style>
   *, *::before, *::after { box-sizing: border-box; }
   html, body {
@@ -330,7 +330,7 @@
       <div class="row-wrap divider-top-sm text-xs" style="gap:10px;">
         <span class="muted font-semibold nowrap">Neighbors:</span>
 
-        <div class="row" style="gap:4px;" title="Existing 4-storey adjacent building on East side (default On)">
+        <div class="row" style="gap:4px;" title="Sample four-storey building on the east side">
           <span class="muted font-medium">East:</span>
           <div class="seg-group seg-group-sm">
             <button data-nbr-side="east" data-nbr-val="4f" class="nbr-btn seg-btn seg-btn-sm active">4F</button>
@@ -347,7 +347,7 @@
           </div>
         </div>
 
-        <div class="row" style="gap:4px;" title="Across South small alley (1.5m): Hide or 4-storey building">
+        <div class="row" style="gap:4px;" title="Across the south path: Hide or 4-storey building">
           <span class="muted font-medium">South:</span>
           <div class="seg-group seg-group-sm">
             <button data-nbr-side="south" data-nbr-val="off" class="nbr-btn seg-btn seg-btn-sm active">Off</button>
@@ -355,7 +355,7 @@
           </div>
         </div>
 
-        <div class="row" style="gap:4px;" title="Across West main road (~2.3m): Hide, 3-storey house with citrus garden, or full row of 4-storey houses">
+        <div class="row" style="gap:4px;" title="Across the west street: Hide, 3-storey house with citrus garden, or full row of 4-storey houses">
           <span class="muted font-medium">West (Road):</span>
           <div class="seg-group seg-group-sm">
             <button data-nbr-side="west" data-nbr-val="off" class="nbr-btn seg-btn seg-btn-sm active">Off</button>
@@ -1315,35 +1315,24 @@
   const op = new MeshBuilder();
   const gls = new MeshBuilder();
 
-  // ---------------- 1. SITE, REALISTIC ~2.3m MAIN ROAD, 1.5m ALLEY, SETBACK & COURTYARD ----------------
+  // ---------------- 1. ILLUSTRATIVE STREET, PATH & COURTYARD ----------------
   op.box(-45, -0.35, -35, 55, -0.04, 48, [0.46, 0.48, 0.44], 6);
-  // Main Road (West — realistic 2.3m neighborhood lane: straight North, angling gently SW past house frontage)
-  const ROAD_W = 2.30;
-  const roadEastX = z => (z <= -0.11 ? -1.25 : -1.25 - 0.23 * (z + 0.11));
-  const roadWestX = z => roadEastX(z) - ROAD_W;
-  // North straight road segment (Z = -24 .. -0.11) & South slanted road segment (Z = -0.11 .. 24)
-  op.prism([[roadWestX(-24),-24], [roadEastX(-24),-24], [roadEastX(-0.11),-0.11], [roadWestX(-0.11),-0.11]], -0.05, 0.01, C_ASPHALT, 2);
-  op.prism([[roadWestX(-0.11),-0.11], [roadEastX(-0.11),-0.11], [roadEastX(24),24], [roadWestX(24),24]], -0.05, 0.01, C_ASPHALT, 2);
-  // Crisp low concrete lane curbs along East & West sides of the 2.3m main road
-  op.wallSeg([roadEastX(-24),-24], [roadEastX(-0.11),-0.11], 0.00, 0.08, 0.10, [0.76,0.77,0.78], 6);
-  op.wallSeg([roadEastX(-0.11),-0.11], [roadEastX(8.80),8.80], 0.00, 0.08, 0.10, [0.76,0.77,0.78], 6);
-  op.wallSeg([roadEastX(10.50),10.50], [roadEastX(24),24], 0.00, 0.08, 0.10, [0.76,0.77,0.78], 6);
-  op.wallSeg([roadWestX(-24),-24], [roadWestX(-0.11),-0.11], 0.00, 0.08, 0.10, [0.75,0.76,0.77], 6);
-  op.wallSeg([roadWestX(-0.11),-0.11], [roadWestX(24),24], 0.00, 0.08, 0.10, [0.75,0.76,0.77], 6);
-  // Shared Alley (South — 1.5m wide connecting cleanly into Main Road at (-3.30, 8.80))
-  op.prism([[roadEastX(8.80)-0.05, 8.80], [26.0, 7.40], [26.0, 9.05], [roadEastX(10.45)-0.05, 10.45]], -0.04, 0.03, C_ALLEY, 6);
-  op.wallSeg([roadEastX(8.80), 8.78], [11.2, 8.08], 0.00, 0.09, 0.12, [0.78,0.79,0.78], 6);
-  op.wallSeg([roadEastX(10.48), 10.48], [26.0, 9.07], 0.00, 0.10, 0.12, [0.74,0.75,0.74], 6);
-  op.prism([[roadEastX(10.50), 10.50], [26.0, 9.10], [26.0, 26.0], [roadEastX(26), 26.0]], -0.04, 0.04, [0.56,0.61,0.52], 7);
-  // Open setback grass strip around West & South (flush against Main Road East curb!)
-  op.prism([[roadEastX(-0.11),-0.11], [10.45,-0.11], [10.75,8.05], [2.20,8.58], [roadEastX(8.80),8.80]], -0.02, 0.09, C_GRASS, 7);
-  op.prism([[roadEastX(5.35),5.35], [-1.75,5.35], [-2.18,7.15], [roadEastX(7.15),7.15]], 0.02, 0.115, C_COURTYARD, 3);
+  const roadEastX = -3.5;
+  const roadWestX = -7.5;
+  op.box(roadWestX, -0.05, -24, roadEastX, 0.01, 24, C_ASPHALT, 2);
+  op.wallSeg([roadWestX, -24], [roadWestX, 24], 0, 0.08, 0.10, [0.75,0.76,0.77], 6);
+  op.wallSeg([roadEastX, -24], [roadEastX, 9], 0, 0.08, 0.10, [0.76,0.77,0.78], 6);
+  op.wallSeg([roadEastX, 11], [roadEastX, 24], 0, 0.08, 0.10, [0.76,0.77,0.78], 6);
+  op.box(roadEastX, -0.04, 9, 26, 0.03, 11, C_ALLEY, 6);
+  op.box(roadEastX, -0.03, 11, 26, 0.04, 26, [0.56,0.61,0.52], 7);
+  op.box(roadEastX, -0.02, -1, 11, 0.09, 9, C_GRASS, 7);
+  op.prism([[roadEastX, 5.35], [-1.75,5.35], [-2.18,7.15], [roadEastX, 7.15]], 0.02, 0.115, C_COURTYARD, 3);
   for (let i = 0; i < 10; i++) {
     const sx = 0.2 + i * 1.05, sz = 7.75 - i * 0.045;
     op.box(sx-0.30, 0.06, sz-0.22, sx+0.30, 0.11, sz+0.22, [0.80,0.80,0.78], 3);
   }
-  // Sổ Đỏ 81.2m² Courtyard plinth (Y = 0.13)
-  op.prism([[-0.19,-0.11], [10.20,-0.11], [10.14,6.84], [-2.21,7.30]], 0.04, 0.13, C_COURTYARD, 3);
+  // Rectangular courtyard plinth
+  op.box(-2.4, 0.04, -0.5, 10.5, 0.13, 7.5, C_COURTYARD, 3);
   // Courtyard low south curb, sliding gate (open), EV charger wallbox (7.4kW), landscaping
   op.wallSeg([-2.12, 7.28], [3.41, 6.79], 0.09, 0.50, 0.16, C_WHITE, 1);
   op.wallSeg([-2.12, 7.28], [3.41, 6.79], 0.50, 0.54, 0.18, [0.76,0.77,0.78], 6);
@@ -1564,23 +1553,23 @@
   op.box(4.86, 9.05, 4.40, 5.74, 9.45, 4.51, C_STAIRWALL, 1);
   op.box(5.74, 6.85, 4.40, 5.905, 9.45, 4.51, C_STAIRWALL, 1);
   addOpenDoorH(op, 5.74, 4.455, 0.88, 6.85, 9.05, -1, false, true); // Walk-out door folded flat against roof parapet!
-  // South Stairwell Wall with Tall Panoramic 4-Pane Window (Y=1.40..5.65) + Upper Tum Window (Y=6.20..8.65)
-  op.box(3.41, 0.13, 6.67, 4.05, 9.45, 6.79, C_STAIRWALL, 1);
-  op.box(5.25, 0.13, 6.67, 5.905, 9.45, 6.79, C_STAIRWALL, 1);
-  op.box(4.05, 0.13, 6.67, 5.25, 1.40, 6.79, C_STAIRWALL, 1);
-  op.box(4.05, 5.65, 6.67, 5.25, 6.20, 6.79, C_STAIRWALL, 1);
-  op.box(4.05, 8.65, 6.67, 5.25, 9.45, 6.79, C_STAIRWALL, 1);
-  // Lower & Upper Stairwell glass windows
-  for (const [wy0, wy1, panes] of [[1.40, 5.65, 4], [6.20, 8.65, 2]]) {
-    op.box(4.05, wy0, 6.69, 4.11, wy1, 6.77, C_CHARCOAL, 5);
-    op.box(5.19, wy0, 6.69, 5.25, wy1, 6.77, C_CHARCOAL, 5);
-    for (let i=0; i<=panes; i++) {
-      const ty = lerp(wy0, wy1, i/panes);
-      op.box(4.05, ty-0.025, 6.69, 5.25, ty+0.025, 6.77, C_CHARCOAL, 5);
-    }
-    gls.quad([4.11, wy0+0.03, 6.73], [5.19, wy0+0.03, 6.73],
-             [5.19, wy1-0.03, 6.73], [4.11, wy1-0.03, 6.73], C_GLASS, 9, [0,0,1]);
+  // High daylight windows leave solid wall behind the winders on both flights.
+  const stairWindows = [[3.40, 4.55], [6.70, 7.85]];
+  const stairSouthInside = 6.67, stairSouthOutside = 6.79;
+  const stairWindowLeft = 4.05, stairWindowRight = 5.25;
+  const stairWindowCenter = (stairSouthInside + stairSouthOutside) / 2;
+  op.box(3.41, 0.13, stairSouthInside, stairWindowLeft, 9.45, stairSouthOutside, C_STAIRWALL, 1);
+  op.box(stairWindowRight, 0.13, stairSouthInside, 5.905, 9.45, stairSouthOutside, C_STAIRWALL, 1);
+  let stairWallBase = 0.13;
+  for (const [sill, head] of stairWindows) {
+    op.box(stairWindowLeft, stairWallBase, stairSouthInside, stairWindowRight, sill, stairSouthOutside, C_STAIRWALL, 1);
+    addWindowFixedSouth(op, gls, stairWindowLeft, stairWindowRight, sill, head, stairWindowCenter, 1);
+    const divider = (sill + head) / 2;
+    op.box(stairWindowLeft, divider - 0.025, stairWindowCenter - 0.04,
+           stairWindowRight, divider + 0.025, stairWindowCenter + 0.04, C_CHARCOAL, 5);
+    stairWallBase = head;
   }
+  op.box(stairWindowLeft, stairWallBase, stairSouthInside, stairWindowRight, 9.45, stairSouthOutside, C_STAIRWALL, 1);
   // Bolted lightweight insulated steel flat roof over Tum Thang (Y = 9.45 .. 9.63)
   op.box(3.28, 9.45, 4.40, 6.04, 9.63, 6.94, C_STEELROOF, 5);
   op.box(3.53, 9.38, 4.51, 5.74, 9.45, 6.67, C_CEIL, 1);
@@ -1589,7 +1578,7 @@
   function buildUStairFlight(yStart, yEnd) {
     const dy = (yEnd - yStart) / 21.0;
     const x0 = 3.53, wx0 = 4.39, wx1 = 4.88, x1 = 5.74;
-    const zStart = 4.43, wy1 = 5.81, zEnd = 6.67;
+    const zStart = 4.43, wy1 = 5.81, zEnd = stairSouthInside;
     const treadD = (wy1 - zStart) / 6.0; // 0.23m
     // West leg: 6 steps (risers 1..6)
     for (let i=0; i<6; i++) {
@@ -1903,7 +1892,7 @@
     }
   }
   // Studio Upright Piano (1.48m × 0.58m × 1.19m) + Padded Bench + Brass Lamp along East interior wall (X=3.16..3.735, Z=1.08..2.56)
-  // Interior partition backed by 60cm Master Wardrobe -> ideal Hanoi acoustic damping & humidity protection!
+  // Interior partition backed by the master wardrobe
   const C_PIANO = [0.10, 0.10, 0.12];
   const C_IVORY = [0.96, 0.95, 0.91];
   const C_EBONY = [0.06, 0.06, 0.07];
@@ -2238,7 +2227,7 @@
     const C_COPE = [0.42, 0.45, 0.48];
     const C_TILE = [0.64, 0.30, 0.21];
 
-    // Simple angled building matching existing neighbor style, flush along frontA -> frontB facing house
+    // Sample building with a facade facing the house
     function addAngledBuilding(frontA, frontB, depth, floors, col, opts = {}) {
       const dx = frontB[0] - frontA[0], dz = frontB[1] - frontA[1];
       const L = Math.hypot(dx, dz) || 1;
@@ -2318,17 +2307,9 @@
       }
     }
 
-    // --- A. EAST NEIGHBOR (Existing Thửa 91, 4F — DEFAULT ON!) ---
+    // --- A. SAMPLE EAST BUILDING ---
     if (cfg.east === '4f') {
-      nb.box(10.42, 0.00, -0.11, 15.80, 13.60, 7.35, C_NEIGHBOR, 6);
-      nb.box(10.38, 13.60, -0.15, 15.84, 13.76, 7.39, C_COPE, 6);
-      for (const wy of [4.4, 7.6, 10.8]) {
-        for (const wz of [1.4, 4.1]) {
-          nb.box(10.37, wy, wz, 10.44, wy + 0.96, wz + 0.72, C_CHARCOAL, 5);
-          ng.quad([10.36, wy + 0.06, wz + 0.06], [10.36, wy + 0.06, wz + 0.66],
-                  [10.36, wy + 0.90, wz + 0.66], [10.36, wy + 0.90, wz + 0.06], C_NWIN, 9, [-1, 0, 0]);
-        }
-      }
+      addAngledBuilding([12, 0], [12, 8], 6, 4, C_NEIGHBOR, { balcony: false, groundWin: true });
     }
 
     // --- B. BACK OF HOUSE (NORTH, behind solid Axis A wall Z = -0.11) ---
@@ -2349,7 +2330,7 @@
       nb.box(-0.11, 0.00, -7.40, 10.10, 13.60, -0.14, [0.76, 0.77, 0.79], 6);
       nb.box(-0.15, 13.60, -7.44, 10.14, 13.76, -0.12, C_COPE, 6);
       nb.box(2.80, 13.76, -5.40, 6.20, 15.25, -2.20, [0.73, 0.74, 0.76], 6); // Simple rooftop stair box
-      // Simple recessed windows on West facade facing the 2.3m main road
+      // Recessed windows on the west facade
       for (const wy of [4.4, 7.6, 10.8]) {
         for (const wz of [-5.8, -3.2]) {
           nb.box(-0.15, wy, wz, -0.09, wy + 1.05, wz + 0.95, C_CHARCOAL, 5);
@@ -2368,94 +2349,28 @@
       addTree(nb, 4.5, -6.5, 0.0, 5.4, 1.9, 6.7);
     }
 
-    // --- C. SOUTH NEIGHBOR (Across 1.5m shared alley Thửa 93 — DEFAULT OFF!) ---
+    // --- C. SAMPLE SOUTH BUILDING ---
     if (cfg.south === '4f') {
-      // Aligned cleanly parallel to the South alley curb (100% clear of the 1.5m alley!)
-      addAngledBuilding([11.20, 9.88], [0.10, 10.40], 6.8, 4, [0.74, 0.75, 0.77], { balcony: true, groundWin: true });
+      addAngledBuilding([10, 12], [1, 12], 7, 4, [0.74, 0.75, 0.77], { balcony: true, groundWin: true });
     }
 
-    // --- D. WEST NEIGHBORS (Across ~2.3m Main Road — DEFAULT OFF!) ---
+    // --- D. SAMPLE WEST BUILDINGS ---
     if (cfg.west === 'garden3f') {
-      // Option 1: 3-Storey House with Lush Citrus Garden, Iron Fence & Tiled-Roof Gate (inspired by site photos!)
-      const gPoly = [
-        [roadWestX(-6.0) - 0.08, -6.0],
-        [roadWestX(-0.11) - 0.08, -0.11],
-        [roadWestX(12.2) - 0.08, 12.2],
-        [-14.5, 12.2], [-14.5, -6.0]
-      ];
-      nb.prism(gPoly, -0.02, 0.06, [0.32, 0.44, 0.25], 7); // Rich garden ground
-
-      // Helper for low masonry base wall + concrete piers + wrought-iron picket fence along road edge
-      function addGardenFence(pA, pB) {
-        const len = Math.hypot(pB[0] - pA[0], pB[1] - pA[1]) || 1;
-        nb.wallSeg(pA, pB, 0.00, 0.34, 0.20, [0.54, 0.55, 0.51], 6); // Weathered lower plinth
-        nb.wallSeg(pA, pB, 0.34, 0.88, 0.18, [0.78, 0.77, 0.73], 6); // Cream-grey masonry wall
-        nb.wallSeg(pA, pB, 0.88, 0.93, 0.21, [0.68, 0.67, 0.64], 6); // Wall cap
-        nb.wallSeg(pA, pB, 1.00, 1.04, 0.035, C_CHARCOAL, 5);        // Lower iron rail
-        nb.wallSeg(pA, pB, 1.78, 1.82, 0.035, C_CHARCOAL, 5);        // Upper iron rail
-        const nBars = Math.max(4, Math.round(len / 0.22));
-        for (let i = 0; i <= nBars; i++) {
-          const t = i / nBars, bx = lerp(pA[0], pB[0], t), bz = lerp(pA[1], pB[1], t);
-          nb.box(bx - 0.012, 0.90, bz - 0.012, bx + 0.012, 1.94, bz + 0.012, C_CHARCOAL, 5);
-        }
-        const nPiers = Math.max(1, Math.round(len / 2.6));
-        for (let i = 0; i <= nPiers; i++) {
-          const t = i / nPiers, px = lerp(pA[0], pB[0], t), pz = lerp(pA[1], pB[1], t);
-          nb.box(px - 0.12, 0.00, pz - 0.12, px + 0.12, 1.95, pz + 0.12, [0.76, 0.75, 0.72], 6);
-        }
-      }
-      const fN = [roadWestX(-5.8) - 0.14, -5.8];
-      const fBend = [roadWestX(-0.11) - 0.14, -0.11];
-      const gateN = [roadWestX(6.10) - 0.14, 6.10];
-      const gateS = [roadWestX(8.15) - 0.14, 8.15];
-      const fS = [roadWestX(12.0) - 0.14, 12.0];
-      addGardenFence(fN, fBend);
-      addGardenFence(fBend, gateN);
-      addGardenFence(gateS, fS);
-
-      // Traditional Tiled-Roof Vietnamese Gate Portal (Cổng mái ngói) at gateN -> gateS
-      const C_GATE_CREAM = [0.89, 0.84, 0.73];
-      for (const gp of [gateN, gateS]) {
-        nb.box(gp[0] - 0.22, 0.00, gp[1] - 0.22, gp[0] + 0.22, 2.55, gp[1] + 0.22, C_GATE_CREAM, 6);
-        nb.box(gp[0] - 0.26, 2.45, gp[1] - 0.26, gp[0] + 0.26, 2.60, gp[1] + 0.26, C_GATE_CREAM, 6);
-      }
-      // Ornate dark iron double gate between gateN and gateS
-      nb.wallSeg(gateN, gateS, 0.12, 0.78, 0.06, [0.16, 0.20, 0.26], 5);
-      nb.wallSeg(gateN, gateS, 2.20, 2.28, 0.06, [0.16, 0.20, 0.26], 5);
-      for (let i = 1; i <= 10; i++) {
-        const t = i / 11, bx = lerp(gateN[0], gateS[0], t), bz = lerp(gateN[1], gateS[1], t);
-        nb.box(bx - 0.015, 0.78, bz - 0.015, bx + 0.015, 2.24, bz + 0.015, [0.16, 0.20, 0.26], 5);
-      }
-      // Pitched terracotta-tiled roof cap over gate portal
-      nb.wallSeg(gateN, gateS, 2.55, 2.74, 0.88, C_TILE, 6);
-      nb.wallSeg(gateN, gateS, 2.74, 2.94, 0.56, C_TILE, 6);
-      nb.wallSeg(gateN, gateS, 2.94, 3.08, 0.24, C_TILE, 6);
-
-      // Lush fruiting pomelo/citrus trees & flowering garden shrubs inside the fence!
-      addCitrusGardenTree(-5.05, 3.65, 0.06, 5.1, 2.05, 1.7);
-      addCitrusGardenTree(-6.45, 7.20, 0.06, 6.0, 2.25, 4.3);
-      addCitrusGardenTree(-4.95, -0.90, 0.06, 4.8, 1.85, 8.2);
-      // Flowering border shrubs + bright red poinsettia accents behind iron fence
-      addHedgeRow(nb, [-4.35, 0.6], [-5.55, 5.7], 0.06, 0.85, 0.45, 3.1);
-      for (let i = 0; i < 8; i++) {
-        const t = (i + 0.5) / 8;
-        const fx = lerp(-4.25, -5.45, t), fz = lerp(0.8, 5.5, t);
-        nb.sphere(fx, 0.96 + (i % 2) * 0.14, fz, 0.11, 0.08, 0.11, [0.78, 0.18, 0.18], 8, 6, 5);
-      }
-
-      // Simple 3-Storey Neighbor House set back ~4.8m behind the lush front garden!
-      addAngledBuilding([-8.90, -2.80], [-10.95, 6.10], 6.4, 3, [0.85, 0.82, 0.77], {
+      nb.box(-20, -0.02, -6, roadWestX, 0.06, 12, [0.32, 0.44, 0.25], 7);
+      addCitrusGardenTree(-10, 0, 0.06, 5, 2, 2);
+      addCitrusGardenTree(-11, 7, 0.06, 5.5, 2, 6);
+      addAngledBuilding([-14, -2], [-14, 7], 6, 3, [0.85, 0.82, 0.77], {
         balcony: true, groundWin: true, roofCol: C_TILE
       });
     } else if (cfg.west === 'row4f') {
-      // Option 2: Full Continuous Row of Simple 4-Storey Houses right across the ~2.3m Main Road!
-      addAngledBuilding([roadWestX(-11.5) - 0.12, -11.5], [roadWestX(-0.22) - 0.12, -0.22], 7.0, 4, [0.76, 0.77, 0.79], {
+      // Option 2: Row of four-storey houses across the street
+      addAngledBuilding([roadWestX - 0.12, -11.5], [roadWestX - 0.12, -0.22], 7.0, 4, [0.76, 0.77, 0.79], {
         balcony: true, groundWin: true, hBonus: 0.25
       });
-      addAngledBuilding([roadWestX(-0.11) - 0.12, -0.11], [roadWestX(7.38) - 0.12, 7.38], 7.2, 4, [0.73, 0.75, 0.77], {
+      addAngledBuilding([roadWestX - 0.12, -0.11], [roadWestX - 0.12, 7.38], 7.2, 4, [0.73, 0.75, 0.77], {
         balcony: true, groundWin: true, hBonus: 0.0
       });
-      addAngledBuilding([roadWestX(7.50) - 0.12, 7.50], [roadWestX(15.2) - 0.12, 15.2], 7.0, 4, [0.75, 0.74, 0.72], {
+      addAngledBuilding([roadWestX - 0.12, 7.50], [roadWestX - 0.12, 15.2], 7.0, 4, [0.75, 0.74, 0.72], {
         balcony: true, groundWin: true, hBonus: 0.40
       });
     }
@@ -2521,7 +2436,7 @@
   const ROOMS = {
     courtyard: { name: 'Courtyard & EV Parking (Sân Xe)', floor: 'F1', area: '12.5 m²', level: 'F1',
       pos: [0.95, 0.13, 6.20], yaw: 0.28, pitch: 0.08,
-      desc: 'Sổ Đỏ stone courtyard • 7.4kW EV Wallbox next to Col 2B • Sliding West gate & open setback greenery' },
+      desc: 'Stone courtyard • 7.4kW EV Wallbox next to Col 2B • Sliding West gate & open setback greenery' },
     living:    { name: 'Living Room (Phòng Khách)', floor: 'F1', area: '13.8 m²', level: 'F1',
       pos: [1.05, 0.22, 3.72], yaw: 0.56, pitch: -0.04,
       desc: 'Japandi oak & oatmeal linen layout • Fluted walnut TV wall • 4-panel South glass door to courtyard' },
@@ -2539,13 +2454,13 @@
       desc: 'Quiet 1-story garden bedroom • 1.5×2.0m platform bed • 1.35m wardrobe • 1.8m wide South window' },
     stair1:    { name: 'External 21-Step U-Staircase', floor: 'F1→F2', area: '4.8 m²', level: 'STAIR1',
       pos: [3.96, 0.42, 4.65], yaw: 2.86, pitch: 0.22,
-      desc: '860mm wide oak-tread steel U-stair outside core • Tall 4-pane South window • Walk straight up to F2 & Roof' },
+      desc: '860mm wide oak-tread steel U-stair • Solid wall at the winders • High south daylight windows' },
     working:   { name: 'Working Room (Phòng Làm Việc)', floor: 'F2', area: '14.9 m²', level: 'F2',
       pos: [0.92, 3.55, 3.58], yaw: 0.56, pitch: -0.04,
       desc: '1.65m walnut standing desk by West window • 2.2m walnut bookshelf • 1.48m studio upright piano & padded bench' },
     lbalcony:  { name: 'Wrap-Around L-Balcony', floor: 'F2', area: '8.1 m²', level: 'F2',
       pos: [-0.95, 3.55, 5.02], yaw: 0.72, pitch: -0.02,
-      desc: 'Connects Road & Alley wings inside Sổ Đỏ • Tempered glass railing • Movable West wood sun-shading louvers' },
+      desc: 'Connects both balcony wings • Tempered glass railing • Movable West wood sun-shading louvers' },
     master:    { name: 'Master Bedroom (Phòng Master)', floor: 'F2', area: '16.5 m²', level: 'F2',
       pos: [7.65, 3.55, 3.62], yaw: -0.78, pitch: -0.04,
       desc: 'King bed on ribbed walnut feature wall • 2.7m fluted wardrobe • Bright SE vanity • 2.8m panoramic balcony door' },
@@ -2599,10 +2514,9 @@
       rects.push([4.44, 4.26, 6.07, 4.54], [6.91, 4.38, 9.75, 4.54]);
       // WC1 partition (open door Z=1.85..2.60)
       rects.push([7.76, 0.11, 7.91, 1.84], [7.76, 2.61, 7.91, 2.78], [7.76, 2.64, 9.52, 2.78]);
-      // Stairwell exterior walls (blocking courtyard & PN1 from entering stair side walls)
+      // Stairwell side walls and the continuous south wall shared with the bedroom.
       rects.push([3.39, 4.50, 3.54, 6.81], [5.73, 4.50, 5.92, 6.81]);
-      // PN1 East & South outer walls
-      rects.push([9.56, 4.50, 9.75, 6.81], [5.73, 6.65, 9.75, 6.81]);
+      rects.push([9.56, 4.50, 9.75, 6.81], [3.39, 6.65, 9.75, 6.81]);
       // Courtyard South low curb
       rects.push([-2.15, 6.78, 3.45, 7.36]);
       // Key solid furniture colliders (gentle clearance so you never walk inside counters/beds/fridge)
@@ -2684,9 +2598,10 @@
     if (x > 7.82 && x < 9.52 && z > 0.08 && z < 2.68) return 0.17; // WC1 sunken floor
     if (x > -0.08 && x < 9.65 && z > -0.05 && z < 4.45) return 0.22; // Core F1
     if (x > 5.85 && x < 9.65 && z >= 4.45 && z < 6.72) return 0.22; // PN1
-    if (x > -2.3 && x < 10.2 && z > -0.2 && z < 7.3) return 0.13; // Courtyard plinth
-    if (z > 8.6) return 0.03; // Alley
-    if (x < -2.6) return 0.00; // Main road
+    if (x > -2.4 && x < 10.5 && z > -0.5 && z < 7.5) return 0.13; // Courtyard plinth
+    if (x >= roadWestX && x < roadEastX) return 0.01; // Street
+    if (z >= 11) return 0.04;
+    if (z >= 9) return 0.03; // Path
     return 0.09; // Grass setback
   }
 
@@ -2697,7 +2612,7 @@
         name: level === 'STAIR1' ? 'External Staircase (F1 → F2)' : 'Tum Thang Staircase (F2 → Roof)',
         floor: level === 'STAIR1' ? 'F1→F2' : 'F2→Roof',
         area: '4.8 m²',
-        desc: 'Walkable 21-step solid oak & steel U-stair • Tall South daylight window • Zero interior floor loss'
+        desc: '21-step oak and steel U-stair • Solid wall at the winders • High south daylight window'
       };
     }
     if (level === 'F2') {
@@ -2764,7 +2679,7 @@
   rebuildSlidingDoors(doorsOpen);
   rebuildNeighbors(nbrCfg);
 
-  // Physical Hanoi (21°N) sun direction: 05:30 pre-dawn East (+X) -> 12:15 high South (+Z) -> 18:00 West (-X) -> Night
+  // Illustrative sun direction: 05:30 pre-dawn East (+X) -> 12:15 high South (+Z) -> 18:00 West (-X) -> Night
   function getSunLighting(hour) {
     // Daylight span: sunrise ~5.95, solar noon ~12.15, sunset ~18.35
     const t = (hour - 12.15) / 6.20; // -1 at sunrise, 0 at noon, +1 at sunset
@@ -3356,26 +3271,27 @@
       player.x += dx; player.z += dz;
       return true;
     }
-    const nx = player.x + dx, nz = player.z + dz;
+    const previousZ = player.z;
+    const nx = player.x + dx, nz = previousZ + dz;
     let moved = false;
     if (!pointBlocked(nx, player.z, player.level, doorsOpen)) { player.x = nx; moved = true; }
     if (!pointBlocked(player.x, nz, player.level, doorsOpen)) { player.z = nz; moved = true; }
 
-    // Seamless level transitions at Staircase portals!
+    // Change levels only when crossing the north stair threshold through a doorway.
     const px = player.x, pz = player.z;
-    if (player.level === 'F1') {
-      if (pz > 4.44 && px >= 3.50 && px <= 4.44) player.level = 'STAIR1';
-    } else if (player.level === 'STAIR1') {
-      if (pz <= 4.44 && px < 4.55) player.level = 'F1';
-      else if (pz <= 4.44 && px >= 4.78) player.level = 'F2';
-    } else if (player.level === 'F2') {
-      if (pz > 4.44 && px >= 4.82 && px <= 5.76) player.level = 'STAIR1';
-      else if (pz > 4.44 && px >= 3.50 && px <= 4.44) player.level = 'STAIR2';
-    } else if (player.level === 'STAIR2') {
-      if (pz <= 4.44 && px < 4.55) player.level = 'F2';
-      else if (pz <= 4.44 && px >= 4.78) player.level = 'ROOF';
-    } else if (player.level === 'ROOF') {
-      if (pz > 4.44 && px >= 4.80 && px <= 5.76) player.level = 'STAIR2';
+    const westDoor = px >= 3.53 && px <= 4.39;
+    const eastDoor = px >= 4.88 && px <= 5.74;
+    const threshold = 4.44;
+    if (previousZ <= threshold && pz > threshold) {
+      if (player.level === 'F1' && westDoor) player.level = 'STAIR1';
+      else if (player.level === 'F2' && eastDoor) player.level = 'STAIR1';
+      else if (player.level === 'F2' && westDoor) player.level = 'STAIR2';
+      else if (player.level === 'ROOF' && eastDoor) player.level = 'STAIR2';
+    } else if (previousZ > threshold && pz <= threshold) {
+      if (player.level === 'STAIR1' && westDoor) player.level = 'F1';
+      else if (player.level === 'STAIR1' && eastDoor) player.level = 'F2';
+      else if (player.level === 'STAIR2' && westDoor) player.level = 'F2';
+      else if (player.level === 'STAIR2' && eastDoor) player.level = 'ROOF';
     }
 
     const targetY = getFloorElevation(player.x, player.z, player.level);
