@@ -1,0 +1,3525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>3D First-Person House Walkthrough</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; user-select: none;
+    background: var(--background); color: var(--foreground);
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 14px; line-height: 1.4; -webkit-font-smoothing: antialiased;
+  }
+  button {
+    font: inherit; color: inherit; background: transparent; border: none; padding: 0; margin: 0; cursor: pointer;
+  }
+  h1, p { margin: 0; }
+  #glcanvas { display: block; width: 100vw; height: 100vh; cursor: grab; outline: none; }
+  #glcanvas:active { cursor: grabbing; }
+  body.fps-active, body.fps-active *, body.fps-active #glcanvas { cursor: none !important; }
+  body.fps-active .hud-panel { pointer-events: none !important; opacity: 0.68; }
+  .hud-panel { pointer-events: auto; transition: opacity 0.2s ease; }
+  .hud-blur {
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    background-color: color-mix(in srgb, var(--card) 88%, transparent);
+    border: 1px solid var(--border);
+    box-shadow: 0 10px 24px -6px rgba(0, 0, 0, 0.22);
+  }
+  .hidden { display: none !important; }
+  .flex { display: flex; }
+
+  /* Center FPS Crosshair Reticle */
+  #crosshair {
+    position: fixed; inset: 0; pointer-events: none; z-index: 20;
+    align-items: center; justify-content: center;
+  }
+  .reticle-box {
+    position: relative; width: 24px; height: 24px;
+    display: flex; align-items: center; justify-content: center; opacity: 0.95;
+  }
+  .reticle-dot {
+    width: 4px; height: 4px; border-radius: 999px; background: #fff;
+    box-shadow: 0 0 3px rgba(0, 0, 0, 0.95);
+  }
+  .reticle-tick {
+    position: absolute; background: rgba(255, 255, 255, 0.92);
+    box-shadow: 0 0 2px rgba(0, 0, 0, 0.95);
+  }
+  .reticle-t { top: 0; left: 50%; transform: translateX(-50%); width: 1.5px; height: 6px; }
+  .reticle-b { bottom: 0; left: 50%; transform: translateX(-50%); width: 1.5px; height: 6px; }
+  .reticle-l { left: 0; top: 50%; transform: translateY(-50%); height: 1.5px; width: 6px; }
+  .reticle-r { right: 0; top: 50%; transform: translateY(-50%); height: 1.5px; width: 6px; }
+
+  /* HUD Layout */
+  #hud-root {
+    position: fixed; inset: 0; pointer-events: none; z-index: 10;
+    display: flex; flex-direction: column; justify-content: space-between;
+    padding: 12px; gap: 8px;
+  }
+  .hud-top-stack { display: flex; flex-direction: column; gap: 8px; }
+  .hud-bar { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; }
+  .hud-bar-top { align-items: flex-start; }
+  .hud-bar-bot { align-items: flex-end; }
+  .hud-card { border-radius: 12px; padding: 10px 14px; }
+  .hud-card-sm { border-radius: 12px; padding: 8px; }
+  .card-room { max-width: 512px; }
+  .card-nav { max-width: 576px; }
+  .card-controls { max-width: 780px; width: 100%; }
+  .card-map { display: none; }
+  @media (min-width: 640px) {
+    .card-controls { width: auto; }
+    .card-map { display: block; }
+  }
+
+  .row { display: flex; align-items: center; gap: 8px; }
+  .row-wrap { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+  .row-between { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .divider-top { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); }
+  .divider-top-sm { margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border); }
+  .text-xs { font-size: 12px; }
+  .text-sm { font-size: 14px; }
+  .font-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+  .font-medium { font-weight: 500; }
+  .font-semibold { font-weight: 600; }
+  .muted { color: var(--muted-foreground); }
+  .primary-txt { color: var(--primary); }
+  .nowrap { white-space: nowrap; }
+  .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .min-w-0 { min-width: 0; }
+  .shrink-0 { flex-shrink: 0; }
+
+  .room-dot { width: 10px; height: 10px; border-radius: 999px; background: #10b981; flex-shrink: 0; display: inline-block; }
+  .room-badge { font-size: 12px; padding: 2px 8px; border-radius: 6px; background: var(--accent); color: var(--foreground); flex-shrink: 0; }
+  .room-desc { font-size: 12px; color: var(--muted-foreground); margin-top: 4px; line-height: 1.35; }
+
+  .seg-group {
+    display: inline-flex; border-radius: 8px; border: 1px solid var(--border); overflow: hidden; font-size: 12px;
+  }
+  .seg-group-sm { border-radius: 6px; }
+  .seg-btn { padding: 4px 10px; font-weight: 500; color: var(--foreground); transition: background 0.15s, color 0.15s; }
+  .seg-btn-sm { padding: 2px 8px; }
+  .seg-btn:hover { background: var(--accent); }
+  .seg-btn.active { background: var(--primary); color: var(--primary-foreground); }
+
+  .btn-outline {
+    padding: 4px 10px; border-radius: 8px; font-size: 12px; font-weight: 500;
+    border: 1px solid var(--border); color: var(--foreground); transition: background 0.15s, color 0.15s;
+  }
+  .btn-outline-muted { padding: 4px 8px; color: var(--muted-foreground); }
+  .btn-outline:hover { background: var(--accent); }
+  .btn-primary {
+    padding: 4px 10px; border-radius: 8px; font-size: 12px; font-weight: 600;
+    background: var(--primary); color: var(--primary-foreground);
+    display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0; transition: opacity 0.15s;
+  }
+  .btn-primary:hover { opacity: 0.9; }
+  .btn-primary-on {
+    background: var(--primary) !important; color: var(--primary-foreground) !important; border-color: transparent !important;
+  }
+
+  .room-btn, .time-chip {
+    padding: 4px 8px; border-radius: 6px; font-size: 12px;
+    border: 1px solid var(--border); color: var(--foreground); transition: background 0.15s, color 0.15s;
+  }
+  .time-chip { padding: 2px 8px; }
+  .room-btn:hover, .time-chip:hover { background: var(--accent); }
+  .room-btn.active, .time-chip.active {
+    background: var(--primary); color: var(--primary-foreground); border-color: transparent;
+  }
+
+  /* Centered Floating Banner & Hint Row */
+  .status-row { display: flex; flex-direction: column; align-items: center; gap: 6px; pointer-events: none; }
+  .status-pill {
+    border-radius: 999px; padding: 5px 14px; font-size: 12px;
+    display: inline-flex; align-items: center; gap: 8px; white-space: nowrap;
+  }
+  .status-pill-active { border-color: color-mix(in srgb, var(--primary) 65%, transparent); }
+  .pulse-dot {
+    width: 8px; height: 8px; border-radius: 999px; background: var(--primary);
+    animation: pulseFade 1.5s ease-in-out infinite;
+  }
+  @keyframes pulseFade { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+  #walkHint { transition: opacity 0.65s ease; }
+  .sep-dot { opacity: 0.4; }
+
+  /* Sliders, Checkboxes & Minimap */
+  input[type="range"] { cursor: pointer; accent-color: var(--primary); }
+  input[type="checkbox"] { cursor: pointer; accent-color: var(--primary); }
+  .time-label { display: flex; align-items: center; gap: 8px; font-size: 12px; flex: 1; min-width: 210px; }
+  .time-range { flex: 1; min-width: 120px; }
+  .time-val { min-width: 116px; text-align: right; }
+  .louver-range { width: 80px; }
+  .louver-val { width: 32px; }
+  .chk-label { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 500; }
+  .map-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; padding: 0 4px; }
+  #minimap { cursor: pointer; display: block; border-radius: 8px; border: 1px solid var(--border); }
+  .map-foot {
+    font-size: 12px; color: var(--muted-foreground); margin-top: 4px; padding: 0 4px;
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  }
+  #btnShowHud {
+    position: fixed; top: 12px; right: 12px; z-index: 20;
+    border-radius: 12px; padding: 6px 12px; font-size: 12px; font-weight: 500; color: var(--foreground);
+  }
+  #btnShowHud:hover { background: var(--accent); }
+</style>
+</head>
+<body>
+<canvas id="glcanvas" tabindex="0"></canvas>
+
+<!-- Center FPS Crosshair Reticle (pinned directly to center of scene when Pointer Lock is active) -->
+<div id="crosshair" class="hidden">
+  <div class="reticle-box">
+    <div class="reticle-dot"></div>
+    <div class="reticle-tick reticle-t"></div>
+    <div class="reticle-tick reticle-b"></div>
+    <div class="reticle-tick reticle-l"></div>
+    <div class="reticle-tick reticle-r"></div>
+  </div>
+</div>
+
+<!-- HUD Wrapper -->
+<div id="hud-root">
+
+  <!-- TOP SECTION (Top Bar + Non-Overlapping Status Pill Row) -->
+  <div class="hud-top-stack">
+    <!-- TOP BAR -->
+    <div id="hudTopBar" class="hud-bar hud-bar-top">
+      <!-- Left: Live Room Indicator & Mode Switch -->
+      <div class="hud-panel hud-blur hud-card card-room">
+        <div class="row-between">
+          <div class="row min-w-0">
+            <span id="roomDot" class="room-dot"></span>
+            <h1 id="roomTitle" class="text-sm font-semibold truncate">Living Room (Phòng Khách)</h1>
+          </div>
+          <span id="roomFloorBadge" class="room-badge font-mono">F1 • 13.8 m²</span>
+        </div>
+        <p id="roomDesc" class="room-desc">
+          Japandi oak &amp; oatmeal linen layout • 4-panel South glass door to courtyard • Fluted walnut TV wall
+        </p>
+        <div class="row-wrap divider-top">
+          <div class="seg-group">
+            <button id="modeFP" class="seg-btn active">First-Person</button>
+            <button id="modeOrbit" class="seg-btn">Exterior 360°</button>
+          </div>
+          <button id="btnFpsLook" class="btn-outline" title="Trap mouse pointer at center of scene like an FPS game (M or Right-Click; Esc to release)">
+            FPS Aim (M / R-Click)
+          </button>
+          <button id="btnNoClip" class="btn-outline btn-outline-muted" title="Toggle Free-Fly mode (V)">
+            Walk
+          </button>
+          <button id="btnHideHud" class="btn-outline btn-outline-muted" title="Hide HUD (H)">
+            Hide HUD
+          </button>
+        </div>
+      </div>
+
+      <!-- Right: Quick Room Teleport Pills -->
+      <div class="hud-panel hud-blur hud-card-sm card-nav">
+        <div class="row-wrap text-xs" style="gap:4px;">
+          <span class="font-mono font-semibold muted" style="padding:0 6px;">F1:</span>
+          <button data-room="courtyard" class="room-btn">Courtyard</button>
+          <button data-room="living" class="room-btn active">Living</button>
+          <button data-room="dining" class="room-btn">Dining</button>
+          <button data-room="kitchen" class="room-btn">Kitchen</button>
+          <button data-room="wc1" class="room-btn">WC 1</button>
+          <button data-room="pn1" class="room-btn">Bedroom 1</button>
+          <button data-room="stair1" class="room-btn">Stairs F1→F2</button>
+        </div>
+        <div class="row-wrap text-xs divider-top-sm" style="gap:4px;">
+          <span class="font-mono font-semibold muted" style="padding:0 6px;">F2:</span>
+          <button data-room="working" class="room-btn">Working</button>
+          <button data-room="lbalcony" class="room-btn">L-Balcony</button>
+          <button data-room="master" class="room-btn">Master Bed</button>
+          <button data-room="wcmaster" class="room-btn">WC Master</button>
+          <button data-room="ebalcony" class="room-btn">East Balc.</button>
+          <button data-room="stair2" class="room-btn">Stairs →Roof</button>
+          <span class="font-mono font-semibold muted" style="padding:0 4px 0 6px;">Roof:</span>
+          <button data-room="rooftop" class="room-btn">Solar Terrace</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Centered Status / Hint Row (flows cleanly below Top Bar with zero overlap at any width) -->
+    <div class="status-row">
+      <div id="fpsBanner" class="hidden">
+        <div class="hud-blur status-pill status-pill-active">
+          <span id="fpsBannerDot" class="pulse-dot"></span>
+          <span id="fpsBannerText" class="font-medium">FPS Mouse Trapped at Center • Move mouse to look • M, Right-Click, or Esc to release</span>
+        </div>
+      </div>
+      <div id="walkHint">
+        <div class="hud-blur status-pill">
+          <span class="font-semibold primary-txt">Walk:</span>
+          <span>WASD / Arrows</span>
+          <span class="sep-dot">•</span>
+          <span class="font-semibold primary-txt">Trap Mouse (FPS):</span>
+          <span>Press M or Right-Click (Esc to release)</span>
+          <span class="sep-dot">•</span>
+          <span>Walk stairs F1 → F2 → Roof</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM BAR -->
+  <div id="hudBottomBar" class="hud-bar hud-bar-bot">
+    <!-- Bottom-Left: Time-of-Day Lighting & Architectural Controls -->
+    <div class="hud-panel hud-blur hud-card card-controls">
+      <!-- Time of Day Row -->
+      <div class="row-wrap" style="gap:10px;">
+        <button id="btnPlaySun" class="btn-primary">
+          <span id="playIcon">▶</span><span>Day Cycle</span>
+        </button>
+        <label class="time-label">
+          <span class="muted font-medium nowrap">Time of Day</span>
+          <input id="sunHour" type="range" min="5.5" max="22.0" step="0.05" value="9.8" class="time-range" />
+          <span id="sunHourVal" class="font-mono font-semibold nowrap time-val">09:48 • Morning</span>
+        </label>
+      </div>
+
+      <!-- Quick Time Chips -->
+      <div class="row-wrap" style="gap:4px; margin-top:8px;">
+        <button data-hour="6.25" class="time-chip">06:15 Dawn</button>
+        <button data-hour="9.8" class="time-chip active">09:45 Morning</button>
+        <button data-hour="12.5" class="time-chip">12:30 Noon</button>
+        <button data-hour="15.75" class="time-chip">15:45 West Sun</button>
+        <button data-hour="17.75" class="time-chip">17:45 Sunset</button>
+        <button data-hour="20.5" class="time-chip">20:30 Night</button>
+      </div>
+
+      <!-- Architecture & 1:1 Scale Controls Row -->
+      <div class="row-wrap divider-top text-xs" style="gap:12px;">
+        <label class="row">
+          <span class="muted font-medium nowrap">West Louvers:</span>
+          <input id="louverSlide" type="range" min="0" max="1" step="0.02" value="0.45" class="louver-range" />
+          <span id="louverVal" class="font-mono font-semibold louver-val">45%</span>
+        </label>
+
+        <div class="row" style="gap:4px;">
+          <span class="muted font-medium">Lights:</span>
+          <div class="seg-group seg-group-sm">
+            <button data-lights="auto" class="light-btn seg-btn seg-btn-sm active">Auto</button>
+            <button data-lights="on" class="light-btn seg-btn seg-btn-sm">On</button>
+            <button data-lights="off" class="light-btn seg-btn seg-btn-sm">Off</button>
+          </div>
+        </div>
+
+        <div class="row" style="gap:4px;" title="True 1:1 human eye FOV (52° vertical) vs wide architectural lens (66°)">
+          <span class="muted font-medium">Lens:</span>
+          <div class="seg-group seg-group-sm">
+            <button data-fov="52" class="fov-btn seg-btn seg-btn-sm active">1:1 (52°)</button>
+            <button data-fov="66" class="fov-btn seg-btn seg-btn-sm">Wide</button>
+          </div>
+        </div>
+
+        <label class="chk-label">
+          <input id="doorsOpen" type="checkbox" checked />
+          <span>Glass Doors</span>
+        </label>
+
+        <label class="chk-label" title="Show 1.00 m × 1.00 m floor grid to verify real 1:1 dimensions (G)">
+          <input id="showGrid" type="checkbox" />
+          <span>1m Grid</span>
+        </label>
+      </div>
+
+      <!-- Adjacent Neighbor Buildings Row (real-time shadow casting & urban context!) -->
+      <div class="row-wrap divider-top-sm text-xs" style="gap:10px;">
+        <span class="muted font-semibold nowrap">Neighbors:</span>
+
+        <div class="row" style="gap:4px;" title="Sample four-storey building on the east side">
+          <span class="muted font-medium">East:</span>
+          <div class="seg-group seg-group-sm">
+            <button data-nbr-side="east" data-nbr-val="4f" class="nbr-btn seg-btn seg-btn-sm active">4F</button>
+            <button data-nbr-side="east" data-nbr-val="off" class="nbr-btn seg-btn seg-btn-sm">Off</button>
+          </div>
+        </div>
+
+        <div class="row" style="gap:4px;" title="Back of house (North solid wall): Hide, 1-storey house, or 4-storey building">
+          <span class="muted font-medium">Back (N):</span>
+          <div class="seg-group seg-group-sm">
+            <button data-nbr-side="back" data-nbr-val="off" class="nbr-btn seg-btn seg-btn-sm active">Off</button>
+            <button data-nbr-side="back" data-nbr-val="1f" class="nbr-btn seg-btn seg-btn-sm">1F</button>
+            <button data-nbr-side="back" data-nbr-val="4f" class="nbr-btn seg-btn seg-btn-sm">4F</button>
+          </div>
+        </div>
+
+        <div class="row" style="gap:4px;" title="Across the south path: Hide or 4-storey building">
+          <span class="muted font-medium">South:</span>
+          <div class="seg-group seg-group-sm">
+            <button data-nbr-side="south" data-nbr-val="off" class="nbr-btn seg-btn seg-btn-sm active">Off</button>
+            <button data-nbr-side="south" data-nbr-val="4f" class="nbr-btn seg-btn seg-btn-sm">4F</button>
+          </div>
+        </div>
+
+        <div class="row" style="gap:4px;" title="Across the west street: Hide, 3-storey house with citrus garden, or full row of 4-storey houses">
+          <span class="muted font-medium">West (Road):</span>
+          <div class="seg-group seg-group-sm">
+            <button data-nbr-side="west" data-nbr-val="off" class="nbr-btn seg-btn seg-btn-sm active">Off</button>
+            <button data-nbr-side="west" data-nbr-val="garden3f" class="nbr-btn seg-btn seg-btn-sm">3F+Garden</button>
+            <button data-nbr-side="west" data-nbr-val="row4f" class="nbr-btn seg-btn seg-btn-sm">4F Row</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom-Right: Live Interactive 2D Floor Plan Minimap -->
+    <div class="hud-panel hud-blur hud-card-sm card-map">
+      <div class="map-head">
+        <span class="text-xs font-semibold">1:1 Floor Plan Map</span>
+        <div class="seg-group seg-group-sm">
+          <button data-mapfloor="F1" class="map-floor-btn seg-btn seg-btn-sm active font-mono">F1</button>
+          <button data-mapfloor="F2" class="map-floor-btn seg-btn seg-btn-sm font-mono">F2</button>
+          <button data-mapfloor="ROOF" class="map-floor-btn seg-btn seg-btn-sm font-mono">Roof</button>
+        </div>
+      </div>
+      <canvas id="minimap" width="236" height="156"></canvas>
+      <div class="map-foot font-mono">
+        <span id="scaleReadout">X 1.05m • Z 3.72m</span>
+        <span>Eye 1.60m • ↑N</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Restore HUD Pill (visible only when HUD is hidden) -->
+<button id="btnShowHud" class="hidden hud-blur">
+  Show Controls (H)
+</button>
+
+<script>
+(() => {
+  // Apply default light/dark theme variables when host theme tokens are not provided
+  (function ensureStandaloneTheme() {
+    const cs = getComputedStyle(document.documentElement);
+    if (cs.getPropertyValue('--card').trim()) return;
+    const apply = (dark) => {
+      document.documentElement.classList.toggle('light', !dark);
+      const t = dark ? {
+        '--background': '#0b1120', '--foreground': '#f1f5f9', '--card': '#0f172a',
+        '--border': '#334155', '--primary': '#3b82f6', '--primary-foreground': '#ffffff',
+        '--accent': '#1e293b', '--muted-foreground': '#94a3b8'
+      } : {
+        '--background': '#f8fafc', '--foreground': '#0f172a', '--card': '#ffffff',
+        '--border': '#cbd5e1', '--primary': '#2563eb', '--primary-foreground': '#ffffff',
+        '--accent': '#e2e8f0', '--muted-foreground': '#475569'
+      };
+      for (const [k, v] of Object.entries(t)) document.documentElement.style.setProperty(k, v);
+      window.dispatchEvent(new Event('themechange'));
+    };
+    const mq = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
+    apply(mq ? mq.matches : true);
+    if (mq && mq.addEventListener) mq.addEventListener('change', e => apply(e.matches));
+  })();
+
+  const params = new URLSearchParams(window.location.search);
+  const SNAP_MODE = params.has('snap') || params.get('hud') === '0';
+  const hudRoot = document.getElementById('hud-root');
+  const walkHint = document.getElementById('walkHint');
+  if (params.get('hud') === '0') {
+    hudRoot.style.display = 'none';
+    walkHint.style.display = 'none';
+  }
+
+  const canvas = document.getElementById('glcanvas');
+  const gl = canvas.getContext('webgl2', { antialias: true, preserveDrawingBuffer: true, alpha: false });
+  if (!gl) {
+    document.body.innerHTML = '<div style="padding:24px;font-family:sans-serif">WebGL2 is not supported in this browser.</div>';
+    return;
+  }
+
+  // ==================== VECTOR & MATRIX MATH ====================
+  const V3 = {
+    sub: (a, b) => [a[0]-b[0], a[1]-b[1], a[2]-b[2]],
+    add: (a, b) => [a[0]+b[0], a[1]+b[1], a[2]+b[2]],
+    scale: (a, s) => [a[0]*s, a[1]*s, a[2]*s],
+    dot: (a, b) => a[0]*b[0] + a[1]*b[1] + a[2]*b[2],
+    cross: (a, b) => [a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0]],
+    len: a => Math.hypot(a[0], a[1], a[2]),
+    norm: a => { const l = Math.hypot(a[0], a[1], a[2]) || 1; return [a[0]/l, a[1]/l, a[2]/l]; }
+  };
+  const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const smoothstep = (e0, e1, x) => { const t = clamp((x - e0) / (e1 - e0), 0, 1); return t * t * (3 - 2 * t); };
+
+  function mat4Mul(a, b) {
+    const o = new Float32Array(16);
+    for (let c = 0; c < 4; c++) {
+      for (let r = 0; r < 4; r++) {
+        o[c*4+r] = a[0*4+r]*b[c*4+0] + a[1*4+r]*b[c*4+1] + a[2*4+r]*b[c*4+2] + a[3*4+r]*b[c*4+3];
+      }
+    }
+    return o;
+  }
+  function mat4Perspective(fovRad, aspect, near, far) {
+    const f = 1 / Math.tan(fovRad / 2), nf = 1 / (near - far);
+    const o = new Float32Array(16);
+    o[0] = f / aspect; o[5] = f; o[10] = (far + near) * nf; o[11] = -1; o[14] = 2 * far * near * nf;
+    return o;
+  }
+  function mat4Ortho(l, r, b, t, n, f) {
+    const o = new Float32Array(16);
+    o[0] = 2/(r-l); o[5] = 2/(t-b); o[10] = -2/(f-n);
+    o[12] = -(r+l)/(r-l); o[13] = -(t+b)/(t-b); o[14] = -(f+n)/(f-n); o[15] = 1;
+    return o;
+  }
+  function mat4LookAt(eye, target, up) {
+    const z = V3.norm(V3.sub(eye, target));
+    const x = V3.norm(V3.cross(up, z));
+    const y = V3.cross(z, x);
+    const o = new Float32Array(16);
+    o[0]=x[0]; o[1]=y[0]; o[2]=z[0]; o[3]=0;
+    o[4]=x[1]; o[5]=y[1]; o[6]=z[1]; o[7]=0;
+    o[8]=x[2]; o[9]=y[2]; o[10]=z[2]; o[11]=0;
+    o[12]=-V3.dot(x,eye); o[13]=-V3.dot(y,eye); o[14]=-V3.dot(z,eye); o[15]=1;
+    return o;
+  }
+
+  // ==================== SHADERS ====================
+  function compileShader(type, src) {
+    const s = gl.createShader(type);
+    gl.shaderSource(s, src);
+    gl.compileShader(s);
+    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s));
+    return s;
+  }
+  function makeProgram(vs, fs) {
+    const p = gl.createProgram();
+    gl.attachShader(p, compileShader(gl.VERTEX_SHADER, vs));
+    gl.attachShader(p, compileShader(gl.FRAGMENT_SHADER, fs));
+    gl.linkProgram(p);
+    if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p));
+    return p;
+  }
+
+  // 1) 24-Hour Atmospheric Sky Dome Shader (Dawn -> Day -> Golden Hour -> Sunset -> Starry Night)
+  const skyProg = makeProgram(`#version 300 es
+    const vec2 P[3] = vec2[](vec2(-1.0,-1.0), vec2(3.0,-1.0), vec2(-1.0,3.0));
+    out vec2 vUV;
+    void main(){
+      vUV = P[gl_VertexID] * 0.5 + 0.5;
+      gl_Position = vec4(P[gl_VertexID], 0.9999, 1.0);
+    }`, `#version 300 es
+    precision highp float;
+    in vec2 vUV;
+    uniform vec3 uCamRight, uCamUp, uCamFwd;
+    uniform float uTanHalfFov, uAspect;
+    uniform vec3 uSunDir;
+    uniform float uDayFactor;
+    uniform float uTwilight;
+    out vec4 outColor;
+
+    float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7))) * 43758.5453123); }
+    float noise(vec2 p){
+      vec2 i=floor(p), f=fract(p);
+      f = f*f*(3.0-2.0*f);
+      return mix(mix(hash(i),hash(i+vec2(1,0)),f.x), mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),f.x), f.y);
+    }
+    float fbm(vec2 p){
+      float v=0.0, a=0.5;
+      for(int i=0;i<4;i++){ v+=a*noise(p); p*=2.05; a*=0.5; }
+      return v;
+    }
+
+    void main(){
+      vec2 ndc = vUV * 2.0 - 1.0;
+      vec3 dir = normalize(uCamFwd + uCamRight * (ndc.x * uAspect * uTanHalfFov) + uCamUp * (ndc.y * uTanHalfFov));
+      float h = clamp(dir.y, 0.0, 1.0);
+      float sunElev = clamp(uSunDir.y, -0.4, 1.0);
+      float golden = (1.0 - smoothstep(0.06, 0.42, max(sunElev, 0.0))) * uDayFactor;
+      float night = 1.0 - uDayFactor;
+
+      vec3 dayZenith = mix(vec3(0.14, 0.42, 0.84), vec3(0.18, 0.28, 0.58), golden);
+      vec3 dayHorizon = mix(vec3(0.65, 0.83, 0.96), vec3(0.98, 0.62, 0.38), golden);
+
+      vec3 nightZenith = vec3(0.015, 0.025, 0.065);
+      vec3 nightHorizon = mix(vec3(0.05, 0.075, 0.14), vec3(0.28, 0.15, 0.22), uTwilight);
+
+      vec3 zenith = mix(nightZenith, dayZenith, uDayFactor);
+      vec3 horizon = mix(nightHorizon, dayHorizon, uDayFactor);
+      vec3 col = mix(horizon, zenith, pow(h, 0.46));
+
+      // Solar glow & disc (only when near/above horizon)
+      float sunVis = smoothstep(-0.08, 0.06, sunElev);
+      float sdot = max(dot(dir, normalize(uSunDir)), 0.0);
+      vec3 sunGlowCol = mix(vec3(1.0, 0.88, 0.72), vec3(1.0, 0.52, 0.24), golden);
+      col += sunGlowCol * pow(sdot, 12.0) * (0.25 + 0.55 * golden) * sunVis;
+      col += vec3(1.0, 0.96, 0.86) * pow(sdot, 260.0) * 1.15 * sunVis;
+
+      // Subtle twilight horizon band in sun azimuth direction
+      if (uTwilight > 0.02) {
+        vec2 sd = normalize(uSunDir.xz + vec2(0.0001));
+        vec2 dd = normalize(dir.xz + vec2(0.0001));
+        float azMatch = max(dot(dd, sd), 0.0);
+        col += vec3(0.75, 0.34, 0.20) * pow(azMatch, 3.0) * exp(-abs(dir.y) * 5.5) * uTwilight * 0.55;
+      }
+
+      // Soft clouds
+      if (dir.y > 0.03) {
+        vec2 cuv = dir.xz / (dir.y + 0.18) * 1.1 + vec2(2.3, -1.1);
+        float c = fbm(cuv);
+        float cloud = smoothstep(0.47, 0.72, c) * smoothstep(0.03, 0.22, dir.y) * (1.0 - smoothstep(0.65, 0.98, dir.y)*0.3);
+        vec3 dayCloud = mix(vec3(0.99, 0.99, 1.0), vec3(1.0, 0.76, 0.56), golden * 0.85);
+        vec3 nightCloud = mix(vec3(0.07, 0.09, 0.15), vec3(0.26, 0.18, 0.22), uTwilight);
+        vec3 cloudCol = mix(nightCloud, dayCloud, uDayFactor);
+        col = mix(col, cloudCol, cloud * mix(0.35, 0.65, uDayFactor));
+      }
+
+      // Crisp stars at night
+      if (night > 0.25 && dir.y > 0.05) {
+        vec2 starGrid = floor((dir.xz / (dir.y + 0.45)) * 170.0);
+        float r = hash(starGrid);
+        if (r > 0.992) {
+          float bright = (r - 0.992) / 0.008;
+          col += vec3(0.85, 0.92, 1.0) * bright * (night - 0.25) * smoothstep(0.05, 0.25, dir.y) * 1.1;
+        }
+      }
+
+      if (dir.y < 0.0) {
+        vec3 belowCol = mix(vec3(0.05, 0.06, 0.09), vec3(0.66, 0.70, 0.68), uDayFactor);
+        col = mix(horizon, belowCol, clamp(-dir.y * 6.0, 0.0, 1.0));
+      }
+      col = (col*(2.51*col+0.03))/(col*(2.43*col+0.59)+0.14);
+      outColor = vec4(pow(clamp(col, 0.0, 1.0), vec3(1.0/2.2)), 1.0);
+    }`);
+
+  // 2) Shadow Depth Map Shader
+  const shadowProg = makeProgram(`#version 300 es
+    layout(location=0) in vec3 aPos;
+    uniform mat4 uLightVP;
+    void main(){ gl_Position = uLightVP * vec4(aPos, 1.0); }`,
+    `#version 300 es
+    precision highp float;
+    void main(){}`);
+
+  // 3) Main Architectural Interior + Exterior PBR + 20-Light + PCF Shadow Shader
+  const mainProg = makeProgram(`#version 300 es
+    layout(location=0) in vec3 aPos;
+    layout(location=1) in vec3 aNorm;
+    layout(location=2) in vec4 aCol;
+    layout(location=3) in float aMat;
+    uniform mat4 uVP;
+    uniform mat4 uLightVP;
+    out vec3 vPos, vNorm;
+    out vec4 vCol, vLightPos;
+    out float vMat;
+    void main(){
+      vPos = aPos;
+      vNorm = normalize(aNorm);
+      vCol = aCol;
+      vMat = aMat;
+      vLightPos = uLightVP * vec4(aPos + vNorm * 0.018, 1.0);
+      gl_Position = uVP * vec4(aPos, 1.0);
+    }`, `#version 300 es
+    precision highp float;
+    in vec3 vPos, vNorm;
+    in vec4 vCol, vLightPos;
+    in float vMat;
+    uniform vec3 uCamPos, uSunDir;
+    uniform float uDayFactor, uTwilight, uIntLightAmt, uLouverAmt, uShowGrid;
+    uniform sampler2D uShadowMap;
+    uniform vec4 uLights[20];
+    uniform vec2 uLightYRange[20];
+    out vec4 outColor;
+
+    float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7))) * 43758.5453123); }
+    float noise(vec2 p){
+      vec2 i=floor(p), f=fract(p);
+      f=f*f*(3.0-2.0*f);
+      return mix(mix(hash(i),hash(i+vec2(1,0)),f.x), mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),f.x), f.y);
+    }
+
+    float calcShadow(vec4 lp, float ndl){
+      vec3 p = lp.xyz / lp.w * 0.5 + 0.5;
+      if (p.x < 0.002 || p.x > 0.998 || p.y < 0.002 || p.y > 0.998 || p.z > 0.999) return 1.0;
+      float bias = max(0.00055, 0.0018 * (1.0 - ndl));
+      vec2 texel = vec2(1.0 / 2048.0);
+      float sh = 0.0;
+      for(int x=-2; x<=2; x++){
+        for(int y=-2; y<=2; y++){
+          float d = texture(uShadowMap, p.xy + vec2(x,y)*texel*1.05).r;
+          sh += (p.z - bias <= d) ? 1.0 : 0.0;
+        }
+      }
+      return sh / 25.0;
+    }
+
+    // Subtle vertical floor/ceiling seam AO so rooms have crisp architectural grounding
+    float roomContactAO(vec3 p, vec3 n) {
+      float ao = 1.0;
+      if (p.x > -0.15 && p.x < 9.75 && p.z > -0.15 && p.z < 6.85) {
+        if (p.y > 0.15 && p.y < 3.42) {
+          float dFloor = clamp((p.y - 0.22) / 0.20, 0.0, 1.0);
+          float dCeil  = clamp((3.35 - p.y) / 0.18, 0.0, 1.0);
+          if (abs(n.y) < 0.6) ao *= mix(0.86, 1.0, dFloor) * mix(0.90, 1.0, dCeil);
+        } else if (p.y > 3.48 && p.y < 6.72) {
+          float dFloor = clamp((p.y - 3.55) / 0.20, 0.0, 1.0);
+          float dCeil  = clamp((6.65 - p.y) / 0.18, 0.0, 1.0);
+          if (abs(n.y) < 0.6) ao *= mix(0.86, 1.0, dFloor) * mix(0.90, 1.0, dCeil);
+        }
+      }
+      return ao;
+    }
+
+    void main(){
+      int mat = int(vMat + 0.5);
+      vec3 N = normalize(vNorm);
+      vec3 V = normalize(uCamPos - vPos);
+      vec3 L = normalize(uSunDir);
+      vec3 base = vCol.rgb;
+      float alpha = vCol.a;
+      float rough = 0.78;
+      float metal = 0.0;
+
+      // ---------- PROCEDURAL ARCHITECTURAL MATERIALS ----------
+      if (mat == 1) { // Stucco / interior warm plaster
+        float n = noise(vPos.xz * 7.0 + vPos.y * 5.0) * 0.028;
+        base *= (0.985 + n);
+        float groundAO = smoothstep(0.0, 0.35, vPos.y);
+        base *= mix(0.90, 1.0, groundAO);
+        rough = 0.88;
+      } else if (mat == 2) { // Asphalt road
+        float grain = noise(vPos.xz * 18.0) * 0.09 + noise(vPos.xz * 55.0) * 0.05;
+        base *= (0.90 + grain);
+        rough = 0.92;
+      } else if (mat == 3) { // Exterior stone tiles (600x600mm)
+        vec2 tile = fract(vPos.xz / 0.60);
+        float grout = smoothstep(0.0, 0.022, tile.x) * smoothstep(0.0, 0.022, 1.0-tile.x)
+                    * smoothstep(0.0, 0.022, tile.y) * smoothstep(0.0, 0.022, 1.0-tile.y);
+        float tileVar = 0.95 + 0.07 * hash(floor(vPos.xz / 0.60));
+        base *= tileVar * mix(0.78, 1.0, grout);
+        rough = 0.70;
+      } else if (mat == 4) { // Walnut / oak architectural wood grain
+        float g = noise(vec2(vPos.y * 12.0 + vPos.x * 4.0, vPos.z * 22.0)) * 0.14;
+        float streak = sin((vPos.x*20.0 + vPos.z*20.0 + g*7.0)) * 0.04;
+        base *= (0.93 + g + streak);
+        rough = 0.48;
+      } else if (mat == 5) { // Charcoal anodized aluminum / black steel
+        rough = 0.30;
+        metal = 0.68;
+      } else if (mat == 6) { // Concrete alley / neighbor building
+        float n = noise(vPos.xz * 4.5 + vPos.y * 3.0) * 0.07;
+        base *= (0.95 + n);
+        if (abs(N.y) > 0.8) {
+          float seam = smoothstep(0.0, 0.02, abs(fract(vPos.x / 2.2) - 0.5));
+          base *= mix(0.80, 1.0, seam);
+        }
+        rough = 0.88;
+      } else if (mat == 7) { // Lawn / grass strip
+        float n = noise(vPos.xz * 9.0) * 0.22 + noise(vPos.xz * 30.0) * 0.10;
+        base = mix(base * 0.82, base * 1.18, n);
+        rough = 0.95;
+      } else if (mat == 8) { // Foliage / indoor & outdoor plants
+        float n = noise(vPos.xz * 14.0 + vPos.y * 14.0);
+        base *= (0.80 + 0.36 * n);
+        rough = 0.80;
+      } else if (mat == 9) { // Architectural Low-E Glass & Tempered Balustrade
+        vec3 R = reflect(-V, N);
+        float ndv = abs(dot(N, V));
+        float fresnel = 0.08 + 0.78 * pow(1.0 - ndv, 4.0);
+        float rh = clamp(R.y, 0.0, 1.0);
+        vec3 dayRefl = mix(vec3(0.76, 0.87, 0.96), vec3(0.28, 0.56, 0.88), pow(rh, 0.55));
+        vec3 nightRefl = mix(vec3(0.18, 0.15, 0.12) * (0.4 + 0.6*uIntLightAmt), vec3(0.04, 0.06, 0.12), pow(rh, 0.5));
+        vec3 skyRefl = mix(nightRefl, dayRefl, uDayFactor);
+        float sunSpec = pow(max(dot(R, L), 0.0), 160.0) * 1.4 * uDayFactor;
+        vec3 col = mix(base * (0.25 + 0.75 * uDayFactor), skyRefl, clamp(fresnel * 0.82, 0.14, 0.86))
+                 + vec3(1.0, 0.95, 0.86) * sunSpec;
+        float finalAlpha = clamp(alpha + fresnel * 0.32, alpha * 0.7, 0.84);
+        col = (col*(2.51*col+0.03))/(col*(2.43*col+0.59)+0.14);
+        outColor = vec4(pow(clamp(col, 0.0, 1.0), vec3(1.0/2.2)), finalAlpha);
+        return;
+      } else if (mat == 10) { // Emissive warm architectural light fixture / LED strip / backlit mirror
+        float glow = mix(0.28 + 0.25 * uDayFactor, 1.85, uIntLightAmt);
+        vec3 col = base * glow;
+        col = (col*(2.51*col+0.03))/(col*(2.43*col+0.59)+0.14);
+        outColor = vec4(pow(clamp(col, 0.0, 1.0), vec3(1.0/2.2)), alpha);
+        return;
+      } else if (mat == 11) { // Vertical fluted wood slat wall (works on both X-facing and Z-facing surfaces!)
+        float fc = abs(N.x) > 0.5 ? vPos.z : vPos.x;
+        float flute = sin(fc * 130.0) * 0.5 + 0.5;
+        float grain = noise(vec2(fc * 16.0, vPos.y * 8.0)) * 0.12;
+        base *= (0.76 + 0.28 * flute + grain);
+        rough = 0.55;
+      } else if (mat == 12) { // Interior wide-plank natural honey-oak wood floor
+        float plankW = 0.18;
+        float row = floor(vPos.z / plankW);
+        float plankL = 1.25;
+        float colIdx = floor((vPos.x + row * 0.47) / plankL);
+        vec2 pf = vec2(fract((vPos.x + row * 0.47) / plankL), fract(vPos.z / plankW));
+        float seamX = smoothstep(0.0, 0.008, pf.x) * smoothstep(0.0, 0.008, 1.0 - pf.x);
+        float seamZ = smoothstep(0.0, 0.025, pf.y) * smoothstep(0.0, 0.025, 1.0 - pf.y);
+        float tone = 0.92 + 0.14 * hash(vec2(colIdx, row));
+        float grain = sin(vPos.x * 12.0 + noise(vPos.xz * vec2(5.0, 28.0)) * 6.0) * 0.04;
+        base *= tone * (0.98 + grain) * mix(0.76, 1.0, seamX * seamZ);
+        rough = 0.38;
+      } else if (mat == 13) { // Interior large-format warm terrazzo / travertine tile
+        vec2 uv = abs(N.y) > 0.7 ? vPos.xz : vec2(vPos.x + vPos.z, vPos.y);
+        vec2 tf = fract(uv / 0.60);
+        float grout = smoothstep(0.0, 0.016, tf.x) * smoothstep(0.0, 0.016, 1.0 - tf.x)
+                    * smoothstep(0.0, 0.016, tf.y) * smoothstep(0.0, 0.016, 1.0 - tf.y);
+        float speck = noise(uv * 48.0);
+        float chip = smoothstep(0.78, 0.88, speck) * 0.07;
+        float varT = 0.96 + 0.06 * hash(floor(uv / 0.60));
+        base = base * varT * mix(0.84, 1.0, grout) - vec3(chip);
+        rough = 0.44;
+      } else if (mat == 14) { // Woven linen / bouclé upholstery & rugs
+        float weave = (sin(vPos.x * 120.0) * sin(vPos.z * 120.0 + vPos.y * 120.0)) * 0.035;
+        float softN = noise(vPos.xz * 26.0 + vPos.y * 26.0) * 0.07;
+        base *= (0.94 + softN + weave);
+        rough = 0.94;
+      } else if (mat == 15) { // White-veined quartz / marble countertop
+        float vein = sin(vPos.x * 7.5 + vPos.z * 6.0 + noise(vPos.xz * 4.5 + vPos.y * 4.0) * 5.0);
+        float vLine = smoothstep(0.86, 0.99, abs(vein)) * 0.10;
+        base -= vec3(vLine);
+        rough = 0.22;
+      } else if (mat == 16) { // Glossy ceramic / porcelain
+        rough = 0.16;
+      } else if (mat == 17) { // Monocrystalline Solar PV Panel
+        vec2 cell = fract(vPos.xz / 0.165);
+        float grid = smoothstep(0.0, 0.035, cell.x) * smoothstep(0.0, 0.035, 1.0 - cell.x)
+                   * smoothstep(0.0, 0.035, cell.y) * smoothstep(0.0, 0.035, 1.0 - cell.y);
+        base = mix(vec3(0.45, 0.52, 0.60), base, grid);
+        rough = 0.18;
+        metal = 0.45;
+      } else if (mat == 18) { // Warm brushed brass / champagne gold
+        rough = 0.26;
+        metal = 0.82;
+      } else if (mat == 19) { // Subtle screen / artwork soft glow
+        vec3 col = base * (0.45 + 0.35 * uIntLightAmt + 0.25 * uDayFactor);
+        col = (col*(2.51*col+0.03))/(col*(2.43*col+0.59)+0.14);
+        outColor = vec4(pow(clamp(col, 0.0, 1.0), vec3(1.0/2.2)), alpha);
+        return;
+      }
+
+      // ---------- DIRECT SUNLIGHT + SOFT PCF SHADOWS ----------
+      float sunVis = smoothstep(-0.04, 0.10, L.y);
+      float ndl = max(dot(N, L), 0.0);
+      float sh = (ndl > 0.001 && sunVis > 0.001) ? calcShadow(vLightPos, ndl) : 0.0;
+
+      float sunElev = clamp(L.y, 0.0, 1.0);
+      float golden = (1.0 - smoothstep(0.08, 0.44, sunElev)) * sunVis;
+      vec3 sunCol = mix(vec3(1.12, 1.04, 0.92), vec3(1.42, 0.68, 0.30), golden) * 1.48 * sunVis;
+
+      // ---------- SKY / WINDOW BOUNCE HEMISPHERE GI ----------
+      bool isInside = (vPos.x > -0.08 && vPos.x < 9.55 && vPos.z > -0.08 && vPos.z < 6.72 && vPos.y > 0.15 && vPos.y < 6.70);
+      vec3 daySky = mix(vec3(0.42, 0.56, 0.78), vec3(0.58, 0.44, 0.40), golden) * 0.52;
+      vec3 nightSky = vec3(0.022, 0.036, 0.075) + vec3(0.09, 0.05, 0.06) * uTwilight;
+      vec3 skyAmb = mix(nightSky, daySky, uDayFactor);
+      vec3 grdAmb = mix(vec3(0.015, 0.018, 0.026), vec3(0.36, 0.33, 0.28) * 0.46, uDayFactor);
+      vec3 hemi = mix(grdAmb, skyAmb, N.y * 0.5 + 0.5);
+
+      if (isInside) {
+        // Real daylight portal bounce from huge South glass doors & West Low-E windows!
+        float southProx = smoothstep(0.0, 4.4, vPos.z);
+        float westProx = (1.0 - smoothstep(0.0, 4.2, vPos.x)) * (1.0 - 0.60 * uLouverAmt);
+        float portalFill = (0.28 + 0.46 * southProx + 0.24 * westProx) * uDayFactor;
+        float ceilBounce = max(-N.y, 0.0) * 0.22 * uDayFactor;
+        vec3 bounceCol = mix(vec3(0.68, 0.76, 0.84), vec3(0.92, 0.64, 0.44), golden * 0.85);
+        hemi = hemi * 0.62 + bounceCol * (portalFill * 0.44 + ceilBounce);
+        // Subtle cool moonlit baseline at night so unlit rooms stay atmospheric & dramatic
+        hemi += vec3(0.014, 0.018, 0.028) * (1.0 - uDayFactor);
+      } else {
+        float underBounce = max(-N.y, 0.0) * 0.20 * uDayFactor;
+        hemi += vec3(0.42, 0.38, 0.32) * underBounce;
+      }
+
+      float contactAO = roomContactAO(vPos, N);
+      vec3 Hsun = normalize(L + V);
+      float specPow = mix(10.0, 96.0, 1.0 - rough);
+      float specSun = pow(max(dot(N, Hsun), 0.0), specPow) * mix(0.06, 0.68, metal + (1.0 - rough) * 0.38) * sh;
+
+      vec3 col = base * (hemi * contactAO + sunCol * ndl * sh) + sunCol * specSun;
+
+      // ---------- 20 REAL-TIME WARM 3000K ARCHITECTURAL INTERIOR LIGHTS ----------
+      if (uIntLightAmt > 0.005) {
+        vec3 warmCol = vec3(1.00, 0.79, 0.50);
+        vec3 intDiff = vec3(0.0);
+        vec3 intSpec = vec3(0.0);
+        for (int i = 0; i < 20; i++) {
+          vec4 lp = uLights[i];
+          if (lp.w <= 0.0) continue;
+          vec2 yr = uLightYRange[i];
+          float band = smoothstep(yr.x - 0.10, yr.x + 0.06, vPos.y)
+                     * (1.0 - smoothstep(yr.y - 0.06, yr.y + 0.10, vPos.y));
+          if (band < 0.01) continue;
+          vec3 toL = lp.xyz - vPos;
+          float d2 = dot(toL, toL);
+          float rad = lp.w;
+          if (d2 > rad * rad) continue;
+          float d = sqrt(d2) + 0.001;
+          vec3 ld = toL / d;
+          float edge = smoothstep(rad, rad * 0.12, d);
+          float atten = (1.0 / (1.0 + 0.36 * d2)) * edge * band;
+          float ndli = clamp((dot(N, ld) + 0.26) / 1.26, 0.12, 1.0);
+          intDiff += warmCol * (atten * ndli);
+          vec3 hi = normalize(ld + V);
+          float sp = pow(max(dot(N, hi), 0.0), specPow * 0.75) * mix(0.04, 0.48, metal + (1.0 - rough) * 0.35);
+          intSpec += warmCol * (atten * sp);
+        }
+        col += (base * intDiff * 1.15 * contactAO + intSpec * 0.65) * uIntLightAmt;
+      }
+
+      // Distance atmospheric haze (subtle for exterior horizon)
+      float dist = length(uCamPos - vPos);
+      float fog = smoothstep(32.0, 115.0, dist);
+      vec3 fogCol = mix(vec3(0.04, 0.06, 0.11), mix(vec3(0.76, 0.86, 0.95), vec3(0.95, 0.70, 0.50), golden), uDayFactor);
+      col = mix(col, fogCol, fog * 0.52);
+
+      // Optional crisp 1.00m x 1.00m scale verification grid strictly on floor slabs (F1/F2/Roof/Courtyard)
+      bool onFloorPlane = abs(vPos.y - 0.22) < 0.06 || abs(vPos.y - 3.55) < 0.06 || abs(vPos.y - 6.85) < 0.06 || abs(vPos.y - 0.13) < 0.03;
+      if (uShowGrid > 0.5 && N.y > 0.85 && onFloorPlane && vPos.x > -1.8 && vPos.x < 10.2 && vPos.z > -0.2 && vPos.z < 7.4) {
+        vec2 g = abs(fract(vPos.xz) - 0.5);
+        float gx = smoothstep(0.478, 0.495, g.x);
+        float gz = smoothstep(0.478, 0.495, g.y);
+        float line = max(gx, gz);
+        col = mix(col, vec3(0.08, 0.48, 0.92), line * 0.65);
+      }
+
+      // ACES Filmic Tone Mapping + sRGB Gamma
+      col = (col*(2.51*col+0.03))/(col*(2.43*col+0.59)+0.14);
+      outColor = vec4(pow(clamp(col, 0.0, 1.0), vec3(1.0/2.2)), alpha);
+    }`);
+
+  // ==================== GEOMETRY BUILDER ====================
+  class MeshBuilder {
+    constructor() { this.data = []; }
+    tri(p0, p1, p2, col, mat, nOverride=null) {
+      const n = nOverride || V3.norm(V3.cross(V3.sub(p1, p0), V3.sub(p2, p0)));
+      const a = col.length === 4 ? col[3] : 1.0;
+      for (const p of [p0, p1, p2]) {
+        this.data.push(p[0], p[1], p[2], n[0], n[1], n[2], col[0], col[1], col[2], a, mat);
+      }
+    }
+    quad(p0, p1, p2, p3, col, mat, nOverride=null) {
+      this.tri(p0, p1, p2, col, mat, nOverride);
+      this.tri(p0, p2, p3, col, mat, nOverride);
+    }
+    box(x0, y0, z0, x1, y1, z1, col, mat) {
+      this.quad([x0,y1,z1],[x1,y1,z1],[x1,y1,z0],[x0,y1,z0], col, mat, [0,1,0]);
+      this.quad([x0,y0,z0],[x1,y0,z0],[x1,y0,z1],[x0,y0,z1], col, mat, [0,-1,0]);
+      this.quad([x0,y0,z1],[x1,y0,z1],[x1,y1,z1],[x0,y1,z1], col, mat, [0,0,1]);
+      this.quad([x1,y0,z0],[x0,y0,z0],[x0,y1,z0],[x1,y1,z0], col, mat, [0,0,-1]);
+      this.quad([x1,y0,z1],[x1,y0,z0],[x1,y1,z0],[x1,y1,z1], col, mat, [1,0,0]);
+      this.quad([x0,y0,z0],[x0,y0,z1],[x0,y1,z1],[x0,y1,z0], col, mat, [-1,0,0]);
+    }
+    // Rotated box around Y-axis centered at (cx, cz) with width wx, depth wz, height y0..y1
+    rotBox(cx, cz, wx, wz, y0, y1, yawRad, col, mat) {
+      const c = Math.cos(yawRad), s = Math.sin(yawRad);
+      const hx = wx * 0.5, hz = wz * 0.5;
+      const pt = (lx, lz) => [cx + lx*c - lz*s, cz + lx*s + lz*c];
+      this.prism([pt(-hx,-hz), pt(hx,-hz), pt(hx,hz), pt(-hx,hz)], y0, y1, col, mat);
+    }
+    prism(ptsXZ, y0, y1, col, mat, colBottom=null, matBottom=null) {
+      let area = 0;
+      for (let i=0; i<ptsXZ.length; i++) {
+        const a = ptsXZ[i], b = ptsXZ[(i+1)%ptsXZ.length];
+        area += (a[0]*b[1] - b[0]*a[1]);
+      }
+      const pts = area < 0 ? ptsXZ.slice() : ptsXZ.slice().reverse();
+      const tris = earcutXZ(pts);
+      for (const [i,j,k] of tris) {
+        const A=pts[i], B=pts[j], C=pts[k];
+        this.tri([A[0],y1,A[1]], [B[0],y1,B[1]], [C[0],y1,C[1]], col, mat, [0,1,0]);
+        this.tri([A[0],y0,A[1]], [C[0],y0,C[1]], [B[0],y0,B[1]], colBottom||col, matBottom||mat, [0,-1,0]);
+      }
+      for (let i=0; i<pts.length; i++) {
+        const a = pts[i], b = pts[(i+1)%pts.length];
+        const dx = b[0]-a[0], dz = b[1]-a[1];
+        const len = Math.hypot(dx, dz) || 1;
+        const n = [-dz/len, 0, dx/len];
+        this.quad([a[0],y0,a[1]], [b[0],y0,b[1]], [b[0],y1,b[1]], [a[0],y1,a[1]], col, mat, n);
+      }
+    }
+    wallSeg(a, b, y0, y1, thick, col, mat) {
+      const dx = b[0]-a[0], dz = b[1]-a[1], l = Math.hypot(dx, dz) || 1;
+      const nx = -dz/l * (thick/2), nz = dx/l * (thick/2);
+      this.prism([[a[0]+nx,a[1]+nz],[b[0]+nx,b[1]+nz],[b[0]-nx,b[1]-nz],[a[0]-nx,a[1]-nz]], y0, y1, col, mat);
+    }
+    triSmooth(p0,p1,p2, n0,n1,n2, col, mat) {
+      const a = col.length===4 ? col[3] : 1.0;
+      const pts=[p0,p1,p2], nms=[n0,n1,n2];
+      for (let i=0;i<3;i++) this.data.push(pts[i][0],pts[i][1],pts[i][2], nms[i][0],nms[i][1],nms[i][2], col[0],col[1],col[2],a,mat);
+    }
+    sphere(cx, cy, cz, rx, ry, rz, col, mat, segs=10, rings=7) {
+      for (let r=0; r<rings; r++) {
+        const t0 = Math.PI * r / rings, t1 = Math.PI * (r+1) / rings;
+        for (let s=0; s<segs; s++) {
+          const p0 = 2*Math.PI * s / segs, p1 = 2*Math.PI * (s+1) / segs;
+          const pt = (th, ph) => [
+            cx + rx * Math.sin(th) * Math.cos(ph),
+            cy + ry * Math.cos(th),
+            cz + rz * Math.sin(th) * Math.sin(ph)
+          ];
+          const nrm = (th, ph) => V3.norm([Math.sin(th)*Math.cos(ph), Math.cos(th), Math.sin(th)*Math.sin(ph)]);
+          const v00=pt(t0,p0), v10=pt(t1,p0), v11=pt(t1,p1), v01=pt(t0,p1);
+          const n00=nrm(t0,p0), n10=nrm(t1,p0), n11=nrm(t1,p1), n01=nrm(t0,p1);
+          if (r < rings-1) this.triSmooth(v00, v10, v11, n00, n10, n11, col, mat);
+          if (r > 0) this.triSmooth(v00, v11, v01, n00, n11, n01, col, mat);
+        }
+      }
+    }
+    cyl(cx, cz, y0, y1, r0, r1, col, mat, segs=12, capped=true) {
+      for (let i=0; i<segs; i++) {
+        const a0 = 2*Math.PI*i/segs, a1 = 2*Math.PI*(i+1)/segs;
+        const c0=Math.cos(a0), s0=Math.sin(a0), c1=Math.cos(a1), s1=Math.sin(a1);
+        const p00=[cx+r0*c0,y0,cz+r0*s0], p10=[cx+r0*c1,y0,cz+r0*s1];
+        const p11=[cx+r1*c1,y1,cz+r1*s1], p01=[cx+r1*c0,y1,cz+r1*s0];
+        this.triSmooth(p00,p10,p11, [c0,0,s0],[c1,0,s1],[c1,0,s1], col, mat);
+        this.triSmooth(p00,p11,p01, [c0,0,s0],[c1,0,s1],[c0,0,s0], col, mat);
+        if (capped) {
+          this.tri([cx,y1,cz], p11, p01, col, mat, [0,1,0]);
+          this.tri([cx,y0,cz], p00, p10, col, mat, [0,-1,0]);
+        }
+      }
+    }
+    // Horizontal cylinder along X (outward-facing CCW winding!)
+    cylX(x0, x1, cy, cz, r, col, mat, segs=16) {
+      for (let i=0; i<segs; i++) {
+        const a0 = 2*Math.PI*i/segs, a1 = 2*Math.PI*(i+1)/segs;
+        const c0=Math.cos(a0), s0=Math.sin(a0), c1=Math.cos(a1), s1=Math.sin(a1);
+        const p00=[x0, cy+r*c0, cz+r*s0], p10=[x1, cy+r*c0, cz+r*s0];
+        const p11=[x1, cy+r*c1, cz+r*s1], p01=[x0, cy+r*c1, cz+r*s1];
+        this.triSmooth(p00,p11,p10, [0,c0,s0],[0,c1,s1],[0,c0,s0], col, mat);
+        this.triSmooth(p00,p01,p11, [0,c0,s0],[0,c1,s1],[0,c1,s1], col, mat);
+        this.tri([x0,cy,cz], p00, p01, col, mat, [-1,0,0]);
+        this.tri([x1,cy,cz], p11, p10, col, mat, [1,0,0]);
+      }
+    }
+    // True 3D sloped rectangular beam between two arbitrary 3D points pA -> pB (for sleek sloped stair handrails!)
+    beam3D(pA, pB, halfW, halfH, col, mat) {
+      const dx = pB[0]-pA[0], dy = pB[1]-pA[1], dz = pB[2]-pA[2];
+      const hLen = Math.hypot(dx, dz) || 1;
+      const rx = (-dz / hLen) * halfW, rz = (dx / hLen) * halfW;
+      const a = [
+        [pA[0]-rx, pA[1]-halfH, pA[2]-rz], [pA[0]+rx, pA[1]-halfH, pA[2]+rz],
+        [pA[0]+rx, pA[1]+halfH, pA[2]+rz], [pA[0]-rx, pA[1]+halfH, pA[2]-rz]
+      ];
+      const b = [
+        [pB[0]-rx, pB[1]-halfH, pB[2]-rz], [pB[0]+rx, pB[1]-halfH, pB[2]+rz],
+        [pB[0]+rx, pB[1]+halfH, pB[2]+rz], [pB[0]-rx, pB[1]+halfH, pB[2]-rz]
+      ];
+      // Top, Bottom, Right, Left, End caps
+      this.quad(a[3], a[2], b[2], b[3], col, mat);
+      this.quad(a[0], b[0], b[1], a[1], col, mat);
+      this.quad(a[1], b[1], b[2], a[2], col, mat);
+      this.quad(a[0], a[3], b[3], b[0], col, mat);
+      this.quad(a[0], a[1], a[2], a[3], col, mat);
+      this.quad(b[3], b[2], b[1], b[0], col, mat);
+    }
+    toBuffer() {
+      const arr = new Float32Array(this.data);
+      const vao = gl.createVertexArray();
+      gl.bindVertexArray(vao);
+      const vbo = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+      gl.bufferData(gl.ARRAY_BUFFER, arr, gl.STATIC_DRAW);
+      const stride = 11 * 4;
+      gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 3, gl.FLOAT, false, stride, 0);
+      gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1, 3, gl.FLOAT, false, stride, 12);
+      gl.enableVertexAttribArray(2); gl.vertexAttribPointer(2, 4, gl.FLOAT, false, stride, 24);
+      gl.enableVertexAttribArray(3); gl.vertexAttribPointer(3, 1, gl.FLOAT, false, stride, 40);
+      gl.bindVertexArray(null);
+      return { vao, vbo, count: arr.length / 11 };
+    }
+  }
+
+  function earcutXZ(pts) {
+    const idx = pts.map((_, i) => i);
+    const tris = [];
+    const cross2 = (a, b, c) => (b[0]-a[0])*(c[1]-a[1]) - (b[1]-a[1])*(c[0]-a[0]);
+    const inTri = (p, a, b, c) => {
+      const c1=cross2(a,b,p), c2=cross2(b,c,p), c3=cross2(c,a,p);
+      return (c1<=0 && c2<=0 && c3<=0);
+    };
+    let guard = 0;
+    while (idx.length > 3 && guard++ < 200) {
+      let clipped = false;
+      for (let i=0; i<idx.length; i++) {
+        const i0=idx[(i-1+idx.length)%idx.length], i1=idx[i], i2=idx[(i+1)%idx.length];
+        const a=pts[i0], b=pts[i1], c=pts[i2];
+        if (cross2(a, b, c) >= -1e-6) continue;
+        let hasInside = false;
+        for (const k of idx) {
+          if (k===i0 || k===i1 || k===i2) continue;
+          if (inTri(pts[k], a, b, c)) { hasInside = true; break; }
+        }
+        if (!hasInside) {
+          tris.push([i0, i1, i2]);
+          idx.splice(i, 1);
+          clipped = true;
+          break;
+        }
+      }
+      if (!clipped) break;
+    }
+    if (idx.length === 3) tris.push([idx[0], idx[1], idx[2]]);
+    return tris;
+  }
+
+  // ==================== COLOR PALETTE (LINEAR-FRIENDLY) ====================
+  const C_WHITE     = [0.95, 0.94, 0.91]; // Exterior stucco
+  const C_INT_WALL  = [0.94, 0.92, 0.88]; // Warm architectural interior plaster
+  const C_CEIL      = [0.97, 0.96, 0.94]; // Crisp warm-white matte ceiling
+  const C_STAIRWALL = [0.93, 0.92, 0.90];
+  const C_CHARCOAL  = [0.13, 0.15, 0.18]; // Black anodized aluminum / steel
+  const C_STEELROOF = [0.22, 0.25, 0.30];
+  const C_GALV      = [0.58, 0.61, 0.65]; // Galvanized steel frame / tank
+  const C_BRASS     = [0.80, 0.64, 0.36]; // Warm brushed brass
+  const C_OAK_FLOOR = [0.68, 0.50, 0.32]; // Honey-oak wide plank floor
+  const C_OAK_LIGHT = [0.72, 0.54, 0.35]; // Light natural oak furniture
+  const C_WALNUT    = [0.42, 0.25, 0.14]; // Rich warm walnut slats / desk / bookshelf
+  const C_WOOD      = [0.56, 0.34, 0.16]; // Exterior louvers / soffit / stair treads
+  const C_SOFFIT    = [0.50, 0.30, 0.14];
+  const C_CREAM_CAB = [0.91, 0.89, 0.84]; // Matte cream cabinetry
+  const C_TERRAZZO  = [0.84, 0.81, 0.76]; // Warm travertine / terrazzo tile
+  const C_QUARTZ    = [0.94, 0.93, 0.91]; // White-veined quartz
+  const C_CERAMIC   = [0.97, 0.97, 0.96]; // Sanitary porcelain
+  const C_LINEN     = [0.84, 0.80, 0.74]; // Oatmeal linen upholstery
+  const C_LINEN_LT  = [0.92, 0.90, 0.86]; // Ivory bedding
+  const C_RUG       = [0.78, 0.74, 0.67]; // Woven area rug
+  const C_SAGE      = [0.39, 0.49, 0.40]; // Sage green accent pillows / throw
+  const C_TERRA     = [0.68, 0.38, 0.26]; // Warm terracotta accent
+  const C_GRAPHITE  = [0.24, 0.26, 0.29]; // Brushed graphite appliances
+  const C_SOLAR_PV  = [0.06, 0.11, 0.22]; // Deep monocrystalline silicon PV
+  const C_NEIGHBOR  = [0.58, 0.60, 0.63];
+  const C_ASPHALT   = [0.045, 0.050, 0.062];
+  const C_ALLEY     = [0.24, 0.26, 0.29];
+  const C_SIDEWALK  = [0.56, 0.57, 0.58];
+  const C_COURTYARD = [0.74, 0.72, 0.69];
+  const C_GRASS     = [0.22, 0.42, 0.16];
+  const C_FOLIAGE1  = [0.12, 0.32, 0.11];
+  const C_FOLIAGE2  = [0.20, 0.42, 0.15];
+  const C_FOLIAGE3  = [0.16, 0.36, 0.13];
+  const C_TRUNK     = [0.28, 0.19, 0.13];
+  const C_POT       = [0.32, 0.33, 0.35];
+  const C_CERAMIC_POT = [0.86, 0.83, 0.77];
+  const C_SOIL      = [0.19, 0.14, 0.10];
+  const C_GLASS     = [0.12, 0.24, 0.32, 0.30];
+  const C_RAILGLASS = [0.46, 0.72, 0.80, 0.24];
+  const C_SHOWERGLS = [0.65, 0.82, 0.86, 0.22];
+  const C_GLOW_WARM = [1.00, 0.86, 0.64];
+  const C_CURTAIN   = [0.94, 0.92, 0.88, 0.52];
+
+  // ==================== ARCHITECTURAL & FURNITURE HELPERS ====================
+  function addPlant(op, cx, cz, baseY, scale=1.0, seed=1) {
+    const r = 0.25 * scale;
+    const cols = [C_FOLIAGE1, C_FOLIAGE2, C_FOLIAGE3];
+    for (let i=0; i<5; i++) {
+      const ang = seed * 1.9 + i * 1.28;
+      const dist = (i === 0) ? 0 : r * (0.42 + 0.32 * ((i*7)%3)/2);
+      const rx = r * (0.72 + 0.30 * Math.abs(Math.sin(seed + i*2.1)));
+      const ry = r * (0.64 + 0.38 * Math.abs(Math.cos(seed*1.3 + i)));
+      const rz = r * (0.72 + 0.30 * Math.abs(Math.cos(seed + i*1.7)));
+      op.sphere(cx + dist*Math.cos(ang), baseY + ry*0.72 + (i===0?r*0.25:0), cz + dist*Math.sin(ang),
+                rx, ry, rz, cols[i%3], 8, 8, 5);
+    }
+  }
+  function addHedgeRow(op, a, b, baseY, height=0.44, width=0.36, seed=1) {
+    const len = Math.hypot(b[0]-a[0], b[1]-a[1]);
+    const steps = Math.max(4, Math.round(len / 0.38));
+    const cols = [C_FOLIAGE1, C_FOLIAGE2, C_FOLIAGE3];
+    for (let i=0; i<=steps; i++) {
+      const t = i / steps;
+      const cx = a[0] + t*(b[0]-a[0]) + 0.04*Math.sin(seed + i*2.3);
+      const cz = a[1] + t*(b[1]-a[1]) + 0.04*Math.cos(seed + i*1.9);
+      const hVar = height * (0.78 + 0.40 * Math.abs(Math.sin(seed + i*1.7)));
+      const rVar = width * (0.55 + 0.26 * Math.abs(Math.cos(seed + i*2.5)));
+      op.sphere(cx, baseY + hVar*0.56, cz, rVar, hVar*0.60, rVar, cols[i%3], 8, 7, 5);
+    }
+  }
+  function addTree(op, cx, cz, baseY, h=3.4, r=1.1, seed=1) {
+    op.cyl(cx, cz, baseY, baseY + h*0.58, 0.09, 0.055, C_TRUNK, 4, 7);
+    const ty = baseY + h*0.68;
+    op.sphere(cx, ty, cz, r, r*0.76, r, C_FOLIAGE1, 8, 8, 5);
+    op.sphere(cx + r*0.52*Math.cos(seed), ty + r*0.22, cz + r*0.48*Math.sin(seed), r*0.74, r*0.62, r*0.74, C_FOLIAGE2, 8, 8, 5);
+    op.sphere(cx - r*0.46*Math.sin(seed), ty - r*0.10, cz - r*0.40*Math.cos(seed), r*0.70, r*0.56, r*0.70, C_FOLIAGE1, 8, 7, 5);
+    op.sphere(cx + r*0.16, ty + r*0.48, cz - r*0.18, r*0.60, r*0.50, r*0.60, C_FOLIAGE2, 8, 7, 5);
+  }
+  function addPottedPlant(op, cx, cz, baseY, s=1.0, seed=1, indoor=false) {
+    if (indoor) {
+      op.cyl(cx, cz, baseY, baseY + 0.38*s, 0.15*s, 0.19*s, C_CERAMIC_POT, 16, 12);
+      op.cyl(cx, cz, baseY + 0.36*s, baseY + 0.39*s, 0.17*s, 0.17*s, C_SOIL, 6, 10);
+      op.cyl(cx, cz, baseY + 0.38*s, baseY + 0.95*s, 0.025*s, 0.016*s, C_TRUNK, 4, 6);
+      addPlant(op, cx, cz, baseY + 0.78*s, s * 1.28, seed);
+    } else {
+      op.box(cx-0.21*s, baseY, cz-0.21*s, cx+0.21*s, baseY+0.40*s, cz+0.21*s, C_POT, 6);
+      op.box(cx-0.18*s, baseY+0.38*s, cz-0.18*s, cx+0.18*s, baseY+0.41*s, cz+0.18*s, C_SOIL, 6);
+      addPlant(op, cx, cz, baseY+0.40*s, s*1.12, seed);
+    }
+  }
+  function addDownlight(op, cx, cz, ceilY) {
+    op.cyl(cx, cz, ceilY - 0.015, ceilY + 0.002, 0.068, 0.068, C_CHARCOAL, 5, 10);
+    op.cyl(cx, cz, ceilY - 0.020, ceilY - 0.008, 0.052, 0.052, C_GLOW_WARM, 10, 10);
+  }
+  function addACUnit(op, x0, x1, z0, z1, y0, y1) {
+    op.box(x0, y0, z0, x1, y1, z1, [0.96,0.96,0.95], 16);
+    // Subtle dark louver slit along bottom front
+    if ((x1 - x0) > (z1 - z0)) {
+      const zFront = z1 > 2.2 ? z0 - 0.004 : z1 + 0.004;
+      op.box(x0+0.06, y0+0.03, Math.min(zFront, zFront+0.008), x1-0.06, y0+0.06, Math.max(zFront, zFront+0.008), C_CHARCOAL, 5);
+    } else {
+      op.box(x0-0.005, y0+0.03, z0+0.06, x0+0.003, y0+0.06, z1-0.06, C_CHARCOAL, 5);
+    }
+  }
+  // Open hinged interior wooden door (tucked cleanly at rest angle so walkway & room view stay uncluttered!)
+  function addOpenDoorV(op, xWall, zHinge, width, y0, y1, swingDirX, hingeNorth, openRad=0.10) {
+    const z0 = hingeNorth ? zHinge : zHinge - width;
+    const z1 = hingeNorth ? zHinge + width : zHinge;
+    op.box(xWall-0.065, y1-0.04, z0, xWall+0.065, y1, z1, C_OAK_LIGHT, 4);
+    op.box(xWall-0.065, y0, z0, xWall+0.065, y1, z0+0.035, C_OAK_LIGHT, 4);
+    op.box(xWall-0.065, y0, z1-0.035, xWall+0.065, y1, z1, C_OAK_LIGHT, 4);
+    const ang = hingeNorth
+      ? (swingDirX > 0 ? openRad : Math.PI - openRad)
+      : (swingDirX > 0 ? -openRad : Math.PI + openRad);
+    const len = width - 0.06;
+    const cx = xWall + Math.cos(ang) * (len * 0.5);
+    const cz = zHinge + Math.sin(ang) * (len * 0.5);
+    op.rotBox(cx, cz, len, 0.040, y0 + 0.01, y1 - 0.04, ang, C_OAK_LIGHT, 4);
+    const hx = xWall + Math.cos(ang) * (len * 0.86);
+    const hz = zHinge + Math.sin(ang) * (len * 0.86);
+    op.sphere(hx, y0 + 1.02, hz, 0.024, 0.020, 0.024, C_BRASS, 18, 6, 4);
+  }
+  function addOpenDoorH(op, xHinge, zWall, width, y0, y1, swingDirZ, hingeWest, flatWall=false) {
+    const x0 = hingeWest ? xHinge : xHinge - width;
+    const x1 = hingeWest ? xHinge + width : xHinge;
+    op.box(x0, y1-0.04, zWall-0.065, x1, y1, zWall+0.065, C_OAK_LIGHT, 4);
+    op.box(x0, y0, zWall-0.065, x0+0.035, y1, zWall+0.065, C_OAK_LIGHT, 4);
+    op.box(x1-0.035, y0, zWall-0.065, x1, y1, zWall+0.065, C_OAK_LIGHT, 4);
+    let ang;
+    if (flatWall) {
+      // Fold cleanly flat against adjacent wall beside hinge (165 deg open!)
+      ang = hingeWest ? (swingDirZ < 0 ? -Math.PI + 0.14 : Math.PI - 0.14)
+                      : (swingDirZ < 0 ? -0.14 : 0.14);
+    } else {
+      ang = hingeWest
+        ? (swingDirZ > 0 ? Math.PI*0.5 - 0.10 : -Math.PI*0.5 + 0.10)
+        : (swingDirZ > 0 ? Math.PI*0.5 + 0.10 : -Math.PI*0.5 - 0.10);
+    }
+    const len = width - 0.06;
+    const cx = xHinge + Math.cos(ang) * (len * 0.5);
+    const cz = zWall + Math.sin(ang) * (len * 0.5);
+    op.rotBox(cx, cz, len, 0.040, y0 + 0.01, y1 - 0.04, ang, C_OAK_LIGHT, 4);
+    const hx = xHinge + Math.cos(ang) * (len * 0.86);
+    const hz = zWall + Math.sin(ang) * (len * 0.86);
+    op.sphere(hx, y0 + 1.02, hz, 0.024, 0.020, 0.024, C_BRASS, 18, 6, 4);
+  }
+  // Sleek aluminum-framed exterior glass entrance door (opened outward so interior stays 100% crisp!)
+  function addGlassEntranceDoorV(op, gls, xWall, z0, z1, y0, y1) {
+    op.box(xWall-0.06, y1-0.05, z0, xWall+0.06, y1, z1, C_CHARCOAL, 5);
+    op.box(xWall-0.06, y0, z0, xWall+0.06, y1, z0+0.045, C_CHARCOAL, 5);
+    op.box(xWall-0.06, y0, z1-0.045, xWall+0.06, y1, z1, C_CHARCOAL, 5);
+    // Swung outward ~80 deg toward West North corner so you can walk straight out!
+    const len = (z1 - z0) - 0.07;
+    const ang = Math.PI - 0.18;
+    const x1 = xWall + Math.cos(ang) * len, zEnd = z0 + 0.04 + Math.sin(ang) * len;
+    op.wallSeg([xWall, z0+0.04], [x1, zEnd], y0+0.02, y0+0.10, 0.045, C_CHARCOAL, 5);
+    op.wallSeg([xWall, z0+0.04], [x1, zEnd], y1-0.10, y1-0.03, 0.045, C_CHARCOAL, 5);
+    op.box(x1-0.03, y0+0.02, zEnd-0.03, x1+0.03, y1-0.03, zEnd+0.03, C_CHARCOAL, 5);
+    gls.quad([xWall, y0+0.10, z0+0.05], [x1, y0+0.10, zEnd], [x1, y1-0.10, zEnd], [xWall, y1-0.10, z0+0.05], C_GLASS, 9);
+  }
+  function addWindowFixedSouth(op, gls, x0, x1, y0, y1, zMid, panels, frameW=0.05) {
+    op.box(x0, y1-frameW, zMid-0.05, x1, y1, zMid+0.05, C_CHARCOAL, 5);
+    op.box(x0, y0, zMid-0.05, x1, y0+frameW, zMid+0.05, C_CHARCOAL, 5);
+    op.box(x0, y0, zMid-0.05, x0+frameW, y1, zMid+0.05, C_CHARCOAL, 5);
+    op.box(x1-frameW, y0, zMid-0.05, x1, y1, zMid+0.05, C_CHARCOAL, 5);
+    for (let i=1; i<panels; i++) {
+      const xm = x0 + (x1-x0)*i/panels;
+      op.box(xm-0.022, y0, zMid-0.04, xm+0.022, y1, zMid+0.04, C_CHARCOAL, 5);
+    }
+    gls.quad([x0+frameW, y0+frameW, zMid], [x1-frameW, y0+frameW, zMid],
+             [x1-frameW, y1-frameW, zMid], [x0+frameW, y1-frameW, zMid], C_GLASS, 9, [0,0,1]);
+  }
+  function addWindowFixedX(op, gls, xMid, z0, z1, y0, y1, panels, frameW=0.05) {
+    op.box(xMid-0.05, y1-frameW, z0, xMid+0.05, y1, z1, C_CHARCOAL, 5);
+    op.box(xMid-0.05, y0, z0, xMid+0.05, y0+frameW, z1, C_CHARCOAL, 5);
+    op.box(xMid-0.05, y0, z0, xMid+0.05, y1, z0+frameW, C_CHARCOAL, 5);
+    op.box(xMid-0.05, y0, z1-frameW, xMid+0.05, y1, z1, C_CHARCOAL, 5);
+    for (let i=1; i<panels; i++) {
+      const zm = z0 + (z1-z0)*i/panels;
+      op.box(xMid-0.04, y0, zm-0.022, xMid+0.04, y1, zm+0.022, C_CHARCOAL, 5);
+    }
+    gls.quad([xMid, y0+frameW, z0+frameW], [xMid, y0+frameW, z1-frameW],
+             [xMid, y1-frameW, z1-frameW], [xMid, y1-frameW, z0+frameW], C_GLASS, 9, [-1,0,0]);
+  }
+  function addCurtainPairsSouth(gls, x0, x1, y0, y1, zIn) {
+    // Soft sheer side drapes tucked gracefully at left & right of window/sliding door
+    const w = Math.min(0.36, (x1 - x0) * 0.14);
+    for (const [cx0, cx1] of [[x0, x0+w], [x1-w, x1]]) {
+      for (let i=0; i<3; i++) {
+        const a = lerp(cx0, cx1, i/3), b = lerp(cx0, cx1, (i+1)/3);
+        const zA = zIn - (i%2)*0.035, zB = zIn - ((i+1)%2)*0.035;
+        gls.quad([a, y0, zA], [b, y0, zB], [b, y1, zB], [a, y1, zA], C_CURTAIN, 14);
+      }
+    }
+  }
+  function addCurtainPairsWest(gls, z0, z1, y0, y1, xIn) {
+    const w = Math.min(0.32, (z1 - z0) * 0.16);
+    for (const [cz0, cz1] of [[z0, z0+w], [z1-w, z1]]) {
+      for (let i=0; i<3; i++) {
+        const a = lerp(cz0, cz1, i/3), b = lerp(cz0, cz1, (i+1)/3);
+        const xA = xIn + (i%2)*0.035, xB = xIn + ((i+1)%2)*0.035;
+        gls.quad([xA, y0, a], [xB, y0, b], [xB, y1, b], [xA, y1, a], C_CURTAIN, 14);
+      }
+    }
+  }
+  // Scandinavian Dining Chair centered at (cx, cz), facing dirZ (+1 south or -1 north)
+  function addDiningChair(op, cx, cz, y0, dirZ) {
+    const sY = y0 + 0.45;
+    // 4 tapered oak legs
+    for (const dx of [-0.17, 0.17]) {
+      for (const dz of [-0.17, 0.17]) {
+        op.cyl(cx+dx, cz+dz, y0, sY, 0.017, 0.015, C_OAK_LIGHT, 4, 6);
+      }
+    }
+    // Linen seat cushion + oak base
+    op.box(cx-0.20, sY-0.025, cz-0.19, cx+0.20, sY, cz+0.19, C_OAK_LIGHT, 4);
+    op.box(cx-0.19, sY, cz-0.18, cx+0.19, sY+0.045, cz+0.18, C_LINEN, 14);
+    // Curved backrest posts & wooden back rail on opposite side of dirZ
+    const bz = cz - dirZ * 0.18;
+    op.cyl(cx-0.17, bz, sY, y0+0.80, 0.015, 0.014, C_OAK_LIGHT, 4, 6);
+    op.cyl(cx+0.17, bz, sY, y0+0.80, 0.015, 0.014, C_OAK_LIGHT, 4, 6);
+    op.box(cx-0.20, y0+0.68, bz-0.02, cx+0.20, y0+0.82, bz+0.02, C_OAK_LIGHT, 4);
+  }
+  // Modern Ceramic Toilet facing West (-X) against East wall
+  function addToiletEast(op, xWall, cz, y0) {
+    // Cistern tank
+    op.box(xWall-0.21, y0+0.38, cz-0.19, xWall-0.02, y0+0.80, cz+0.19, C_CERAMIC, 16);
+    // Pedestal & bowl
+    op.box(xWall-0.46, y0, cz-0.14, xWall-0.04, y0+0.39, cz+0.14, C_CERAMIC, 16);
+    op.cyl(xWall-0.44, cz, y0+0.06, y0+0.40, 0.16, 0.18, C_CERAMIC, 16, 12);
+    // Slim closed lid
+    op.cyl(xWall-0.44, cz, y0+0.40, y0+0.43, 0.18, 0.18, C_CERAMIC, 16, 12);
+    // Chrome flush button
+    op.box(xWall-0.14, y0+0.80, cz-0.04, xWall-0.08, y0+0.815, cz+0.04, C_GALV, 5);
+  }
+  // Floating Oak Bathroom Vanity + Vessel Basin + Backlit Circular Mirror on East Wall
+  function addVanityEast(op, xWall, z0, z1, y0) {
+    const cz = (z0 + z1) * 0.5;
+    op.box(xWall-0.48, y0+0.42, z0, xWall-0.01, y0+0.78, z1, C_OAK_LIGHT, 4);
+    op.box(xWall-0.50, y0+0.78, z0-0.01, xWall-0.01, y0+0.82, z1+0.01, C_QUARTZ, 15);
+    // Ceramic vessel sink
+    op.cyl(xWall-0.27, cz, y0+0.82, y0+0.93, 0.17, 0.19, C_CERAMIC, 16, 14);
+    op.cyl(xWall-0.27, cz, y0+0.91, y0+0.935, 0.15, 0.15, [0.76,0.84,0.88], 16, 12);
+    // Matte-black tall mixer faucet
+    op.cyl(xWall-0.09, cz, y0+0.82, y0+1.06, 0.016, 0.016, C_CHARCOAL, 5, 8);
+    op.box(xWall-0.22, y0+1.03, cz-0.012, xWall-0.08, y0+1.06, cz+0.012, C_CHARCOAL, 5);
+    // Backlit LED halo + crisp mirror disc on East wall
+    op.cylX(xWall-0.03, xWall-0.005, y0+1.48, cz, 0.30, C_GLOW_WARM, 10, 18);
+    op.cylX(xWall-0.042, xWall-0.025, y0+1.48, cz, 0.27, [0.76,0.83,0.88], 16, 18);
+  }
+
+  // ==================== BUILD STATIC SCENE GEOMETRY ====================
+  const op = new MeshBuilder();
+  const gls = new MeshBuilder();
+
+  // ---------------- 1. ILLUSTRATIVE STREET, PATH & COURTYARD ----------------
+  op.box(-45, -0.35, -35, 55, -0.04, 48, [0.46, 0.48, 0.44], 6);
+  const roadEastX = -3.5;
+  const roadWestX = -7.5;
+  op.box(roadWestX, -0.05, -24, roadEastX, 0.01, 24, C_ASPHALT, 2);
+  op.wallSeg([roadWestX, -24], [roadWestX, 24], 0, 0.08, 0.10, [0.75,0.76,0.77], 6);
+  op.wallSeg([roadEastX, -24], [roadEastX, 9], 0, 0.08, 0.10, [0.76,0.77,0.78], 6);
+  op.wallSeg([roadEastX, 11], [roadEastX, 24], 0, 0.08, 0.10, [0.76,0.77,0.78], 6);
+  op.box(roadEastX, -0.04, 9, 26, 0.03, 11, C_ALLEY, 6);
+  op.box(roadEastX, -0.03, 11, 26, 0.04, 26, [0.56,0.61,0.52], 7);
+  op.box(roadEastX, -0.02, -1, 11, 0.09, 9, C_GRASS, 7);
+  op.prism([[roadEastX, 5.35], [-1.75,5.35], [-2.18,7.15], [roadEastX, 7.15]], 0.02, 0.115, C_COURTYARD, 3);
+  for (let i = 0; i < 10; i++) {
+    const sx = 0.2 + i * 1.05, sz = 7.75 - i * 0.045;
+    op.box(sx-0.30, 0.06, sz-0.22, sx+0.30, 0.11, sz+0.22, [0.80,0.80,0.78], 3);
+  }
+  // Rectangular courtyard plinth
+  op.box(-2.4, 0.04, -0.5, 10.5, 0.13, 7.5, C_COURTYARD, 3);
+  // Courtyard low south curb, sliding gate (open), EV charger wallbox (7.4kW), landscaping
+  op.wallSeg([-2.12, 7.28], [3.41, 6.79], 0.09, 0.50, 0.16, C_WHITE, 1);
+  op.wallSeg([-2.12, 7.28], [3.41, 6.79], 0.50, 0.54, 0.18, [0.76,0.77,0.78], 6);
+  addHedgeRow(op, [-1.75, 7.52], [3.15, 7.06], 0.09, 0.42, 0.32, 2.3);
+  op.box(-1.66, 0.09, 4.62, -1.42, 1.75, 4.86, C_WHITE, 1);
+  op.box(-1.68, 1.75, 4.60, -1.40, 1.80, 4.88, C_CHARCOAL, 5);
+  op.box(-2.33, 0.09, 7.16, -2.09, 1.75, 7.40, C_WHITE, 1);
+  op.box(-2.35, 1.75, 7.14, -2.07, 1.80, 7.42, C_CHARCOAL, 5);
+  const gA = [-1.56, 4.86], gB = [-1.84, 5.90];
+  op.wallSeg(gA, gB, 0.18, 0.24, 0.045, C_CHARCOAL, 5);
+  op.wallSeg(gA, gB, 1.62, 1.68, 0.045, C_CHARCOAL, 5);
+  for (let i=0; i<=9; i++) {
+    const t = i / 9, sx = lerp(gA[0], gB[0], t), sz = lerp(gA[1], gB[1], t);
+    op.box(sx-0.018, 0.20, sz-0.018, sx+0.018, 1.66, sz+0.018, C_CHARCOAL, 5);
+  }
+  // EV Wallbox 7.4kW mounted on West outer wall of Staircase facing courtyard (next to Col 2B!)
+  op.box(3.30, 1.15, 4.72, 3.41, 1.56, 5.02, C_WHITE, 16);
+  op.box(3.29, 1.24, 4.78, 3.31, 1.48, 4.96, C_CHARCOAL, 5);
+  op.box(3.285, 1.38, 4.83, 3.295, 1.44, 4.91, [0.15,0.88,0.65], 19); // Subtle emerald EV status LED!
+  addPottedPlant(op, 3.05, 6.25, 0.13, 0.92, 19, false);
+  addHedgeRow(op, [-0.85, 0.65], [-1.35, 4.10], 0.09, 0.45, 0.34, 6.2);
+  addPlant(op, -2.55, 7.95, 0.09, 0.85, 13.7);
+  addHedgeRow(op, [6.25, 7.12], [9.40, 6.98], 0.09, 0.36, 0.28, 9.4);
+  // Distant ambient background context (far East tree; all adjacent buildings built dynamically in rebuildNeighbors!)
+  addTree(op, 17.5, 5.5, 0.0, 5.0, 1.8, 1.4);
+
+  // ---------------- 2. FLOOR SLABS & INTERIOR FINISH FLOORING ----------------
+  // Floor 1 structural slab + zone-specific finish flooring (Y = 0.22; WC1 sunken to 0.17)
+  op.box(-0.11, 0.13, -0.11, 9.71, 0.20, 4.51, [0.78,0.77,0.74], 6);
+  // Living + Dining: Honey-Oak Wide Plank Wood Floor (X=0.11..5.70, Z=0.11..4.29)
+  op.box(0.11, 0.20, 0.11, 5.70, 0.22, 4.29, C_OAK_FLOOR, 12);
+  // Kitchen + Rear Laundry: Warm Large-Format Terrazzo Tile (X=5.70..9.49, Z=0.11..4.29, except WC1)
+  op.box(5.70, 0.20, 0.11, 7.89, 0.22, 4.29, C_TERRAZZO, 13);
+  op.box(7.89, 0.20, 2.65, 9.49, 0.22, 4.29, C_TERRAZZO, 13);
+  // WC 1 sunken tile floor (Y = 0.17)
+  op.box(7.89, 0.13, 0.11, 9.49, 0.17, 2.65, [0.80,0.78,0.74], 13);
+  // PN1 Floor: Honey-Oak Wide Plank Wood Floor (X=5.905..9.59, Z=4.51..6.67)
+  op.box(5.905, 0.13, 4.51, 9.59, 0.22, 6.67, C_OAK_FLOOR, 12);
+  // Stairwell base floor (Y = 0.22)
+  op.box(3.53, 0.13, 4.51, 5.74, 0.22, 6.67, C_TERRAZZO, 13);
+
+  // Floor 2 Structural Slab (Y = 3.35 .. 3.53) + Floor 1 Ceiling + Floor 2 Finish Flooring (Y = 3.55)
+  op.box(-0.11, 3.35, -0.11, 9.71, 3.53, 4.51, C_CEIL, 1);
+  // Subtle structural ceiling beams on F1 along Axis 2 (X=3.42) and Axis 3 (X=5.85)
+  op.box(3.31, 3.16, 0.11, 3.53, 3.35, 4.29, C_CEIL, 1);
+  op.box(5.74, 3.16, 0.11, 5.96, 3.35, 4.29, C_CEIL, 1);
+  // Floor 2 finish flooring: Honey-Oak in Working Room, Landing & Master; Terrazzo in WC Master
+  op.box(0.11, 3.53, 0.11, 7.63, 3.55, 4.29, C_OAK_FLOOR, 12);
+  op.box(7.63, 3.53, 2.65, 9.49, 3.55, 4.29, C_OAK_FLOOR, 12);
+  op.box(7.63, 3.52, 0.11, 9.49, 3.54, 2.65, C_TERRAZZO, 13);
+
+  // Rooftop Structural Slab (Y = 6.65 .. 6.85) + Floor 2 Ceiling + Rooftop Stone Terrace Tiles
+  op.box(-0.11, 6.65, -0.11, 9.71, 6.83, 4.51, C_CEIL, 1);
+  op.box(-0.11, 6.83, -0.11, 9.71, 6.85, 4.51, C_TERRAZZO, 13);
+
+  // ---------------- 3. EXTERIOR & STRUCTURAL PERIMETER WALLS (1:1 CAD WITH REAL OPENINGS) ----------------
+  // North Solid Back Wall (Axis A, Z = -0.11 .. 0.11, Y = 0.13 .. 7.75 incl. 0.90m roof parapet!)
+  op.box(-0.11, 0.13, -0.11, 9.71, 7.75, 0.11, C_INT_WALL, 1);
+  // Subtle interior baseboard trim along North wall (F1 & F2)
+  op.box(0.11, 0.22, 0.11, 5.70, 0.31, 0.125, C_OAK_LIGHT, 4);
+  op.box(0.11, 3.55, 0.11, 7.63, 3.64, 0.125, C_OAK_LIGHT, 4);
+
+  // WEST WALL (Axis 1, X = -0.11 .. 0.11) — STRAIGHT VERTICAL FROM F1 TO ROOF PARAPET (Y=7.75)
+  // F1 openings: West entrance door Z=0.26..1.21 (Y=0.22..2.50), West window Z=1.45..3.55 (Y=0.85..2.65)
+  op.box(-0.11, 0.13, -0.11, 0.11, 3.55, 0.26, C_WHITE, 1);
+  op.box(-0.11, 2.50, 0.26, 0.11, 3.55, 1.21, C_WHITE, 1);
+  op.box(-0.11, 0.13, 1.21, 0.11, 3.55, 1.45, C_WHITE, 1);
+  op.box(-0.11, 0.13, 1.45, 0.11, 0.85, 3.55, C_WHITE, 1);
+  op.box(-0.11, 2.65, 1.45, 0.11, 3.55, 3.55, C_WHITE, 1);
+  op.box(-0.11, 0.13, 3.55, 0.11, 3.55, 4.51, C_WHITE, 1);
+  addGlassEntranceDoorV(op, gls, -0.05, 0.26, 1.21, 0.22, 2.50); // Sleek outward-open glass entrance door!
+  addWindowFixedX(op, gls, -0.02, 1.45, 3.55, 0.85, 2.65, 2);
+  addCurtainPairsWest(gls, 1.45, 3.55, 0.26, 3.25, 0.15);
+
+  // F2 West wall openings: Desk window Z=0.38..1.88 (Y=4.45..6.35), L-Balcony sliding door Z=2.35..3.95 (Y=3.55..6.35)
+  op.box(-0.11, 3.55, -0.11, 0.11, 7.75, 0.38, C_WHITE, 1);
+  op.box(-0.11, 3.55, 0.38, 0.11, 4.45, 1.88, C_WHITE, 1);
+  op.box(-0.11, 6.35, 0.38, 0.11, 7.75, 1.88, C_WHITE, 1);
+  op.box(-0.11, 3.55, 1.88, 0.11, 7.75, 2.35, C_WHITE, 1);
+  op.box(-0.11, 6.35, 2.35, 0.11, 7.75, 3.95, C_WHITE, 1);
+  op.box(-0.11, 3.55, 3.95, 0.11, 7.75, 4.51, C_WHITE, 1);
+  addWindowFixedX(op, gls, -0.02, 0.38, 1.88, 4.45, 6.35, 2);
+
+  // EAST WALL (Axis 4, X = 9.49 .. 9.71) — REAL WINDOWS FOR WC1, LAUNDRY DOOR, WC MASTER & MASTER VANITY!
+  // F1: WC1 window Z=0.65..1.80 (Y=1.45..2.50), Back door Z=3.00..3.95 (Y=0.22..2.45)
+  op.box(9.49, 0.13, -0.11, 9.71, 3.55, 0.65, C_WHITE, 1);
+  op.box(9.49, 0.13, 0.65, 9.71, 1.45, 1.80, C_WHITE, 1);
+  op.box(9.49, 2.50, 0.65, 9.71, 3.55, 1.80, C_WHITE, 1);
+  op.box(9.49, 0.13, 1.80, 9.71, 3.55, 3.00, C_WHITE, 1);
+  op.box(9.49, 2.45, 3.00, 9.71, 3.55, 3.95, C_WHITE, 1);
+  op.box(9.49, 0.13, 3.95, 9.71, 3.55, 4.51, C_WHITE, 1);
+  addWindowFixedX(op, gls, 9.60, 0.65, 1.80, 1.45, 2.50, 2);
+  addOpenDoorV(op, 9.60, 3.95, 0.95, 0.22, 2.45, -1, false);
+  // F2: WC Master window Z=0.65..1.75 (Y=4.75..5.95), Master Vanity window Z=3.05..4.00 (Y=4.45..6.15)
+  op.box(9.49, 3.55, -0.11, 9.71, 7.75, 0.65, C_WHITE, 1);
+  op.box(9.49, 3.55, 0.65, 9.71, 4.75, 1.75, C_WHITE, 1);
+  op.box(9.49, 5.95, 0.65, 9.71, 7.75, 1.75, C_WHITE, 1);
+  op.box(9.49, 3.55, 1.75, 9.71, 7.75, 3.05, C_WHITE, 1);
+  op.box(9.49, 3.55, 3.05, 9.71, 4.45, 4.00, C_WHITE, 1);
+  op.box(9.49, 6.15, 3.05, 9.71, 7.75, 4.00, C_WHITE, 1);
+  op.box(9.49, 3.55, 4.00, 9.71, 7.75, 4.51, C_WHITE, 1);
+  addWindowFixedX(op, gls, 9.60, 0.65, 1.75, 4.75, 5.95, 2);
+  addWindowFixedX(op, gls, 9.60, 3.05, 4.00, 4.45, 6.15, 2);
+
+  // SOUTH WALL OF INNER CORE (Axis B, Z = 4.29 .. 4.51) — REAL WALK-THROUGH PORTALS!
+  // F1 segments:
+  //   - Living 4-panel sliding door opening: X = 0.11 .. 3.31, Y = 0.22 .. 3.00
+  //   - Col 2B pier: X = 3.31 .. 3.53
+  //   - Existing Staircase Flight 1 Doorway: X = 3.53 .. 4.43, Y = 0.22 .. 2.85 (OPEN!)
+  //   - Existing Solid Brick Pier 2B-3B: X = 4.43 .. 5.96
+  //   - New Partition to PN1 (Z = 4.40..4.51): X = 5.96..6.08, lintel above PN1 door X=6.08..6.90 (Y=2.35..3.55), solid X=6.90..9.71
+  op.box(-0.11, 0.13, 4.29, 0.11, 3.55, 4.51, C_WHITE, 1);
+  op.box(0.11, 3.00, 4.29, 3.31, 3.55, 4.51, C_WHITE, 1);
+  op.box(3.31, 0.13, 4.29, 3.53, 3.55, 4.51, C_WHITE, 1);
+  op.box(3.53, 2.85, 4.29, 4.43, 3.55, 4.51, C_WHITE, 1); // Lintel over existing staircase entry!
+  op.box(4.43, 0.13, 4.29, 5.96, 3.55, 4.51, C_WHITE, 1);
+  op.box(5.96, 0.13, 4.40, 6.08, 3.55, 4.51, C_INT_WALL, 1);
+  op.box(6.08, 2.35, 4.40, 6.90, 3.55, 4.51, C_INT_WALL, 1); // Lintel over PN1 door
+  op.box(6.90, 0.13, 4.40, 9.71, 3.55, 4.51, C_INT_WALL, 1);
+  addOpenDoorH(op, 6.08, 4.455, 0.82, 0.22, 2.35, 1, true); // Walkable PN1 door!
+  addCurtainPairsSouth(gls, 0.11, 3.31, 0.25, 3.28, 4.22);
+
+  // F2 South Core Wall (Z = 4.29 .. 4.51, Y = 3.55 .. 6.85):
+  //   - SW pier X = -0.11..0.55
+  //   - Working Room 2.2m sliding door: X = 0.55..2.75, Y = 3.55..6.35
+  //   - Pier X = 2.75..3.53 (flush with Col 2-B & Stairwell West wall!)
+  //   - FULL 860mm OPEN Stair Flight 2 Departure Portal (F2 -> Rooftop): X = 3.53..4.39, Y = 3.55..6.30!
+  //   - Center Stair Divider Pier: X = 4.39..4.88
+  //   - FULL 860mm OPEN Stair Flight 1 Arrival Portal (F1 -> F2): X = 4.88..5.74, Y = 3.55..6.30!
+  //   - Col 3B & Pier X = 5.74..6.20
+  //   - Master 2.8m Panoramic 3-panel sliding door: X = 6.20..9.00, Y = 3.55..6.35
+  //   - SE Pier X = 9.00..9.71
+  op.box(-0.11, 3.55, 4.29, 0.55, 6.85, 4.51, C_WHITE, 1);
+  op.box(0.55, 6.35, 4.29, 2.75, 6.85, 4.51, C_WHITE, 1);
+  op.box(2.75, 3.55, 4.29, 3.53, 6.85, 4.51, C_WHITE, 1);
+  op.box(3.53, 6.30, 4.29, 4.39, 6.85, 4.51, C_INT_WALL, 1); // Lintel over FULL 860mm Flight 2 roof stair entrance!
+  op.box(4.39, 3.55, 4.29, 4.88, 6.85, 4.51, C_INT_WALL, 1); // Central stair divider
+  op.box(4.88, 6.30, 4.29, 5.74, 6.85, 4.51, C_INT_WALL, 1); // Lintel over FULL 860mm Flight 1 arrival!
+  op.box(5.74, 3.55, 4.29, 6.20, 6.85, 4.51, C_WHITE, 1);
+  op.box(6.20, 6.35, 4.29, 9.00, 6.85, 4.51, C_WHITE, 1);
+  op.box(9.00, 3.55, 4.29, 9.71, 6.85, 4.51, C_WHITE, 1);
+  addCurtainPairsSouth(gls, 0.55, 2.75, 3.58, 6.58, 4.22);
+  addCurtainPairsSouth(gls, 6.20, 9.00, 3.58, 6.58, 4.22);
+
+  // Rooftop South Parapet (Z = 4.29..4.51, Y = 6.85..7.75) with OPEN Tum Thang Walk-out Door X = 4.86..5.74!
+  op.box(-0.11, 6.85, 4.29, 4.86, 7.75, 4.51, C_WHITE, 1);
+  op.box(5.74, 6.85, 4.29, 9.71, 7.75, 4.51, C_WHITE, 1);
+  // Roof parapet dark metal coping flashing along North, West, East, South
+  op.box(-0.13, 7.75, -0.13, 9.73, 7.80, 0.13, C_CHARCOAL, 5);
+  op.box(-0.13, 7.75, -0.13, 0.13, 7.80, 4.53, C_CHARCOAL, 5);
+  op.box(9.47, 7.75, -0.13, 9.73, 7.80, 4.53, C_CHARCOAL, 5);
+  op.box(-0.13, 7.75, 4.27, 4.86, 7.80, 4.53, C_CHARCOAL, 5);
+  op.box(5.74, 7.75, 4.27, 9.73, 7.80, 4.53, C_CHARCOAL, 5);
+
+  // ---------------- 4. INTERIOR PARTITIONS (F1 & F2 — EXACT CAD!) ----------------
+  // F1 WC 1 Partition (West wall X=7.78..7.89 with walkable door Z=1.85..2.60; South wall Z=2.65..2.76)
+  op.box(7.78, 0.17, 0.11, 7.89, 3.35, 1.85, C_INT_WALL, 1);
+  op.box(7.78, 2.35, 1.85, 7.89, 3.35, 2.60, C_INT_WALL, 1);
+  op.box(7.78, 0.17, 2.60, 7.89, 3.35, 2.76, C_INT_WALL, 1);
+  op.box(7.78, 0.17, 2.65, 9.49, 3.35, 2.76, C_INT_WALL, 1);
+  addOpenDoorV(op, 7.835, 2.60, 0.75, 0.22, 2.35, 1, false);
+  // HKT Plumbing Shaft corner 4-A (F1 & F2 aligned 100%)
+  op.box(9.19, 0.17, 0.11, 9.49, 3.35, 0.56, C_TERRAZZO, 13);
+  op.box(9.19, 3.52, 0.11, 9.49, 6.65, 0.56, C_TERRAZZO, 13);
+  op.box(9.19, 6.85, 0.11, 9.49, 7.75, 0.56, C_WHITE, 1);
+
+  // F2 Dividing Wall between Working Room (Left) and Master/Landing (Right):
+  //   North section (Z=0.11..3.34) stays at X=3.74..3.85 (preserves full 2.7m Master Wardrobe & 2.22m Bookshelf!)
+  //   Landing section (Z=3.23..4.29) aligns flush with Col 2-B / Stair West wall at X=3.42..3.53 -> FULL 860mm stair mouth!
+  op.box(3.74, 3.55, 0.11, 3.85, 6.65, 3.34, C_INT_WALL, 1);
+  op.box(3.42, 3.55, 3.23, 3.85, 6.65, 3.34, C_INT_WALL, 1); // Clean 32cm return cap at North of Sảnh
+  op.box(3.42, 3.55, 3.23, 3.53, 6.65, 3.38, C_INT_WALL, 1);
+  op.box(3.42, 5.75, 3.38, 3.53, 6.65, 4.20, C_INT_WALL, 1); // Lintel above 820mm Working Room door
+  op.box(3.42, 3.55, 4.20, 3.53, 6.65, 4.29, C_INT_WALL, 1);
+  addOpenDoorV(op, 3.475, 4.20, 0.82, 3.55, 5.75, -1, false, 0.08); // Swung flat against South wall, 100% clear!
+
+  // F2 Expanded Landing Enclosure (Sảnh thang 2.1m²: X=3.53..5.74, Z=3.34..4.29 — full 2.21m width aligned with stairs!)
+  //   North wall Z = 3.23..3.34 with walkable Master Door at X = 4.86 .. 5.68!
+  op.box(3.85, 3.55, 3.23, 4.86, 6.65, 3.34, C_INT_WALL, 1);
+  op.box(4.86, 5.75, 3.23, 5.68, 6.65, 3.34, C_INT_WALL, 1);
+  op.box(5.68, 3.55, 3.23, 5.85, 6.65, 3.34, C_INT_WALL, 1);
+  op.box(5.74, 3.55, 3.34, 5.85, 6.65, 4.29, C_INT_WALL, 1);
+  addOpenDoorH(op, 4.86, 3.285, 0.82, 3.55, 5.75, -1, true, true); // Folded cleanly flat against landing wall!
+
+  // F2 Expanded WC Master Partition (X = 7.63..7.74, Z = 0.11..2.65; South Z = 2.65..2.76)
+  //   Walkable Door at Z = 1.85 .. 2.60
+  op.box(7.63, 3.55, 0.11, 7.74, 6.65, 1.85, C_INT_WALL, 1);
+  op.box(7.63, 5.70, 1.85, 7.74, 6.65, 2.60, C_INT_WALL, 1);
+  op.box(7.63, 3.55, 2.60, 7.74, 6.65, 2.76, C_INT_WALL, 1);
+  op.box(7.63, 3.55, 2.65, 9.49, 6.65, 2.76, C_INT_WALL, 1);
+  addOpenDoorV(op, 7.685, 2.60, 0.75, 3.55, 5.70, 1, false);
+
+  // ---------------- 5. PROTRUDING 1-STORY BEDROOM BLOCK (PN1 — BAY 3-4) ----------------
+  op.box(9.59, 0.13, 4.51, 9.71, 3.55, 6.79, C_WHITE, 1);
+  op.box(5.905, 3.35, 4.51, 9.71, 3.55, 6.79, C_TERRAZZO, 13); // Flat roof = Master East Balcony!
+  op.box(5.905, 0.13, 6.67, 7.10, 3.55, 6.79, C_WHITE, 1);
+  op.box(7.10, 0.13, 6.67, 8.90, 0.95, 6.79, C_WHITE, 1);
+  op.box(7.10, 2.55, 6.67, 8.90, 3.55, 6.79, C_WHITE, 1);
+  op.box(8.90, 0.13, 6.67, 9.71, 3.55, 6.79, C_WHITE, 1);
+  addWindowFixedSouth(op, gls, 7.10, 8.90, 0.95, 2.55, 6.73, 2);
+  addCurtainPairsSouth(gls, 7.10, 8.90, 0.28, 3.25, 6.60);
+
+  // Master East Balcony Glass Balustrade + Lush Planter Trough
+  gls.quad([5.91, 3.58, 5.71], [9.69, 3.58, 5.71], [9.69, 4.58, 5.71], [5.91, 4.58, 5.71], C_RAILGLASS, 9, [0,0,1]);
+  gls.quad([9.68, 3.58, 4.51], [9.68, 3.58, 5.71], [9.68, 4.58, 5.71], [9.68, 4.58, 4.51], C_RAILGLASS, 9, [1,0,0]);
+  op.box(5.90, 4.57, 5.68, 9.71, 4.62, 5.74, C_CHARCOAL, 5);
+  op.box(9.66, 4.57, 4.51, 9.71, 4.62, 5.74, C_CHARCOAL, 5);
+  op.box(5.94, 3.55, 6.26, 9.69, 3.92, 6.77, C_POT, 6);
+  op.box(6.00, 3.84, 6.32, 9.63, 3.93, 6.71, C_SOIL, 6);
+  addHedgeRow(op, [6.22, 6.52], [9.45, 6.52], 3.88, 0.44, 0.34, 3.7);
+
+  // ---------------- 6. EXTERNAL STAIRCASE TOWER & TUM THANG (+0.22 -> +3.55 -> +6.85 -> +9.45) ----------------
+  // Walls rise cleanly up to Tum Thang roof (+9.45m) per ME-02!
+  op.box(3.41, 0.13, 4.51, 3.53, 9.45, 6.79, C_STAIRWALL, 1); // West wall
+  op.box(5.74, 0.13, 4.51, 5.905, 9.45, 6.79, C_STAIRWALL, 1); // East wall
+  // Tum Thang North wall above F2 slab (Y=6.85..9.45) with walk-out door X=4.86..5.74 (Y=6.85..9.05)
+  op.box(3.41, 6.85, 4.40, 4.86, 9.45, 4.51, C_STAIRWALL, 1);
+  op.box(4.86, 9.05, 4.40, 5.74, 9.45, 4.51, C_STAIRWALL, 1);
+  op.box(5.74, 6.85, 4.40, 5.905, 9.45, 4.51, C_STAIRWALL, 1);
+  addOpenDoorH(op, 5.74, 4.455, 0.88, 6.85, 9.05, -1, false, true); // Walk-out door folded flat against roof parapet!
+  // High daylight windows leave solid wall behind the winders on both flights.
+  const stairWindows = [[3.40, 4.55], [6.70, 7.85]];
+  const stairSouthInside = 6.67, stairSouthOutside = 6.79;
+  const stairWindowLeft = 4.05, stairWindowRight = 5.25;
+  const stairWindowCenter = (stairSouthInside + stairSouthOutside) / 2;
+  op.box(3.41, 0.13, stairSouthInside, stairWindowLeft, 9.45, stairSouthOutside, C_STAIRWALL, 1);
+  op.box(stairWindowRight, 0.13, stairSouthInside, 5.905, 9.45, stairSouthOutside, C_STAIRWALL, 1);
+  let stairWallBase = 0.13;
+  for (const [sill, head] of stairWindows) {
+    op.box(stairWindowLeft, stairWallBase, stairSouthInside, stairWindowRight, sill, stairSouthOutside, C_STAIRWALL, 1);
+    addWindowFixedSouth(op, gls, stairWindowLeft, stairWindowRight, sill, head, stairWindowCenter, 1);
+    const divider = (sill + head) / 2;
+    op.box(stairWindowLeft, divider - 0.025, stairWindowCenter - 0.04,
+           stairWindowRight, divider + 0.025, stairWindowCenter + 0.04, C_CHARCOAL, 5);
+    stairWallBase = head;
+  }
+  op.box(stairWindowLeft, stairWallBase, stairSouthInside, stairWindowRight, 9.45, stairSouthOutside, C_STAIRWALL, 1);
+  // Bolted lightweight insulated steel flat roof over Tum Thang (Y = 9.45 .. 9.63)
+  op.box(3.28, 9.45, 4.40, 6.04, 9.63, 6.94, C_STEELROOF, 5);
+  op.box(3.53, 9.38, 4.51, 5.74, 9.45, 6.67, C_CEIL, 1);
+
+  // REAL 21-STEP OAK & STEEL U-STAIRCASES (FLIGHT 1: 0.22->3.55 & FLIGHT 2: 3.55->6.85!)
+  function buildUStairFlight(yStart, yEnd) {
+    const dy = (yEnd - yStart) / 21.0;
+    const x0 = 3.53, wx0 = 4.39, wx1 = 4.88, x1 = 5.74;
+    const zStart = 4.43, wy1 = 5.81, zEnd = stairSouthInside;
+    const treadD = (wy1 - zStart) / 6.0; // 0.23m
+    // West leg: 6 steps (risers 1..6)
+    for (let i=0; i<6; i++) {
+      const sy = yStart + (i+1) * dy;
+      const za = zStart + i * treadD, zb = za + treadD + 0.02;
+      op.box(x0, sy - 0.045, za, wx0, sy, zb, C_WOOD, 4);
+      op.box((x0+wx0)*0.5 - 0.06, sy - 0.14, za + 0.03, (x0+wx0)*0.5 + 0.06, sy - 0.045, zb - 0.03, C_CHARCOAL, 5);
+    }
+    // SW corner 3 kite winders (risers 7..9)
+    const swKites = [
+      [[wx0,wy1], [x0,wy1], [x0, wy1 + 0.496]],
+      [[wx0,wy1], [x0, wy1 + 0.496], [x0, zEnd], [wx0 - 0.496, zEnd]],
+      [[wx0,wy1], [wx0 - 0.496, zEnd], [wx0, zEnd]]
+    ];
+    for (let i=0; i<3; i++) {
+      const sy = yStart + (7 + i) * dy;
+      op.prism(swKites[i], sy - 0.055, sy, C_WOOD, 4);
+    }
+    // South straight 2 treads (risers 10..11)
+    const xm = (wx0 + wx1) * 0.5;
+    op.box(wx0, yStart + 10*dy - 0.055, wy1, xm + 0.015, yStart + 10*dy, zEnd, C_WOOD, 4);
+    op.box(xm, yStart + 11*dy - 0.055, wy1, wx1 + 0.015, yStart + 11*dy, zEnd, C_WOOD, 4);
+    // SE corner 3 kite winders (risers 12..14)
+    const seKites = [
+      [[wx1,wy1], [wx1, zEnd], [wx1 + 0.496, zEnd]],
+      [[wx1,wy1], [wx1 + 0.496, zEnd], [x1, zEnd], [x1, wy1 + 0.496]],
+      [[wx1,wy1], [x1, wy1 + 0.496], [x1, wy1]]
+    ];
+    for (let i=0; i<3; i++) {
+      const sy = yStart + (12 + i) * dy;
+      op.prism(seKites[i], sy - 0.055, sy, C_WOOD, 4);
+    }
+    // East leg: 6 steps climbing North back to upper floor (risers 15..20 -> top slab is 21)
+    for (let i=0; i<6; i++) {
+      const sy = yStart + (15 + i) * dy;
+      const zb = wy1 - i * treadD, za = zb - treadD - 0.02;
+      op.box(wx1, sy - 0.045, za, x1, sy, zb, C_WOOD, 4);
+      op.box((wx1+x1)*0.5 - 0.06, sy - 0.14, za + 0.03, (wx1+x1)*0.5 + 0.06, sy - 0.045, zb - 0.03, C_CHARCOAL, 5);
+    }
+    // Slim modern steel balusters (2.2cm) & true 3D sloped solid-oak handrail!
+    for (let i=0; i<=6; i++) {
+      const zw = zStart + i * treadD;
+      const yw = yStart + (i+1) * dy;
+      op.box(wx0 - 0.014, yw, zw - 0.011, wx0 + 0.010, yw + 0.88, zw + 0.011, C_CHARCOAL, 5);
+      const ye = yStart + (15 + (6 - i)) * dy;
+      op.box(wx1 - 0.010, ye - dy, zw - 0.011, wx1 + 0.014, ye - dy + 0.88, zw + 0.011, C_CHARCOAL, 5);
+    }
+    op.beam3D([wx0, yStart + dy + 0.89, zStart], [wx0, yStart + 7*dy + 0.89, wy1], 0.028, 0.024, C_WOOD, 4);
+    op.beam3D([wx0, yStart + 7*dy + 0.89, wy1], [wx1, yStart + 14*dy + 0.89, wy1], 0.028, 0.024, C_WOOD, 4);
+    op.beam3D([wx1, yStart + 14*dy + 0.89, wy1], [wx1, yEnd + 0.87, zStart], 0.028, 0.024, C_WOOD, 4);
+  }
+  buildUStairFlight(0.22, 3.55);
+  buildUStairFlight(3.55, 6.85);
+  // Safety glass guardrail at top of Rooftop arrival side (prevents stepping into open stair well)
+  op.box(4.40, 6.85, 4.51, 4.88, 7.80, 4.57, C_CHARCOAL, 5);
+  // Staircase ceiling light fixtures
+  addDownlight(op, 4.635, 6.20, 9.38);
+
+  // ---------------- 7. WRAP-AROUND L-BALCONY (FLOOR 2, 8.1 m²) ----------------
+  const lPts = [[-0.11,2.10], [-0.71,2.10], [-1.66,5.71], [3.41,5.71], [3.41,4.51], [-0.11,4.51]];
+  op.prism(lPts, 3.35, 3.55, C_TERRAZZO, 13, C_SOFFIT, 4);
+  const railEdges = [[[-0.11,2.10],[-0.71,2.10]], [[-0.71,2.10],[-1.66,5.71]], [[-1.66,5.71],[3.41,5.71]]];
+  for (const [a, b] of railEdges) {
+    const dx = b[0]-a[0], dz = b[1]-a[1], l = Math.hypot(dx, dz) || 1;
+    const n = [dz/l, 0, -dx/l];
+    gls.quad([a[0],3.56,a[1]], [b[0],3.56,b[1]], [b[0],4.58,b[1]], [a[0],4.58,a[1]], C_RAILGLASS, 9, n);
+    op.wallSeg(a, b, 4.57, 4.62, 0.055, C_CHARCOAL, 5);
+    op.wallSeg(a, b, 3.55, 3.60, 0.06, C_CHARCOAL, 5);
+  }
+  addPottedPlant(op, -1.25, 5.28, 3.55, 0.85, 4, false);
+  addPottedPlant(op, -0.55, 5.38, 3.55, 0.72, 7, false);
+  addPottedPlant(op, 2.95, 5.36, 3.55, 0.80, 11, false);
+  // Small outdoor bistro table + 2 teak stools on sunny South wing of L-Balcony
+  op.cyl(1.45, 5.12, 3.55, 4.18, 0.03, 0.03, C_CHARCOAL, 5, 8);
+  op.cyl(1.45, 5.12, 4.18, 4.21, 0.28, 0.28, C_WOOD, 4, 14);
+  op.cyl(0.88, 5.15, 3.55, 3.98, 0.16, 0.17, C_WOOD, 4, 12);
+  op.cyl(2.02, 5.15, 3.55, 3.98, 0.16, 0.17, C_WOOD, 4, 12);
+
+  // ==================== 8. PROPOSED INTERIOR FURNITURE DESIGN — FLOOR 1 ====================
+  // --- A. LIVING ROOM (Phòng Khách — 13.8 m², X=0.11..3.42, Z=0.11..4.29) ---
+  // Fluted walnut TV feature wall + concealed warm LED halo strip
+  op.box(0.55, 0.22, 0.11, 2.95, 3.25, 0.155, C_WALNUT, 11);
+  op.box(0.54, 0.35, 0.12, 0.56, 3.20, 0.15, C_GLOW_WARM, 10);
+  op.box(2.94, 0.35, 0.12, 2.96, 3.20, 0.15, C_GLOW_WARM, 10);
+  // Floating matte cream & oak TV console (X=0.85..2.65, Z=0.15..0.52)
+  op.box(0.85, 0.38, 0.155, 2.65, 0.68, 0.52, C_CREAM_CAB, 1);
+  op.box(0.85, 0.68, 0.155, 2.65, 0.71, 0.53, C_OAK_LIGHT, 4);
+  op.box(0.88, 0.365, 0.22, 2.62, 0.38, 0.45, C_GLOW_WARM, 10); // Under-console ambient strip
+  // 65" Frameless OLED TV (X=1.05..2.45, Y=1.04..1.84)
+  op.box(1.04, 1.03, 0.155, 2.46, 1.85, 0.19, C_CHARCOAL, 5);
+  op.box(1.06, 1.05, 0.19, 2.44, 1.83, 0.20, [0.10, 0.14, 0.19], 19); // Subtle architectural art display
+  // Decor ceramic vase & books on TV console
+  op.cyl(1.04, 0.34, 0.71, 0.96, 0.06, 0.04, C_CERAMIC_POT, 16, 10);
+  op.box(2.24, 0.71, 0.28, 2.50, 0.76, 0.44, C_TERRA, 14);
+  op.box(2.26, 0.76, 0.30, 2.48, 0.80, 0.43, C_LINEN_LT, 14);
+
+  // Woven Area Rug under Living Seating (X=0.42..2.98, Z=1.15..3.45)
+  op.box(0.42, 0.22, 1.15, 2.98, 0.232, 3.45, C_RUG, 14);
+
+  // Low-Profile 3-Seat Linen Sofa facing North TV (X=0.60..2.80, Z=2.45..3.27)
+  // Tapered oak legs
+  for (const sx of [0.68, 2.72]) for (const sz of [2.52, 3.20]) op.cyl(sx, sz, 0.23, 0.36, 0.025, 0.020, C_WALNUT, 4, 6);
+  // Base deck, 3 plush seat cushions, wide armrests & deep backrest
+  op.box(0.60, 0.35, 2.45, 2.80, 0.46, 3.27, C_WALNUT, 4);
+  for (let i=0; i<3; i++) {
+    const cx0 = 0.76 + i * 0.635;
+    op.box(cx0, 0.46, 2.46, cx0 + 0.615, 0.64, 3.06, C_LINEN, 14);
+    op.box(cx0, 0.64, 2.96, cx0 + 0.615, 0.94, 3.16, C_LINEN, 14); // Back cushions
+  }
+  op.box(0.60, 0.46, 2.45, 0.76, 0.80, 3.27, C_LINEN, 14); // Left arm
+  op.box(2.64, 0.46, 2.45, 2.80, 0.80, 3.27, C_LINEN, 14); // Right arm
+  op.box(0.60, 0.46, 3.12, 2.80, 0.90, 3.27, C_LINEN, 14); // Back frame
+  // Accent throw pillows (Sage & Terracotta)
+  op.rotBox(0.92, 2.90, 0.34, 0.14, 0.64, 0.92, 0.28, C_SAGE, 14);
+  op.rotBox(2.48, 2.90, 0.34, 0.14, 0.64, 0.92, -0.32, C_TERRA, 14);
+  op.rotBox(2.26, 2.92, 0.30, 0.12, 0.64, 0.88, -0.18, C_LINEN_LT, 14);
+
+  // Natural Oak Coffee Table (X=1.15..2.25, Z=1.40..2.02) + Ceramic Tea Set & Art Book
+  op.box(1.15, 0.53, 1.40, 2.25, 0.58, 2.02, C_OAK_LIGHT, 4);
+  op.box(1.24, 0.32, 1.48, 2.16, 0.35, 1.94, C_OAK_LIGHT, 4); // Lower shelf
+  for (const lx of [1.24, 2.16]) for (const lz of [1.48, 1.94]) op.cyl(lx, lz, 0.23, 0.53, 0.022, 0.022, C_OAK_LIGHT, 4, 8);
+  op.cyl(1.55, 1.72, 0.58, 0.60, 0.16, 0.16, C_QUARTZ, 15, 14); // Marble tray
+  op.cyl(1.52, 1.70, 0.60, 0.72, 0.055, 0.045, C_CERAMIC, 16, 10); // Teapot
+  op.box(1.80, 0.58, 1.56, 2.08, 0.62, 1.82, C_SAGE, 14); // Coffee table book
+
+  // Bouclé Accent Armchair angled on West side (X=0.22..0.87, Z=1.40..2.05)
+  op.rotBox(0.55, 1.72, 0.62, 0.60, 0.24, 0.32, 0.35, C_WALNUT, 4);
+  op.rotBox(0.55, 1.72, 0.62, 0.58, 0.32, 0.54, 0.35, C_LINEN_LT, 14);
+  op.rotBox(0.36, 1.65, 0.16, 0.58, 0.52, 0.90, 0.35, C_LINEN_LT, 14);
+  // Warm Brushed-Brass Standing Floor Lamp (X=0.34, Z=2.55)
+  op.cyl(0.34, 2.55, 0.22, 0.26, 0.15, 0.14, C_BRASS, 18, 12);
+  op.cyl(0.34, 2.55, 0.26, 1.62, 0.014, 0.012, C_BRASS, 18, 8);
+  op.cyl(0.34, 2.55, 1.50, 1.76, 0.19, 0.15, C_GLOW_WARM, 10, 14); // Glowing warm linen shade!
+  // Tall Indoor Fiddle-Leaf Fig in SW corner (X=0.36, Z=3.85) + AC on North wall
+  addPottedPlant(op, 0.36, 3.85, 0.22, 1.05, 5.2, true);
+  addACUnit(op, 2.27, 3.03, 0.11, 0.31, 2.86, 3.14);
+
+  // --- B. DINING ROOM (Phòng Ăn — 10.2 m², X=3.42..5.85, Z=0.11..4.29) ---
+  // North Fluted Oak Sideboard Credenza (X=3.60..5.30, Z=0.14..0.52) + Framed Diptych Art
+  op.box(3.60, 0.32, 0.14, 5.30, 0.92, 0.52, C_OAK_LIGHT, 4);
+  op.box(3.60, 0.92, 0.14, 5.30, 0.955, 0.535, C_QUARTZ, 15);
+  for (const lx of [3.68, 4.45, 5.22]) for (const lz of [0.18, 0.48]) op.cyl(lx, lz, 0.22, 0.32, 0.018, 0.018, C_CHARCOAL, 5, 6);
+  // Framed minimalist Japandi geometric diptych wall art above credenza (crisp relief, zero z-fighting!)
+  for (const ax of [3.76, 4.54]) {
+    op.box(ax, 1.32, 0.11, ax+0.62, 2.18, 0.145, C_WALNUT, 4);
+    op.box(ax+0.03, 1.35, 0.145, ax+0.59, 2.15, 0.155, [0.93, 0.90, 0.84], 14);
+    if (ax < 4.2) {
+      op.box(ax+0.12, 1.48, 0.155, ax+0.48, 1.98, 0.163, C_SAGE, 14);
+      op.box(ax+0.26, 1.44, 0.163, ax+0.50, 1.72, 0.170, C_TERRA, 14);
+    } else {
+      op.box(ax+0.14, 1.54, 0.155, ax+0.50, 2.02, 0.163, C_TERRA, 14);
+      op.box(ax+0.10, 1.44, 0.163, ax+0.34, 1.74, 0.170, C_WALNUT, 14);
+    }
+  }
+  // 6-Seat Solid Oak Dining Table (X=3.95..5.35, Z=1.55..2.37) + 6 Scandinavian Chairs
+  op.box(3.95, 0.93, 1.55, 5.35, 0.975, 2.37, C_OAK_LIGHT, 4);
+  op.box(4.02, 0.87, 1.62, 5.28, 0.93, 2.30, C_WALNUT, 4);
+  for (const tx of [4.06, 5.24]) for (const tz of [1.64, 2.28]) op.cyl(tx, tz, 0.22, 0.93, 0.028, 0.022, C_OAK_LIGHT, 4, 8);
+  // Refined ceramic centerpiece bowl + minimalist botanical arrangement
+  op.cyl(4.65, 1.96, 0.975, 1.035, 0.10, 0.14, C_CERAMIC_POT, 16, 12);
+  op.cyl(4.48, 1.92, 0.975, 1.15, 0.038, 0.026, C_TERRA, 16, 10);
+  addPlant(op, 4.65, 1.96, 1.03, 0.26, 9.1);
+  for (const cx of [4.15, 4.65, 5.15]) {
+    addDiningChair(op, cx, 1.34, 0.22, 1);
+    addDiningChair(op, cx, 2.58, 0.22, -1);
+  }
+  // Sculptural Brass & Frosted-Globe Linear Dining Pendant Chandelier (X=4.635, Z=1.96)
+  op.box(4.18, 3.32, 1.92, 5.09, 3.35, 2.00, C_BRASS, 18); // Ceiling canopy
+  op.cyl(4.32, 1.96, 2.15, 3.32, 0.006, 0.006, C_CHARCOAL, 5, 6);
+  op.cyl(4.95, 1.96, 2.15, 3.32, 0.006, 0.006, C_CHARCOAL, 5, 6);
+  op.box(4.08, 2.12, 1.945, 5.19, 2.155, 1.975, C_BRASS, 18);
+  for (const gx of [4.22, 4.635, 5.05]) op.sphere(gx, 2.07, 1.96, 0.085, 0.085, 0.085, C_GLOW_WARM, 10, 10, 7);
+
+  // Custom Slatted Oak Technical Cabinet on South Pier 2B-3B (Houses Solar Inverter + 15kWh Battery + Smart Rack!)
+  op.box(4.55, 0.22, 3.84, 5.73, 2.38, 4.28, C_WALNUT, 11);
+  op.box(4.55, 2.38, 3.83, 5.73, 2.42, 4.29, C_OAK_LIGHT, 4);
+  op.box(4.75, 1.55, 3.832, 4.95, 1.58, 3.842, [0.18, 0.85, 0.58], 19); // Subtle Smart Energy status LED
+
+  // --- C. L-SHAPED KITCHEN (Khu Bếp — 8.2 m², X=5.70..7.78, Z=0.11..2.02 + Fridge at Z=2.76..3.42) ---
+  // Warm Oak Lower Base Cabinets (exact 0.86m ergonomic countertop height: 0.22 -> 1.08m!)
+  op.box(5.70, 0.22, 0.11, 7.78, 0.32, 0.65, C_CHARCOAL, 5);
+  op.box(5.70, 0.32, 0.11, 7.78, 1.04, 0.71, C_OAK_LIGHT, 4);
+  op.box(7.24, 0.22, 0.71, 7.78, 0.32, 1.82, C_CHARCOAL, 5);
+  op.box(7.18, 0.32, 0.71, 7.78, 1.04, 1.82, C_OAK_LIGHT, 4);
+  // White-Veined Quartz Countertop (Y=1.04..1.08 -> 0.86m above floor) + Full Quartz Backsplash (Y=1.08..1.72)
+  op.box(5.68, 1.04, 0.11, 7.78, 1.08, 0.72, C_QUARTZ, 15);
+  op.box(7.17, 1.04, 0.72, 7.78, 1.08, 1.83, C_QUARTZ, 15);
+  op.box(5.70, 1.08, 0.11, 7.78, 1.72, 0.135, C_QUARTZ, 15);
+  op.box(7.755, 1.08, 0.135, 7.78, 1.72, 1.82, C_QUARTZ, 15);
+  // Matte Cream Upper Cabinets (Y=1.72..2.68) + Warm Under-Cabinet LED Strip!
+  op.box(5.70, 1.72, 0.11, 7.78, 2.68, 0.46, C_CREAM_CAB, 1);
+  op.box(7.42, 1.72, 0.46, 7.78, 2.68, 1.82, C_CREAM_CAB, 1);
+  op.box(5.74, 1.70, 0.16, 7.72, 1.72, 0.20, C_GLOW_WARM, 10);
+  op.box(7.68, 1.70, 0.22, 7.72, 1.72, 1.78, C_GLOW_WARM, 10);
+  // Induction Cooktop (X=6.15..6.85, Z=0.20..0.62) + Range Hood + Kettle
+  op.box(6.15, 1.08, 0.20, 6.85, 1.095, 0.62, C_CHARCOAL, 5);
+  op.cyl(6.35, 0.41, 1.095, 1.099, 0.10, 0.10, [0.35,0.38,0.42], 5, 12);
+  op.cyl(6.65, 0.41, 1.095, 1.099, 0.10, 0.10, [0.35,0.38,0.42], 5, 12);
+  op.cyl(6.35, 0.41, 1.099, 1.22, 0.08, 0.06, C_CHARCOAL, 5, 10); // Matte black kettle
+  op.box(6.10, 1.66, 0.14, 6.90, 1.72, 0.56, C_GALV, 5); // Slim built-in range hood
+  // Double Stainless Sink (X=7.26..7.70, Z=0.95..1.72) + Goose-Neck Matte-Black Faucet
+  op.box(7.26, 1.08, 0.95, 7.70, 1.09, 1.72, C_GALV, 5);
+  op.box(7.30, 1.082, 1.00, 7.66, 1.092, 1.32, [0.30,0.33,0.37], 5);
+  op.box(7.30, 1.082, 1.36, 7.66, 1.092, 1.68, [0.30,0.33,0.37], 5);
+  op.cyl(7.71, 1.34, 1.08, 1.41, 0.016, 0.016, C_CHARCOAL, 5, 8);
+  op.box(7.50, 1.38, 1.325, 7.72, 1.41, 1.355, C_CHARCOAL, 5);
+  // Brushed-Graphite French-Door Fridge tucked cleanly South of WC1 door (X=7.12..7.76, Z=2.76..3.42 — 100% clear WC1 doorway!)
+  op.box(7.12, 0.22, 2.76, 7.76, 2.08, 3.42, C_GRAPHITE, 5);
+  op.box(7.11, 0.24, 3.08, 7.125, 2.06, 3.10, C_CHARCOAL, 5); // Center seam
+  op.box(7.11, 0.86, 2.77, 7.125, 0.88, 3.41, C_CHARCOAL, 5); // Freezer drawer seam
+  op.box(7.09, 1.05, 3.03, 7.11, 1.55, 3.055, C_GALV, 5);
+  op.box(7.09, 1.05, 3.125, 7.11, 1.55, 3.15, C_GALV, 5);
+
+  // --- D. WC 1 (4.1 m², X=7.89..9.49, Z=0.11..2.65) & LAUNDRY (2.4 m², Z=2.76..4.29) ---
+  // Walk-in Glass Shower Partition (Z = 1.01, X = 8.40..9.49) + Rainfall Fixture + Instant Heater
+  gls.quad([8.40, 0.17, 1.01], [9.49, 0.17, 1.01], [9.49, 2.24, 1.01], [8.40, 2.24, 1.01], C_SHOWERGLS, 9, [0,0,1]);
+  op.box(8.39, 0.17, 0.995, 8.42, 2.25, 1.025, C_CHARCOAL, 5);
+  op.box(8.39, 2.23, 0.995, 9.49, 2.26, 1.025, C_CHARCOAL, 5);
+  op.cyl(8.55, 0.16, 1.15, 2.22, 0.015, 0.015, C_CHARCOAL, 5, 8);
+  op.cyl(8.55, 0.36, 2.18, 2.21, 0.12, 0.12, C_CHARCOAL, 5, 12); // Rainfall showerhead
+  op.box(8.55, 2.21, 0.15, 8.58, 2.23, 0.36, C_CHARCOAL, 5);
+  op.box(8.80, 1.48, 0.11, 9.06, 1.82, 0.21, C_WHITE, 16); // 4.5kW Instant Water Heater
+  addToiletEast(op, 9.49, 1.41, 0.17);
+  addVanityEast(op, 9.49, 1.95, 2.55, 0.17);
+
+  // Laundry: Stacked Front-Load Washer + Dryer Tower (X=7.94..8.56, Z=2.80..3.42)
+  op.box(7.94, 0.22, 2.80, 8.56, 1.07, 3.42, [0.92,0.92,0.91], 16); // Washer
+  op.box(7.94, 1.09, 2.80, 8.56, 1.94, 3.42, [0.92,0.92,0.91], 16); // Dryer
+  op.cyl(8.25, 3.425, 0.65, 0.67, 0.18, 0.18, C_CHARCOAL, 5, 12);
+  op.box(8.05, 0.48, 3.42, 8.45, 0.88, 3.44, C_CHARCOAL, 5);
+  op.box(8.05, 1.34, 3.42, 8.45, 1.74, 3.44, C_CHARCOAL, 5);
+
+  // --- E. GROUND FLOOR BEDROOM 1 — PN1 (7.8 m², X=5.905..9.59, Z=4.51..6.67) ---
+  // Double Bed 1.5x2.0m against East wall (X=7.55..9.55, Z=4.55..6.05)
+  op.box(9.46, 0.22, 4.55, 9.58, 1.24, 6.05, C_LINEN, 14); // Upholstered headboard
+  op.box(7.55, 0.22, 4.55, 9.48, 0.44, 6.05, C_OAK_LIGHT, 4); // Platform frame
+  op.box(7.58, 0.44, 4.58, 9.45, 0.68, 6.02, C_LINEN_LT, 14); // Mattress & duvet
+  op.box(7.56, 0.67, 4.56, 8.38, 0.71, 6.04, C_SAGE, 14); // Folded sage throw blanket
+  op.box(8.98, 0.68, 4.68, 9.38, 0.82, 5.24, [0.96,0.95,0.93], 14); // Pillow 1
+  op.box(8.98, 0.68, 5.36, 9.38, 0.82, 5.92, [0.96,0.95,0.93], 14); // Pillow 2
+  // Compact oak bedside shelf + warm globe lamp South of headboard
+  op.box(9.12, 0.42, 6.10, 9.56, 0.72, 6.52, C_OAK_LIGHT, 4);
+  op.sphere(9.34, 0.84, 6.31, 0.09, 0.09, 0.09, C_GLOW_WARM, 10, 10, 7);
+  // Built-in Wardrobe SW corner (X=5.96..7.31, Z=6.07..6.63, Y=0.22..2.65)
+  op.box(5.96, 0.22, 6.07, 7.31, 2.65, 6.64, C_CREAM_CAB, 1);
+  op.box(5.96, 0.22, 6.06, 7.31, 0.30, 6.08, C_OAK_LIGHT, 4);
+  for (const hx of [6.40, 6.86]) op.box(hx-0.01, 1.05, 6.04, hx+0.01, 1.65, 6.07, C_BRASS, 18);
+  addACUnit(op, 9.38, 9.59, 5.40, 6.14, 2.82, 3.10);
+
+  // ==================== 9. PROPOSED INTERIOR FURNITURE DESIGN — FLOOR 2 ====================
+  // --- A. WORKING / MULTI-PURPOSE ROOM (Phòng Làm Việc — 15.2 m², X=0.11..3.74, Z=0.11..4.29) ---
+  // Woven round studio rug under desk chair
+  op.cyl(1.18, 1.25, 3.55, 3.562, 0.92, 0.92, C_RUG, 14, 20);
+  // 1.65m High-Tech Standing Work Desk facing West Window (X=0.24..0.99, Z=0.35..2.00)
+  op.box(0.24, 4.26, 0.35, 0.99, 4.305, 2.00, C_WALNUT, 4); // Solid walnut slab
+  op.box(0.32, 3.55, 0.44, 0.92, 3.59, 0.50, C_CHARCOAL, 5); // Leg base N
+  op.box(0.32, 3.55, 1.85, 0.92, 3.59, 1.91, C_CHARCOAL, 5); // Leg base S
+  op.box(0.57, 3.59, 0.44, 0.65, 4.26, 0.50, C_CHARCOAL, 5); // Electric column N
+  op.box(0.57, 3.59, 1.85, 0.65, 4.26, 1.91, C_CHARCOAL, 5); // Electric column S
+  // 34" Ultrawide Monitor + Aluminum Laptop Stand + Keyboard + Warm Architect Desk Lamp
+  op.box(0.38, 4.305, 1.12, 0.54, 4.325, 1.32, C_CHARCOAL, 5); // Monitor stand base
+  op.box(0.41, 4.325, 1.19, 0.45, 4.62, 1.25, C_CHARCOAL, 5); // Arm
+  op.box(0.42, 4.46, 0.80, 0.46, 4.86, 1.64, C_CHARCOAL, 5); // Ultrawide housing
+  op.box(0.46, 4.48, 0.82, 0.47, 4.84, 1.62, [0.10, 0.14, 0.20], 19); // Dark IDE canvas
+  op.box(0.47, 4.50, 0.84, 0.475, 4.82, 1.06, [0.14, 0.20, 0.28], 19); // Left sidebar
+  op.box(0.47, 4.58, 1.12, 0.475, 4.78, 1.56, [0.22, 0.36, 0.48], 19); // 3D preview pane
+  op.box(0.44, 4.305, 1.66, 0.68, 4.34, 1.92, C_GALV, 5); // Laptop on stand
+  op.box(0.68, 4.305, 0.96, 0.86, 4.325, 1.44, C_CHARCOAL, 5); // Mechanical keyboard & desk mat
+  // Warm articulating brass desk lamp
+  op.cyl(0.42, 0.55, 4.305, 4.33, 0.08, 0.08, C_BRASS, 18, 10);
+  op.cyl(0.42, 0.55, 4.33, 4.78, 0.012, 0.012, C_BRASS, 18, 8);
+  op.sphere(0.50, 4.74, 0.62, 0.075, 0.065, 0.075, C_GLOW_WARM, 10, 10, 7);
+
+  // Ergonomic Mesh Swivel Office Chair with 5-Star Caster Base (X=1.28, Z=1.18)
+  for (let i=0; i<5; i++) {
+    const a = i * Math.PI * 2 / 5;
+    const lx = 1.28 + Math.cos(a) * 0.28, lz = 1.18 + Math.sin(a) * 0.28;
+    op.wallSeg([1.28, 1.18], [lx, lz], 3.59, 3.63, 0.032, C_CHARCOAL, 5);
+    op.cyl(lx, lz, 3.55, 3.595, 0.022, 0.022, C_CHARCOAL, 5, 6);
+  }
+  op.cyl(1.28, 1.18, 3.60, 4.00, 0.026, 0.026, C_CHARCOAL, 5, 8); // Gas lift piston
+  op.box(1.06, 4.00, 0.94, 1.50, 4.07, 1.42, C_GRAPHITE, 14); // Cushion seat
+  op.box(1.44, 4.07, 0.96, 1.51, 4.66, 1.40, C_GRAPHITE, 14); // Ergonomic backrest
+  op.box(1.14, 4.18, 0.91, 1.42, 4.22, 0.95, C_CHARCOAL, 5); // Armrests
+  op.box(1.14, 4.18, 1.41, 1.42, 4.22, 1.45, C_CHARCOAL, 5);
+
+  // 2.22m Floor-to-Ceiling Built-In Bookshelf along North Wall (X=1.45..3.67, Z=0.14..0.54)
+  op.box(1.45, 3.55, 0.14, 3.67, 4.32, 0.54, C_CREAM_CAB, 1); // Lower closed cabinets
+  op.box(1.45, 4.32, 0.14, 3.67, 4.36, 0.55, C_WALNUT, 4);
+  op.box(1.45, 4.36, 0.14, 3.67, 6.45, 0.18, C_WALNUT, 4); // Back panel
+  for (const bx of [1.45, 2.00, 2.56, 3.12, 3.64]) op.box(bx, 4.36, 0.18, bx+0.035, 6.45, 0.52, C_WALNUT, 4);
+  for (const by of [4.84, 5.34, 5.84, 6.41]) {
+    op.box(1.45, by, 0.18, 3.67, by+0.035, 0.52, C_WALNUT, 4);
+    op.box(1.50, by-0.015, 0.21, 3.62, by, 0.23, C_GLOW_WARM, 10); // Warm shelf LED accent!
+  }
+  // Books & decor items across shelves
+  const bookCols = [C_SAGE, C_TERRA, C_LINEN, C_CHARCOAL, [0.22,0.38,0.52], C_CREAM_CAB];
+  for (let row=0; row<3; row++) {
+    const sy = 4.36 + row * 0.50;
+    for (let bay=0; bay<4; bay++) {
+      const bx0 = 1.52 + bay * 0.56;
+      if ((row + bay) % 3 === 0) {
+        op.cyl(bx0+0.22, 0.35, sy, sy+0.24, 0.07, 0.055, C_CERAMIC_POT, 16, 10);
+        addPlant(op, bx0+0.22, 0.35, sy+0.22, 0.38, row*3+bay);
+      } else {
+        for (let b=0; b<6; b++) {
+          const bh = 0.22 + ((b*7+row)%4)*0.03;
+          op.box(bx0 + b*0.065, sy, 0.24, bx0 + b*0.065 + 0.052, sy + bh, 0.44, bookCols[(b+bay+row)%bookCols.length], 14);
+        }
+      }
+    }
+  }
+  // Studio Upright Piano (1.48m × 0.58m × 1.19m) + Padded Bench + Brass Lamp along East interior wall (X=3.16..3.735, Z=1.08..2.56)
+  // Interior partition backed by the master wardrobe
+  const C_PIANO = [0.10, 0.10, 0.12];
+  const C_IVORY = [0.96, 0.95, 0.91];
+  const C_EBONY = [0.06, 0.06, 0.07];
+  const C_FELT  = [0.56, 0.10, 0.12];
+  // Main upright soundboard body, top lid & recessed front panel
+  op.box(3.41, 3.55, 1.08, 3.735, 4.71, 2.56, C_PIANO, 5);
+  op.box(3.37, 4.71, 1.06, 3.74, 4.748, 2.58, C_PIANO, 5); // Chamfered top lid
+  op.box(3.39, 4.38, 1.13, 3.41, 4.68, 2.51, C_PIANO, 5);  // Upper front cabinet panel
+  op.box(3.385, 4.44, 1.75, 3.392, 4.462, 1.89, C_BRASS, 18); // Brushed brass emblem
+  // Projecting keybed, cheek blocks, open fallboard & vertical front console legs
+  op.box(3.16, 4.21, 1.08, 3.41, 4.28, 2.56, C_PIANO, 5); // Keybed deck
+  op.box(3.16, 4.28, 1.08, 3.41, 4.35, 1.16, C_PIANO, 5); // North cheek arm
+  op.box(3.16, 4.28, 2.48, 3.41, 4.35, 2.56, C_PIANO, 5); // South cheek arm
+  op.box(3.36, 4.29, 1.16, 3.40, 4.41, 2.48, C_PIANO, 5); // Upright open fallboard
+  op.box(3.16, 3.55, 1.09, 3.42, 3.60, 1.17, C_PIANO, 5); // Front toe block N
+  op.box(3.16, 3.55, 2.47, 3.42, 3.60, 2.55, C_PIANO, 5); // Front toe block S
+  op.box(3.185, 3.59, 1.10, 3.245, 4.21, 1.16, C_PIANO, 5); // Front console leg N
+  op.box(3.185, 3.59, 2.48, 3.245, 4.21, 2.54, C_PIANO, 5); // Front console leg S
+  // True 88-key keyboard (52 ivory white keys + 36 ebony black keys in exact [2, 3] octave pattern!)
+  op.box(3.348, 4.28, 1.165, 3.36, 4.308, 2.475, C_FELT, 14); // Crimson keybed felt
+  const kwStep = 1.30 / 52;
+  for (let k = 0; k < 52; k++) {
+    const kz0 = 1.17 + k * kwStep + 0.0012;
+    const kz1 = 1.17 + (k + 1) * kwStep - 0.0012;
+    op.box(3.175, 4.28, kz0, 3.348, 4.306, kz1, C_IVORY, 16);
+    const hasBlack = (k === 0) || (k >= 2 && k < 51 && [0, 1, 3, 4, 5].includes((k - 2) % 7));
+    if (hasBlack) {
+      const bz = 1.17 + (k + 1) * kwStep;
+      op.box(3.242, 4.304, bz - 0.0072, 3.346, 4.328, bz + 0.0072, C_EBONY, 5);
+    }
+  }
+  // Music desk & open cream sheet music with crisp staff lines
+  op.box(3.33, 4.41, 1.44, 3.39, 4.435, 2.20, C_PIANO, 5);
+  op.box(3.365, 4.435, 1.56, 3.382, 4.70, 1.81, [0.96, 0.94, 0.89], 14); // Left page
+  op.box(3.365, 4.435, 1.83, 3.382, 4.70, 2.08, [0.96, 0.94, 0.89], 14); // Right page
+  for (let s = 0; s < 5; s++) {
+    const sy = 4.47 + s * 0.044;
+    op.box(3.360, sy, 1.59, 3.366, sy + 0.007, 1.78, [0.28, 0.28, 0.32], 14);
+    op.box(3.360, sy, 1.86, 3.366, sy + 0.007, 2.05, [0.28, 0.28, 0.32], 14);
+  }
+  // 3 Brushed Brass Foot Pedals (Soft / Sostenuto / Damper) + kick plate
+  op.box(3.402, 3.59, 1.66, 3.41, 3.69, 1.98, C_BRASS, 18);
+  for (const pz of [1.72, 1.82, 1.92]) {
+    op.box(3.32, 3.60, pz - 0.015, 3.41, 3.625, pz + 0.015, C_BRASS, 18);
+  }
+  // Warm Brushed-Brass Upright Piano Lamp on top lid
+  op.cyl(3.54, 1.82, 4.748, 4.775, 0.085, 0.07, C_BRASS, 18, 12);
+  op.cyl(3.54, 1.82, 4.775, 4.96, 0.013, 0.013, C_BRASS, 18, 8);
+  op.box(3.38, 4.94, 1.805, 3.55, 4.97, 1.835, C_BRASS, 18);
+  op.box(3.34, 4.92, 1.66, 3.42, 4.975, 1.98, C_BRASS, 18);
+  op.box(3.35, 4.905, 1.68, 3.40, 4.922, 1.96, C_GLOW_WARM, 10);
+  // Matching Padded Ebony Piano Bench (X=2.66..3.02, Z=1.43..2.21, Y=3.55..4.05)
+  for (const bx of [2.70, 2.98]) {
+    for (const bz of [1.47, 2.17]) {
+      op.cyl(bx, bz, 3.55, 3.60, 0.018, 0.018, C_BRASS, 18, 8); // Brass foot ferrule
+      op.cyl(bx, bz, 3.60, 3.94, 0.020, 0.024, C_PIANO, 5, 8); // Tapered bench leg
+    }
+  }
+  op.box(2.68, 3.92, 1.45, 3.00, 3.99, 2.19, C_PIANO, 5); // Bench apron
+  op.box(2.66, 3.99, 1.43, 3.02, 4.048, 2.21, C_GRAPHITE, 14); // Cushioned seat
+  // Minimalist Walnut-Framed Wall Art centered above Piano on East Wall
+  op.box(3.705, 5.12, 1.44, 3.74, 5.86, 2.20, C_WALNUT, 4);
+  op.box(3.696, 5.15, 1.47, 3.706, 5.83, 2.17, [0.93, 0.90, 0.84], 14);
+  op.box(3.688, 5.26, 1.56, 3.696, 5.72, 1.92, C_SAGE, 14);
+  op.box(3.682, 5.22, 1.78, 3.689, 5.56, 2.08, C_TERRA, 14);
+
+  // Indoor plant tucked cleanly in SW corner pier (100% clear doorway & sliding-door paths!)
+  addPottedPlant(op, 0.34, 4.02, 3.55, 0.78, 14.3, true);
+  addACUnit(op, 1.57, 2.33, 4.09, 4.29, 6.15, 6.43);
+
+  // --- B. EXPANDED MASTER BEDROOM (Phòng Ngủ Master — 16.5 m²) ---
+  // Huge 2.70m Floor-to-Ceiling Built-In Fluted Oak & Bronze Wardrobe along West Wall (X=3.86..4.46, Z=0.14..2.85)
+  op.box(3.86, 3.55, 0.14, 4.46, 6.58, 2.85, C_OAK_LIGHT, 4);
+  op.box(4.455, 3.60, 0.16, 4.475, 6.52, 2.83, C_WALNUT, 11); // Subtle vertical groove fronts
+  for (const wz of [0.80, 1.48, 2.16]) op.box(4.47, 4.45, wz-0.012, 4.495, 5.25, wz+0.012, C_BRASS, 18); // Brass pulls
+
+  // Full-Width Ribbed Walnut Headboard Accent Wall + Warm Backlit LED Halo (X=4.58..7.52, Z=0.11..0.18)
+  op.box(4.58, 3.55, 0.11, 7.52, 6.55, 0.165, C_WALNUT, 11);
+  op.box(4.56, 3.65, 0.12, 4.58, 6.50, 0.155, C_GLOW_WARM, 10);
+  op.box(7.52, 3.65, 0.12, 7.54, 6.50, 0.155, C_GLOW_WARM, 10);
+
+  // Plush Wool Area Rug under King Bed (X=4.68..7.42, Z=0.72..2.62)
+  op.box(4.68, 3.55, 0.72, 7.42, 3.562, 2.62, C_RUG, 14);
+
+  // King Bed 1.8x2.0m (X=5.145..6.945, Z=0.17..2.17)
+  op.box(5.05, 3.55, 0.165, 7.04, 4.68, 0.28, C_LINEN, 14); // Plush upholstered headboard
+  op.box(5.12, 3.56, 0.28, 6.97, 3.84, 2.18, C_OAK_LIGHT, 4); // Oak bed base
+  op.box(5.15, 3.84, 0.30, 6.94, 4.10, 2.14, C_LINEN_LT, 14); // King mattress & duvet
+  op.box(5.13, 4.09, 1.38, 6.96, 4.14, 2.16, C_TERRA, 14); // Warm terracotta throw blanket
+  for (const px of [5.30, 6.14]) {
+    op.box(px, 4.10, 0.34, px+0.64, 4.28, 0.70, [0.97,0.96,0.94], 14); // Large pillows
+    op.box(px+0.08, 4.10, 0.68, px+0.56, 4.24, 0.90, C_SAGE, 14); // Front accent cushions
+  }
+  // Two Matching Oak Nightstands + Warm Frosted-Globe Bedside Lamps
+  for (const [nx0, nx1] of [[4.60, 5.06], [7.03, 7.49]]) {
+    const cx = (nx0 + nx1) * 0.5;
+    op.box(nx0, 3.74, 0.17, nx1, 4.08, 0.56, C_OAK_LIGHT, 4);
+    op.box(nx0+0.03, 3.55, 0.20, nx0+0.06, 3.74, 0.53, C_WALNUT, 4);
+    op.box(nx1-0.06, 3.55, 0.20, nx1-0.03, 3.74, 0.53, C_WALNUT, 4);
+    op.cyl(cx, 0.36, 4.08, 4.13, 0.07, 0.055, C_BRASS, 18, 10);
+    op.sphere(cx, 4.24, 0.36, 0.095, 0.095, 0.095, C_GLOW_WARM, 10, 10, 7);
+  }
+
+  // Bright SE Corner Vanity / Dressing Table (X=7.72..9.38, Z=2.78..3.30) + Backlit Mirror + Velvet Ottoman
+  op.box(7.72, 4.16, 2.78, 9.38, 4.30, 3.30, C_OAK_LIGHT, 4);
+  op.box(7.72, 4.30, 2.78, 9.38, 4.33, 3.31, C_QUARTZ, 15);
+  for (const vx of [7.78, 9.32]) for (const vz of [2.84, 3.24]) op.cyl(vx, vz, 3.55, 4.16, 0.02, 0.02, C_BRASS, 18, 8);
+  // Backlit Circular Vanity Mirror mounted on South wall of WC Master (Z = 2.76)
+  for (let i=0; i<16; i++) {
+    const a0 = 2*Math.PI*i/16, a1 = 2*Math.PI*(i+1)/16;
+    const cx=8.55, cy=4.96, rO=0.38, rI=0.35;
+    op.tri([cx,cy,2.78], [cx+rO*Math.cos(a0), cy+rO*Math.sin(a0), 2.78], [cx+rO*Math.cos(a1), cy+rO*Math.sin(a1), 2.78], C_GLOW_WARM, 10, [0,0,1]);
+    op.tri([cx,cy,2.795], [cx+rI*Math.cos(a0), cy+rI*Math.sin(a0), 2.795], [cx+rI*Math.cos(a1), cy+rI*Math.sin(a1), 2.795], [0.76,0.83,0.88], 16, [0,0,1]);
+  }
+  op.cyl(8.55, 3.56, 3.55, 3.98, 0.21, 0.21, C_TERRA, 14, 14); // Velvet ottoman stool
+  // Cozy Curved Reading Lounge Chair + Brass Side Table by South Panoramic Balcony Door (X=6.20..6.95, Z=3.36..4.02)
+  op.rotBox(6.48, 3.68, 0.66, 0.64, 3.56, 3.65, -0.45, C_WALNUT, 4);
+  op.rotBox(6.48, 3.68, 0.64, 0.60, 3.65, 3.92, -0.45, C_LINEN, 14);
+  op.rotBox(6.32, 3.54, 0.62, 0.16, 3.92, 4.30, -0.45, C_LINEN, 14);
+  op.cyl(7.02, 3.68, 3.55, 4.04, 0.018, 0.018, C_BRASS, 18, 8);
+  op.cyl(7.02, 3.68, 4.04, 4.07, 0.19, 0.19, C_QUARTZ, 15, 12);
+  addPottedPlant(op, 9.18, 3.96, 3.55, 0.85, 8.8, true);
+  addACUnit(op, 9.28, 9.49, 3.16, 3.94, 6.15, 6.43);
+
+  // --- C. MASTER ENSUITE BATHROOM — WC MASTER (4.5 m², X=7.74..9.49, Z=0.11..2.65) ---
+  // Warm Large-Format Travertine Wall Tile Cladding on North, West & South WC Master walls
+  op.box(7.74, 3.54, 0.11, 9.19, 6.64, 0.135, C_TERRAZZO, 13);
+  op.box(7.74, 3.54, 0.135, 7.765, 6.64, 1.85, C_TERRAZZO, 13);
+  op.box(7.74, 3.54, 2.625, 9.49, 6.64, 2.65, C_TERRAZZO, 13);
+  // Sculpted 1.55m Recessed Soaking Bathtub (X=7.78..9.14, Z=0.16..0.90) + Oak Bath Caddy & Folded Towel
+  op.box(7.78, 3.54, 0.16, 9.14, 3.68, 0.90, C_CERAMIC, 16); // Tub floor
+  op.box(7.78, 3.68, 0.16, 9.14, 4.14, 0.24, C_CERAMIC, 16); // North rim
+  op.box(7.78, 3.68, 0.82, 9.14, 4.14, 0.90, C_CERAMIC, 16); // South rim
+  op.box(7.78, 3.68, 0.24, 7.88, 4.14, 0.82, C_CERAMIC, 16); // West rim
+  op.box(9.04, 3.68, 0.24, 9.14, 4.14, 0.82, C_CERAMIC, 16); // East rim
+  op.box(8.35, 4.14, 0.15, 8.62, 4.17, 0.91, C_OAK_LIGHT, 4); // Solid oak bath caddy tray!
+  op.box(8.40, 4.17, 0.36, 8.57, 4.24, 0.64, C_LINEN_LT, 14); // Rolled spa towel
+  op.cyl(7.88, 0.95, 3.54, 4.42, 0.022, 0.022, C_CHARCOAL, 5, 8); // Freestanding matte-black tub filler
+  op.box(7.86, 4.38, 0.72, 7.90, 4.42, 0.96, C_CHARCOAL, 5);
+  addToiletEast(op, 9.49, 1.39, 3.54);
+  addVanityEast(op, 9.49, 1.95, 2.57, 3.54);
+
+  // ==================== 10. ROOFTOP SOLAR PV TERRACE (+6.850, 45.4 m²) ====================
+  // Elevated Galvanized Steel Frame (anchored onto the 8 main columns up to +9.55m -> 2.7m clear!)
+  const canopyCols = [[0.0,0.0],[3.42,0.0],[5.85,0.0],[7.25,0.0],[0.0,4.40],[3.42,4.40],[5.85,4.40],[7.25,4.40]];
+  for (const [cx, cz] of canopyCols) {
+    const topY = cz < 2.0 ? 9.65 : 9.40; // Gentle 25cm South drainage slope!
+    op.box(cx-0.055, 6.85, cz-0.055, cx+0.055, topY, cz+0.055, C_GALV, 5);
+  }
+  // Longitudinal steel purlin beams
+  op.box(-0.06, 9.58, -0.06, 7.31, 9.68, 0.06, C_GALV, 5);
+  op.box(-0.06, 9.46, 2.14, 7.31, 9.56, 2.26, C_GALV, 5);
+  op.box(-0.06, 9.33, 4.34, 7.31, 9.43, 4.46, C_GALV, 5);
+  // 11 × 550W Monocrystalline Solar PV Panels (Row 1: 5 panels; Row 2: 6 panels, 1.08 x 1.92m each!)
+  for (let r=0; r<2; r++) {
+    const nPan = r === 1 ? 6 : 5;
+    const pz0 = r === 0 ? 0.16 : 2.22;
+    const pz1 = pz0 + 1.92;
+    const y0 = r === 0 ? 9.66 : 9.52;
+    const y1 = r === 0 ? 9.54 : 9.40;
+    for (let i=0; i<nPan; i++) {
+      const px0 = 0.16 + i * 1.16, px1 = px0 + 1.08;
+      // Aluminum frame & top silicon glass surface (solid slab casts real cool shade below!)
+      op.box(px0, Math.min(y0,y1)-0.04, pz0, px1, Math.max(y0,y1), pz1, C_SOLAR_PV, 17);
+      op.box(px0-0.02, Math.min(y0,y1)-0.05, pz0-0.02, px1+0.02, Math.min(y0,y1)-0.02, pz1+0.02, C_GALV, 5);
+    }
+  }
+  // West Tea & Relax Lounge under cool 2.7m PV shade (X=0.60..2.70, Z=1.40..2.80)
+  op.box(1.15, 7.25, 1.72, 2.15, 7.30, 2.42, C_WOOD, 4); // Teak low tea table
+  for (const tx of [1.22, 2.08]) for (const tz of [1.79, 2.35]) op.cyl(tx, tz, 6.85, 7.25, 0.025, 0.022, C_CHARCOAL, 5, 6);
+  op.cyl(1.65, 2.07, 7.30, 7.42, 0.06, 0.05, C_CERAMIC, 16, 10); // Teapot
+  for (const [ax, az, rot, bOff] of [[0.78, 2.08, 0.12, -0.24], [2.52, 2.08, -0.12, 0.24]]) {
+    op.rotBox(ax, az, 0.58, 0.62, 6.86, 7.20, rot, C_WOOD, 4);
+    op.rotBox(ax, az, 0.54, 0.56, 7.20, 7.30, rot, C_LINEN_LT, 14);
+    op.rotBox(ax + bOff, az, 0.12, 0.58, 7.20, 7.68, rot, C_WOOD, 4);
+    op.rotBox(ax + bOff * 0.72, az, 0.12, 0.52, 7.30, 7.64, rot, C_SAGE, 14);
+  }
+  // Center Breezy Covered Clothes-Drying Zone (hanging stainless bars cleanly anchored under PV purlins!)
+  for (const dz of [1.45, 1.85]) {
+    op.cylX(3.85, 6.25, 8.75, dz, 0.016, C_GALV, 5, 8);
+    op.cyl(3.95, dz, 8.75, 9.40, 0.008, 0.008, C_GALV, 5, 6);
+    op.cyl(6.15, dz, 8.75, 9.40, 0.008, 0.008, C_GALV, 5, 6);
+  }
+  // NE Elevated 2000L Stainless Water Tank on 2.5m Steel Stand (X=7.45..9.05, Z=0.25..2.00)
+  for (const wx of [7.55, 8.95]) for (const wz of [0.35, 1.90]) op.box(wx-0.04, 6.85, wz-0.04, wx+0.04, 9.35, wz+0.04, C_GALV, 5);
+  op.box(7.50, 9.30, 0.30, 9.00, 9.38, 1.95, C_GALV, 5);
+  op.cylX(7.55, 8.95, 10.02, 1.12, 0.62, [0.76,0.79,0.82], 5, 16); // Stainless 2000L horizontal tank!
+  // East Sunny Rooftop Planters (X=7.55..9.35, Z=2.55..4.15)
+  op.box(7.55, 6.85, 3.65, 9.35, 7.35, 4.18, C_POT, 6);
+  op.box(7.62, 7.28, 3.72, 9.28, 7.36, 4.11, C_SOIL, 6);
+  addHedgeRow(op, [7.78, 3.92], [9.15, 3.92], 7.34, 0.55, 0.36, 15.1);
+  addPottedPlant(op, 0.45, 0.55, 6.85, 1.0, 21.0, false);
+  addPottedPlant(op, 0.45, 3.80, 6.85, 0.9, 22.4, false);
+  // SW Corner Micro-Wind Turbine (VAWT) on canopy frame corner (X=0.12, Z=4.35, Y=9.45..10.95)
+  op.cyl(0.12, 4.35, 9.40, 10.95, 0.032, 0.026, C_GALV, 5, 10);
+  for (let i=0; i<3; i++) {
+    const a = i * Math.PI * 2 / 3;
+    const bx = 0.12 + 0.28 * Math.cos(a), bz = 4.35 + 0.28 * Math.sin(a);
+    op.box(bx-0.045, 9.85, bz-0.015, bx+0.045, 10.82, bz+0.015, C_WHITE, 5);
+    op.wallSeg([0.12,4.35], [bx,bz], 10.30, 10.34, 0.025, C_CHARCOAL, 5);
+  }
+
+  // ==================== 11. CEILING RECESSED DOWNLIGHTS (EXACT ME-01 / ME-02 COORDS!) ====================
+  const F1_LIGHTS_VIS = [
+    [0.85,1.10],[1.75,1.10],[2.65,1.10],[0.85,2.85],[1.75,2.85],[2.65,2.85],
+    [3.95,1.10],[5.30,1.10],[3.95,2.85],[5.30,2.85],
+    [6.40,1.10],[6.40,2.65],[8.60,1.20],[8.60,2.25],[8.68,3.60],
+    [6.65,5.10],[8.55,5.10],[6.65,6.10],[8.55,6.10]
+  ];
+  for (const [lx, lz] of F1_LIGHTS_VIS) addDownlight(op, lx, lz, 3.35);
+
+  const F2_LIGHTS_VIS = [
+    [1.05,1.20],[2.75,1.20],[1.05,3.15],[2.75,3.15],
+    [5.05,1.20],[6.95,1.20],[5.05,2.62],[6.95,2.62],[8.55,3.55],
+    [8.60,1.10],[8.60,2.20],[5.10,3.80]
+  ];
+  for (const [lx, lz] of F2_LIGHTS_VIS) addDownlight(op, lx, lz, 6.65);
+
+  // Rooftop canopy warm architectural lights
+  for (const [lx, lz] of [[1.65, 2.05], [5.05, 2.60], [6.80, 3.40]]) addDownlight(op, lx, lz, 9.42);
+
+  const opaqueBuf = op.toBuffer();
+  const glassBuf = gls.toBuffer();
+
+  // ==================== 12. DYNAMIC WEST SUN-SHADING LOUVERS & SLIDING GLASS DOORS ====================
+  let louverBuf = null;
+  function rebuildLouvers(slideAmt) {
+    if (louverBuf) { gl.deleteBuffer(louverBuf.vbo); gl.deleteVertexArray(louverBuf.vao); }
+    const lb = new MeshBuilder();
+    // 1) Sliding vertical wood louvers outside F2 Working Room West Desk Window (X=-0.22, Z=0.38..1.88, Y=4.45..6.35)
+    //    Slides from 15% tucked to 100% full West sun coverage!
+    const deskCov = 0.38 + (0.18 + 0.82 * slideAmt) * 1.48;
+    lb.box(-0.26, 6.32, 0.35, -0.18, 6.38, 1.90, C_CHARCOAL, 5);
+    lb.box(-0.26, 4.42, 0.35, -0.18, 4.47, 1.90, C_CHARCOAL, 5);
+    const nDesk = Math.max(3, Math.round((deskCov - 0.38) / 0.095));
+    for (let i=0; i<=nDesk; i++) {
+      const zm = 0.40 + (deskCov - 0.40) * (i / nDesk);
+      lb.box(-0.255, 4.47, zm-0.020, -0.195, 6.32, zm+0.020, C_WOOD, 4);
+    }
+    // 2) Two movable vertical wood louver screens on tracks along angled West edge of L-Balcony
+    const ptEdge = t => [-0.71 + t*(-1.66 - (-0.71)), 2.10 + t*(5.71 - 2.10)];
+    const eStart = ptEdge(0.0), eEnd = ptEdge(0.95);
+    lb.wallSeg(eStart, eEnd, 6.46, 6.53, 0.065, C_CHARCOAL, 5);
+    lb.wallSeg([-0.11, 2.10], eStart, 6.46, 6.53, 0.06, C_CHARCOAL, 5);
+    lb.wallSeg([-0.11, 4.51], ptEdge(0.67), 6.46, 6.53, 0.06, C_CHARCOAL, 5);
+    const panels = [
+      [0.02, 0.34],
+      [0.37 + slideAmt * 0.25, 0.65 + slideAmt * 0.25]
+    ];
+    for (const [t0, t1] of panels) {
+      const p0 = ptEdge(t0), p1 = ptEdge(t1);
+      lb.wallSeg(p0, p1, 3.57, 3.62, 0.055, C_CHARCOAL, 5);
+      lb.wallSeg(p0, p1, 6.41, 6.46, 0.055, C_CHARCOAL, 5);
+      const nSlats = 10;
+      for (let i=0; i<=nSlats; i++) {
+        const ti = lerp(t0, t1, i / nSlats);
+        const [sx, sz] = ptEdge(ti);
+        lb.box(sx-0.022, 3.62, sz-0.026, sx+0.022, 6.41, sz+0.026, C_WOOD, 4);
+      }
+    }
+    louverBuf = lb.toBuffer();
+  }
+
+  let doorOpBuf = null, doorGlsBuf = null;
+  function rebuildSlidingDoors(isOpen) {
+    if (doorOpBuf) { gl.deleteBuffer(doorOpBuf.vbo); gl.deleteVertexArray(doorOpBuf.vao); }
+    if (doorGlsBuf) { gl.deleteBuffer(doorGlsBuf.vbo); gl.deleteVertexArray(doorGlsBuf.vao); }
+    const dop = new MeshBuilder();
+    const dgl = new MeshBuilder();
+
+    function slidingPanelH(x0, x1, y0, y1, zMid) {
+      const fw = 0.045;
+      dop.box(x0, y1-fw, zMid-0.025, x1, y1, zMid+0.025, C_CHARCOAL, 5);
+      dop.box(x0, y0, zMid-0.025, x1, y0+fw, zMid+0.025, C_CHARCOAL, 5);
+      dop.box(x0, y0, zMid-0.025, x0+fw, y1, zMid+0.025, C_CHARCOAL, 5);
+      dop.box(x1-fw, y0, zMid-0.025, x1, y1, zMid+0.025, C_CHARCOAL, 5);
+      dgl.quad([x0+fw, y0+fw, zMid], [x1-fw, y0+fw, zMid], [x1-fw, y1-fw, zMid], [x0+fw, y1-fw, zMid], C_GLASS, 9, [0,0,1]);
+    }
+    function slidingPanelV(xMid, z0, z1, y0, y1) {
+      const fw = 0.045;
+      dop.box(xMid-0.025, y1-fw, z0, xMid+0.025, y1, z1, C_CHARCOAL, 5);
+      dop.box(xMid-0.025, y0, z0, xMid+0.025, y0+fw, z1, C_CHARCOAL, 5);
+      dop.box(xMid-0.025, y0, z0, xMid+0.025, y1, z0+fw, C_CHARCOAL, 5);
+      dop.box(xMid-0.025, y0, z1-fw, xMid+0.025, y1, z1, C_CHARCOAL, 5);
+      dgl.quad([xMid, y0+fw, z0+fw], [xMid, y0+fw, z1-fw], [xMid, y1-fw, z1-fw], [xMid, y1-fw, z0+fw], C_GLASS, 9, [-1,0,0]);
+    }
+    // Outer tracks for all 4 sliding doors
+    // 1) F1 Living South 4-panel (X=0.11..3.31, Y=0.22..3.00, Z=4.40)
+    dop.box(0.11, 2.95, 4.33, 3.31, 3.00, 4.47, C_CHARCOAL, 5);
+    dop.box(0.11, 0.21, 4.33, 3.31, 0.24, 4.47, C_CHARCOAL, 5);
+    slidingPanelH(0.11, 0.91, 0.23, 2.96, 4.42); // Fixed outer West panel
+    slidingPanelH(2.51, 3.31, 0.23, 2.96, 4.42); // Fixed outer East panel
+    const f1Shift = isOpen ? 0.72 : 0.0;
+    slidingPanelH(0.91 - f1Shift, 1.71 - f1Shift, 0.23, 2.96, 4.36);
+    slidingPanelH(1.71 + f1Shift, 2.51 + f1Shift, 0.23, 2.96, 4.36);
+
+    // 2) F2 Working West 2-panel (X=-0.02, Z=2.35..3.95, Y=3.55..6.35)
+    dop.box(-0.08, 6.30, 2.35, 0.06, 6.35, 3.95, C_CHARCOAL, 5);
+    dop.box(-0.08, 3.54, 2.35, 0.06, 3.57, 3.95, C_CHARCOAL, 5);
+    slidingPanelV(0.02, 2.35, 3.16, 3.56, 6.31);
+    const wShift = isOpen ? 0.74 : 0.0;
+    slidingPanelV(-0.04, 3.14 - wShift, 3.95 - wShift, 3.56, 6.31);
+
+    // 3) F2 Working South 2-panel (X=0.55..2.75, Z=4.40, Y=3.55..6.35)
+    dop.box(0.55, 6.30, 4.33, 2.75, 6.35, 4.47, C_CHARCOAL, 5);
+    dop.box(0.55, 3.54, 4.33, 2.75, 3.57, 4.47, C_CHARCOAL, 5);
+    slidingPanelH(0.55, 1.66, 3.56, 6.31, 4.42);
+    const wsShift = isOpen ? 1.02 : 0.0;
+    slidingPanelH(1.64 - wsShift, 2.75 - wsShift, 3.56, 6.31, 4.36);
+
+    // 4) F2 Master Panoramic 3-panel (X=6.20..9.00, Z=4.40, Y=3.55..6.35)
+    dop.box(6.20, 6.30, 4.33, 9.00, 6.35, 4.47, C_CHARCOAL, 5);
+    dop.box(6.20, 3.54, 4.33, 9.00, 3.57, 4.47, C_CHARCOAL, 5);
+    slidingPanelH(6.20, 7.15, 3.56, 6.31, 4.43);
+    const mShift1 = isOpen ? 0.88 : 0.0;
+    const mShift2 = isOpen ? 1.76 : 0.0;
+    slidingPanelH(7.13 - mShift1, 8.08 - mShift1, 3.56, 6.31, 4.39);
+    slidingPanelH(8.05 - mShift2, 9.00 - mShift2, 3.56, 6.31, 4.35);
+
+    doorOpBuf = dop.toBuffer();
+    doorGlsBuf = dgl.toBuffer();
+  }
+
+  // ==================== 12B. DYNAMIC ADJACENT NEIGHBOR BUILDINGS (SIMPLE STYLE + REAL SHADOWS) ====================
+  let neighborOpBuf = null, neighborGlsBuf = null;
+  function rebuildNeighbors(cfg) {
+    if (neighborOpBuf) { gl.deleteBuffer(neighborOpBuf.vbo); gl.deleteVertexArray(neighborOpBuf.vao); }
+    if (neighborGlsBuf) { gl.deleteBuffer(neighborGlsBuf.vbo); gl.deleteVertexArray(neighborGlsBuf.vao); }
+    const nb = new MeshBuilder();
+    const ng = new MeshBuilder();
+    const C_NWIN = [0.09, 0.14, 0.20, 0.72];
+    const C_COPE = [0.42, 0.45, 0.48];
+    const C_TILE = [0.64, 0.30, 0.21];
+
+    // Sample building with a facade facing the house
+    function addAngledBuilding(frontA, frontB, depth, floors, col, opts = {}) {
+      const dx = frontB[0] - frontA[0], dz = frontB[1] - frontA[1];
+      const L = Math.hypot(dx, dz) || 1;
+      const ux = dx / L, uz = dz / L;
+      let nx = uz, nz = -ux;
+      const mx = (frontA[0] + frontB[0]) * 0.5, mz = (frontA[1] + frontB[1]) * 0.5;
+      if ((4.5 - mx) * nx + (3.5 - mz) * nz < 0) { nx = -nx; nz = -nz; }
+      const H = (floors === 1 ? 3.55 : floors * 3.40) + (opts.hBonus || 0);
+      const backA = [frontA[0] - nx * depth, frontA[1] - nz * depth];
+      const backB = [frontB[0] - nx * depth, frontB[1] - nz * depth];
+      nb.prism([frontA, frontB, backB, backA], 0.0, H, col, 6);
+
+      // Roof coping rim (same simple style as East neighbor!)
+      const ov = 0.05;
+      const cA = [frontA[0] - ux*ov + nx*ov, frontA[1] - uz*ov + nz*ov];
+      const cB = [frontB[0] + ux*ov + nx*ov, frontB[1] + uz*ov + nz*ov];
+      const cBB = [backB[0] + ux*ov - nx*ov, backB[1] + uz*ov - nz*ov];
+      const cBA = [backA[0] - ux*ov - nx*ov, backA[1] - uz*ov - nz*ov];
+      nb.prism([cA, cB, cBB, cBA], H, H + 0.16, opts.roofCol || C_COPE, 6);
+
+      // Subtle facade windows & optional simple balcony slabs facing our house/road
+      const nCols = Math.max(2, Math.min(4, Math.floor(L / 2.4)));
+      const startFl = opts.groundWin ? 0 : 1;
+      for (let fl = startFl; fl < floors; fl++) {
+        const wy = fl * 3.40 + (fl === 0 ? 0.95 : 1.02);
+        const wh = (fl === 0) ? 1.35 : 1.15;
+        const ww = Math.min(1.05, (L / nCols) * 0.42);
+        if (opts.balcony && fl >= 1) {
+          const bA = [frontA[0] + ux*0.35 + nx*0.22, frontA[1] + uz*0.35 + nz*0.22];
+          const bB = [frontB[0] - ux*0.35 + nx*0.22, frontB[1] - uz*0.35 + nz*0.22];
+          nb.wallSeg(bA, bB, fl * 3.40 - 0.06, fl * 3.40 + 0.08, 0.44, col, 6);
+          const rA = [frontA[0] + ux*0.37 + nx*0.40, frontA[1] + uz*0.37 + nz*0.40];
+          const rB = [frontB[0] - ux*0.37 + nx*0.40, frontB[1] - uz*0.37 + nz*0.40];
+          nb.wallSeg(rA, rB, fl * 3.40 + 0.08, fl * 3.40 + 0.88, 0.09, col, 6);
+          nb.wallSeg(rA, rB, fl * 3.40 + 0.88, fl * 3.40 + 0.94, 0.11, C_COPE, 5);
+        }
+        for (let ci = 0; ci < nCols; ci++) {
+          const t = (ci + 0.5) / nCols;
+          const cx = lerp(frontA[0], frontB[0], t);
+          const cz = lerp(frontA[1], frontB[1], t);
+          const p0 = [cx - ux * (ww * 0.5) + nx * 0.03, cz - uz * (ww * 0.5) + nz * 0.03];
+          const p1 = [cx + ux * (ww * 0.5) + nx * 0.03, cz + uz * (ww * 0.5) + nz * 0.03];
+          nb.wallSeg(p0, p1, wy, wy + wh, 0.07, C_CHARCOAL, 5);
+          const g0 = [cx - ux * (ww * 0.44) + nx * 0.068, cz - uz * (ww * 0.44) + nz * 0.068];
+          const g1 = [cx + ux * (ww * 0.44) + nx * 0.068, cz + uz * (ww * 0.44) + nz * 0.068];
+          ng.quad([g0[0], wy + 0.06, g0[1]], [g1[0], wy + 0.06, g1[1]],
+                  [g1[0], wy + wh - 0.06, g1[1]], [g0[0], wy + wh - 0.06, g0[1]], C_NWIN, 9, [nx, 0, nz]);
+        }
+      }
+    }
+
+    // Lush fruiting citrus/pomelo (cây bưởi) garden tree inspired by West-side garden photos
+    function addCitrusGardenTree(cx, cz, baseY, h, r, seed) {
+      const ty = baseY + h * 0.44;
+      nb.cyl(cx, cz, baseY, ty, 0.14, 0.09, C_TRUNK, 4, 8);
+      nb.beam3D([cx, ty - 0.25, cz], [cx + r*0.48, ty + r*0.32, cz + 0.15], 0.055, 0.055, C_TRUNK, 4);
+      nb.beam3D([cx, ty - 0.20, cz], [cx - r*0.32, ty + r*0.28, cz - 0.35], 0.050, 0.050, C_TRUNK, 4);
+      const puffs = [
+        [0, r*0.24, 0, r*0.88, r*0.72, r*0.88, [0.16, 0.36, 0.15]],
+        [r*0.52, r*0.18, r*0.18, r*0.74, r*0.60, r*0.72, [0.20, 0.43, 0.17]], // Gently overhangs lane!
+        [-r*0.42, r*0.16, -r*0.28, r*0.70, r*0.56, r*0.70, [0.15, 0.34, 0.14]],
+        [r*0.18, r*0.58, -r*0.12, r*0.66, r*0.52, r*0.66, [0.23, 0.47, 0.19]],
+        [-r*0.16, r*0.22, r*0.46, r*0.64, r*0.54, r*0.64, [0.18, 0.40, 0.16]]
+      ];
+      for (const [ox, oy, oz, rx, ry, rz, col] of puffs) {
+        nb.sphere(cx + ox, ty + oy, cz + oz, rx, ry, rz, col, 8, 8, 6);
+      }
+      // Golden-orange pomelo fruits tucked around the sunlit canopy
+      const C_POMELO = [0.90, 0.62, 0.14];
+      for (let i = 0; i < 12; i++) {
+        const a = seed * 2.1 + i * 0.56;
+        const dist = r * (0.62 + (i % 3) * 0.16);
+        const fx = cx + Math.cos(a) * dist + r * 0.18;
+        const fz = cz + Math.sin(a) * dist;
+        const fy = ty + r * (0.04 + ((i * 37) % 10) * 0.065);
+        nb.sphere(fx, fy, fz, 0.095, 0.092, 0.095, C_POMELO, 6, 6, 5);
+      }
+    }
+
+    // --- A. SAMPLE EAST BUILDING ---
+    if (cfg.east === '4f') {
+      addAngledBuilding([12, 0], [12, 8], 6, 4, C_NEIGHBOR, { balcony: false, groundWin: true });
+    }
+
+    // --- B. BACK OF HOUSE (NORTH, behind solid Axis A wall Z = -0.11) ---
+    if (cfg.back === '1f') {
+      // Simple 1-storey house (nhà cấp 4) + low pitched terracotta corrugated roof
+      nb.box(-0.11, 0.00, -7.40, 10.10, 3.60, -0.14, [0.78, 0.77, 0.74], 6);
+      nb.box(-0.18, 3.60, -7.50, 10.18, 3.74, -0.12, C_COPE, 6);
+      // Clean stepped low-slope roof ridge rising from front/back to center (3.74 -> 4.55m)
+      nb.box(-0.16, 3.74, -6.90, 10.16, 4.02, -0.65, C_TILE, 6);
+      nb.box(-0.16, 4.02, -6.00, 10.16, 4.30, -1.55, C_TILE, 6);
+      nb.box(-0.16, 4.30, -4.85, 10.16, 4.55, -2.70, C_TILE, 6);
+      // Simple West road-facing door & window
+      nb.box(-0.15, 0.05, -2.60, -0.09, 2.25, -1.55, C_CHARCOAL, 5);
+      nb.box(-0.15, 1.05, -5.40, -0.09, 2.20, -4.25, C_CHARCOAL, 5);
+      ng.quad([-0.16, 1.11, -5.34], [-0.16, 1.11, -4.31], [-0.16, 2.14, -4.31], [-0.16, 2.14, -5.34], C_NWIN, 9, [-1, 0, 0]);
+    } else if (cfg.back === '4f') {
+      // Simple 4-storey adjacent building matching the East neighbor style (flush behind Axis A!)
+      nb.box(-0.11, 0.00, -7.40, 10.10, 13.60, -0.14, [0.76, 0.77, 0.79], 6);
+      nb.box(-0.15, 13.60, -7.44, 10.14, 13.76, -0.12, C_COPE, 6);
+      nb.box(2.80, 13.76, -5.40, 6.20, 15.25, -2.20, [0.73, 0.74, 0.76], 6); // Simple rooftop stair box
+      // Recessed windows on the west facade
+      for (const wy of [4.4, 7.6, 10.8]) {
+        for (const wz of [-5.8, -3.2]) {
+          nb.box(-0.15, wy, wz, -0.09, wy + 1.05, wz + 0.95, C_CHARCOAL, 5);
+          ng.quad([-0.16, wy + 0.06, wz + 0.06], [-0.16, wy + 0.06, wz + 0.89],
+                  [-0.16, wy + 0.99, wz + 0.89], [-0.16, wy + 0.99, wz + 0.06], C_NWIN, 9, [-1, 0, 0]);
+        }
+      }
+      // Subtle high ventilation windows on South side visible above our 2-storey roofline
+      for (const wx of [1.2, 5.4, 7.8]) {
+        nb.box(wx, 10.9, -0.18, wx + 1.25, 12.15, -0.11, C_CHARCOAL, 5);
+        ng.quad([wx + 0.06, 10.96, -0.105], [wx + 1.19, 10.96, -0.105],
+                [wx + 1.19, 12.09, -0.105], [wx + 0.06, 12.09, -0.105], C_NWIN, 9, [0, 0, 1]);
+      }
+    } else {
+      // Keep distant open greenery behind the lot when Back neighbor is hidden
+      addTree(nb, 4.5, -6.5, 0.0, 5.4, 1.9, 6.7);
+    }
+
+    // --- C. SAMPLE SOUTH BUILDING ---
+    if (cfg.south === '4f') {
+      addAngledBuilding([10, 12], [1, 12], 7, 4, [0.74, 0.75, 0.77], { balcony: true, groundWin: true });
+    }
+
+    // --- D. SAMPLE WEST BUILDINGS ---
+    if (cfg.west === 'garden3f') {
+      nb.box(-20, -0.02, -6, roadWestX, 0.06, 12, [0.32, 0.44, 0.25], 7);
+      addCitrusGardenTree(-10, 0, 0.06, 5, 2, 2);
+      addCitrusGardenTree(-11, 7, 0.06, 5.5, 2, 6);
+      addAngledBuilding([-14, -2], [-14, 7], 6, 3, [0.85, 0.82, 0.77], {
+        balcony: true, groundWin: true, roofCol: C_TILE
+      });
+    } else if (cfg.west === 'row4f') {
+      // Option 2: Row of four-storey houses across the street
+      addAngledBuilding([roadWestX - 0.12, -11.5], [roadWestX - 0.12, -0.22], 7.0, 4, [0.76, 0.77, 0.79], {
+        balcony: true, groundWin: true, hBonus: 0.25
+      });
+      addAngledBuilding([roadWestX - 0.12, -0.11], [roadWestX - 0.12, 7.38], 7.2, 4, [0.73, 0.75, 0.77], {
+        balcony: true, groundWin: true, hBonus: 0.0
+      });
+      addAngledBuilding([roadWestX - 0.12, 7.50], [roadWestX - 0.12, 15.2], 7.0, 4, [0.75, 0.74, 0.72], {
+        balcony: true, groundWin: true, hBonus: 0.40
+      });
+    }
+
+    neighborOpBuf = nb.toBuffer();
+    neighborGlsBuf = ng.toBuffer();
+  }
+
+  // ==================== 13. 20 REAL-TIME FLOOR-BANDED INTERIOR POINT LIGHTS ====================
+  const INTERIOR_LIGHTS = [
+    // Floor 1 (Y band: 0.12 .. 3.40)
+    { pos: [1.75, 3.12, 1.35], rad: 4.9, yr: [0.12, 3.40] }, // Living North / TV
+    { pos: [1.55, 2.85, 2.90], rad: 4.7, yr: [0.12, 3.40] }, // Living South / Sofa & Floor lamp
+    { pos: [4.64, 2.22, 1.96], rad: 5.0, yr: [0.12, 3.40] }, // Dining Linear Pendant
+    { pos: [6.55, 3.05, 1.25], rad: 4.4, yr: [0.12, 3.40] }, // Kitchen L-Counter
+    { pos: [6.75, 3.05, 3.25], rad: 4.0, yr: [0.12, 3.40] }, // Kitchen South / Fridge / Hall
+    { pos: [8.65, 3.05, 1.45], rad: 3.3, yr: [0.12, 3.40] }, // WC 1
+    { pos: [8.68, 3.05, 3.55], rad: 3.1, yr: [0.12, 3.40] }, // Laundry
+    { pos: [7.85, 3.05, 5.55], rad: 4.8, yr: [0.12, 3.40] }, // Bedroom 1 (PN1)
+    { pos: [1.50, 3.22, 5.10], rad: 5.0, yr: [0.05, 3.45] }, // Courtyard Porch under L-Balcony
+    // Stairwell (Y band: 0.18 .. 9.48)
+    { pos: [4.64, 3.15, 5.75], rad: 4.8, yr: [0.18, 6.20] }, // Stair Flight 1
+    { pos: [4.64, 6.45, 5.75], rad: 5.0, yr: [3.40, 9.48] }, // Stair Flight 2 & Tum
+    // Floor 2 (Y band: 3.48 .. 6.72)
+    { pos: [1.50, 6.35, 1.40], rad: 4.9, yr: [3.48, 6.72] }, // Working Room Desk & Bookshelf
+    { pos: [2.10, 6.35, 3.15], rad: 4.8, yr: [3.48, 6.72] }, // Working Room Lounge
+    { pos: [4.80, 6.35, 3.82], rad: 3.3, yr: [3.48, 6.72] }, // F2 Stair Landing
+    { pos: [6.05, 6.35, 1.60], rad: 5.0, yr: [3.48, 6.72] }, // Master Bed Center
+    { pos: [8.10, 6.35, 3.48], rad: 4.8, yr: [3.48, 6.72] }, // Master Vanity & Reading Chair
+    { pos: [8.60, 6.35, 1.45], rad: 3.6, yr: [3.48, 6.72] }, // WC Master
+    { pos: [1.05, 6.15, 5.05], rad: 4.5, yr: [3.45, 6.75] }, // L-Balcony Outdoor Sconce
+    { pos: [7.80, 6.15, 5.10], rad: 4.5, yr: [3.45, 6.75] }, // Master East Balcony
+    // Rooftop Solar Terrace (Y band: 6.75 .. 9.85)
+    { pos: [3.20, 9.20, 2.25], rad: 7.2, yr: [6.75, 9.85] }  // Solar PV Canopy Lights
+  ];
+  const uLightsArr = new Float32Array(20 * 4);
+  const uLightYArr = new Float32Array(20 * 2);
+  INTERIOR_LIGHTS.forEach((l, i) => {
+    uLightsArr[i*4+0] = l.pos[0]; uLightsArr[i*4+1] = l.pos[1]; uLightsArr[i*4+2] = l.pos[2]; uLightsArr[i*4+3] = l.rad;
+    uLightYArr[i*2+0] = l.yr[0]; uLightYArr[i*2+1] = l.yr[1];
+  });
+
+  // ==================== 14. SHADOW MAP FBO (2048x2048) ====================
+  const SHADOW_SIZE = 2048;
+  const shadowTex = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, shadowTex);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT24, SHADOW_SIZE, SHADOW_SIZE, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_INT, null);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  const shadowFBO = gl.createFramebuffer();
+  gl.bindFramebuffer(gl.FRAMEBUFFER, shadowFBO);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, shadowTex, 0);
+  gl.drawBuffers([gl.NONE]);
+  gl.readBuffer(gl.NONE);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  const emptyVAO = gl.createVertexArray();
+
+  // ==================== 15. ROOM PRESETS, STAIR WALKLINE & COLLISION ====================
+  const EYE_H = 1.60;
+  // yaw = 0 looks North (-Z), +PI/2 looks East (+X), PI looks South (+Z), -PI/2 looks West (-X)
+  const ROOMS = {
+    courtyard: { name: 'Courtyard & EV Parking (Sân Xe)', floor: 'F1', area: '12.5 m²', level: 'F1',
+      pos: [0.95, 0.13, 6.20], yaw: 0.28, pitch: 0.08,
+      desc: 'Stone courtyard • 7.4kW EV Wallbox next to Col 2B • Sliding West gate & open setback greenery' },
+    living:    { name: 'Living Room (Phòng Khách)', floor: 'F1', area: '13.8 m²', level: 'F1',
+      pos: [1.05, 0.22, 3.72], yaw: 0.56, pitch: -0.04,
+      desc: 'Japandi oak & oatmeal linen layout • Fluted walnut TV wall • 4-panel South glass door to courtyard' },
+    dining:    { name: 'Dining Room (Phòng Ăn)', floor: 'F1', area: '10.2 m²', level: 'F1',
+      pos: [3.48, 0.22, 3.45], yaw: 0.62, pitch: -0.04,
+      desc: '6-seat solid oak dining table • Sculptural brass pendant • Slatted tech cabinet (Solar Inverter + 15kWh)' },
+    kitchen:   { name: 'L-Shaped Kitchen (Khu Bếp)', floor: 'F1', area: '8.2 m²', level: 'F1',
+      pos: [5.55, 0.22, 2.75], yaw: 0.64, pitch: -0.06,
+      desc: 'Oak lower & matte cream upper cabinets • White quartz backsplash + LED strip • Fridge tucked clear of WC1' },
+    wc1:       { name: 'Ground Floor WC 1', floor: 'F1', area: '4.1 m²', level: 'F1',
+      pos: [8.22, 0.17, 2.22], yaw: 0.22, pitch: -0.06,
+      desc: 'Walk-in frameless glass shower • 4.5kW instant heater • Floating oak vanity + backlit mirror • East window' },
+    pn1:       { name: 'Bedroom 1 (Phòng Ngủ 1)', floor: 'F1', area: '7.8 m²', level: 'F1',
+      pos: [6.42, 0.22, 5.25], yaw: 1.48, pitch: -0.06,
+      desc: 'Quiet 1-story garden bedroom • 1.5×2.0m platform bed • 1.35m wardrobe • 1.8m wide South window' },
+    stair1:    { name: 'External 21-Step U-Staircase', floor: 'F1→F2', area: '4.8 m²', level: 'STAIR1',
+      pos: [3.96, 0.42, 4.65], yaw: 2.86, pitch: 0.22,
+      desc: '860mm wide oak-tread steel U-stair • Solid wall at the winders • High south daylight windows' },
+    working:   { name: 'Working Room (Phòng Làm Việc)', floor: 'F2', area: '14.9 m²', level: 'F2',
+      pos: [0.92, 3.55, 3.58], yaw: 0.56, pitch: -0.04,
+      desc: '1.65m walnut standing desk by West window • 2.2m walnut bookshelf • 1.48m studio upright piano & padded bench' },
+    lbalcony:  { name: 'Wrap-Around L-Balcony', floor: 'F2', area: '8.1 m²', level: 'F2',
+      pos: [-0.95, 3.55, 5.02], yaw: 0.72, pitch: -0.02,
+      desc: 'Connects both balcony wings • Tempered glass railing • Movable West wood sun-shading louvers' },
+    master:    { name: 'Master Bedroom (Phòng Master)', floor: 'F2', area: '16.5 m²', level: 'F2',
+      pos: [7.65, 3.55, 3.62], yaw: -0.78, pitch: -0.04,
+      desc: 'King bed on ribbed walnut feature wall • 2.7m fluted wardrobe • Bright SE vanity • 2.8m panoramic balcony door' },
+    wcmaster:  { name: 'Master Ensuite Bathroom', floor: 'F2', area: '4.5 m²', level: 'F2',
+      pos: [7.96, 3.54, 2.38], yaw: 0.56, pitch: -0.14,
+      desc: '1.42m soaking bathtub with oak caddy & matte-black filler • Backlit round mirror • Natural East window' },
+    ebalcony:  { name: 'Master East Balcony', floor: 'F2', area: '4.6 m²', level: 'F2',
+      pos: [6.45, 3.55, 5.15], yaw: 1.25, pitch: -0.04,
+      desc: '1.2m deep over PN1 flat roof • Clear glass balustrade overlooking lush tropical planter trough & alley' },
+    stair2:    { name: 'F2 Landing → Rooftop Stairs', floor: 'F2→Roof', area: '2.1 m²', level: 'F2',
+      pos: [4.02, 3.55, 3.68], yaw: 3.12, pitch: 0.14,
+      desc: 'Full 860mm unobstructed stair mouth (X=3.53–4.39m) leading straight up 21 oak steps to the Solar PV Rooftop' },
+    rooftop:   { name: 'Rooftop Solar PV Terrace', floor: 'Roof', area: '45.4 m²', level: 'ROOF',
+      pos: [5.45, 6.85, 3.68], yaw: -1.06, pitch: -0.02,
+      desc: '11×550W (6.05 kWp) elevated 2.7m Solar PV shade canopy • Shaded tea lounge • Covered drying • 2000L NE tank' }
+  };
+
+  // Continuous U-stair progress u in [0..1] matching exact 21-riser geometry!
+  function stairProgress(x, z) {
+    if (z <= 5.81 && x < 4.635) {
+      return clamp((z - 4.43) / (5.81 - 4.43), 0, 1) * (6 / 21);
+    }
+    if (z <= 5.81 && x >= 4.635) {
+      return (14 / 21) + clamp((5.81 - z) / (5.81 - 4.43), 0, 1) * (7 / 21);
+    }
+    if (x < 4.39) {
+      const ang = Math.atan2(Math.max(0, z - 5.81), Math.max(0.001, 4.39 - x));
+      return (6 / 21) + clamp(ang / (Math.PI * 0.5), 0, 1) * (3 / 21);
+    }
+    if (x <= 4.88) {
+      return (9 / 21) + clamp((x - 4.39) / (4.88 - 4.39), 0, 1) * (2 / 21);
+    }
+    const ang = Math.atan2(Math.max(0, x - 4.88), Math.max(0.001, z - 5.81));
+    return (11 / 21) + clamp(ang / (Math.PI * 0.5), 0, 1) * (3 / 21);
+  }
+
+  // Wall/Boundary Collision Rectangles per level: [x0, z0, x1, z1]
+  function getColliders(level, doorsOpen) {
+    const rects = [];
+    if (level === 'F1') {
+      // North wall, West wall (open door Z=0.26..1.21), East wall (open back door Z=3.00..3.95)
+      rects.push([-0.15, -0.15, 9.75, 0.14]);
+      rects.push([-0.14, -0.15, 0.14, 0.24], [-0.14, 1.22, 0.14, 4.52]);
+      rects.push([9.46, -0.15, 9.75, 2.98], [9.46, 3.96, 9.75, 4.52]);
+      // South core wall: open Living door X=0.91..2.51 (if doorsOpen), open Stair entry X=3.53..4.43, open PN1 door X=6.08..6.90
+      if (doorsOpen) {
+        rects.push([-0.14, 4.26, 0.90, 4.54], [2.52, 4.26, 3.52, 4.54]);
+      } else {
+        rects.push([-0.14, 4.26, 3.52, 4.54]);
+      }
+      rects.push([4.44, 4.26, 6.07, 4.54], [6.91, 4.38, 9.75, 4.54]);
+      // WC1 partition (open door Z=1.85..2.60)
+      rects.push([7.76, 0.11, 7.91, 1.84], [7.76, 2.61, 7.91, 2.78], [7.76, 2.64, 9.52, 2.78]);
+      // Stairwell side walls and the continuous south wall shared with the bedroom.
+      rects.push([3.39, 4.50, 3.54, 6.81], [5.73, 4.50, 5.92, 6.81]);
+      rects.push([9.56, 4.50, 9.75, 6.81], [3.39, 6.65, 9.75, 6.81]);
+      // Courtyard South low curb
+      rects.push([-2.15, 6.78, 3.45, 7.36]);
+      // Key solid furniture colliders (gentle clearance so you never walk inside counters/beds/fridge)
+      rects.push([5.70, 0.11, 7.78, 0.72], [7.18, 0.72, 7.78, 1.82], [7.12, 2.76, 7.76, 3.42]); // Kitchen & Fridge
+      rects.push([4.55, 3.84, 5.73, 4.29]); // Tech inverter cabinet
+      rects.push([7.55, 4.55, 9.56, 6.05], [5.96, 6.07, 7.31, 6.65]); // PN1 bed & wardrobe
+      rects.push([0.60, 2.45, 2.80, 3.27], [1.15, 1.40, 2.25, 2.02]); // Sofa & Coffee table
+      rects.push([3.95, 1.55, 5.35, 2.37]); // Dining table
+    } else if (level === 'F2') {
+      // North wall & East wall
+      rects.push([-0.15, -0.15, 9.75, 0.14], [9.46, -0.15, 9.75, 4.54]);
+      // West wall (open balcony sliding door Z=3.16..3.95 when doorsOpen!)
+      if (doorsOpen) {
+        rects.push([-0.14, -0.15, 0.14, 3.15], [-0.14, 3.96, 0.14, 4.54]);
+      } else {
+        rects.push([-0.14, -0.15, 0.14, 4.54]);
+      }
+      // South core wall: open Working South door X=1.66..2.75, FULL 860mm open Flight2 X=3.53..4.39, open Flight1 X=4.88..5.74, open Master X=7.15..9.00
+      if (doorsOpen) {
+        rects.push([-0.14, 4.26, 1.65, 4.54], [2.76, 4.26, 3.52, 4.54]);
+        rects.push([5.75, 4.26, 7.14, 4.54], [9.01, 4.26, 9.75, 4.54]);
+      } else {
+        rects.push([-0.14, 4.26, 3.52, 4.54], [5.75, 4.26, 9.75, 4.54]);
+      }
+      rects.push([4.40, 4.26, 4.87, 4.54]); // Stair center divider (leaves FULL 88cm clear for Flight 2 & Flight 1!)
+      // Interior partitions: North Working/Master X=3.74..3.85 (Z=0.11..3.34), jogged Sảnh West wall X=3.42..3.53 (open door Z=3.38..4.20)
+      rects.push([3.72, 0.11, 3.87, 3.35], [3.41, 3.22, 3.87, 3.35], [3.41, 3.22, 3.54, 3.37], [3.41, 4.21, 3.54, 4.32]);
+      // Landing box (open Master door X=4.86..5.68)
+      rects.push([3.84, 3.21, 4.85, 3.36], [5.69, 3.21, 5.87, 3.36], [5.72, 3.34, 5.87, 4.32]);
+      // WC Master partition (open door Z=1.85..2.60)
+      rects.push([7.61, 0.11, 7.76, 1.84], [7.61, 2.61, 7.76, 2.78], [7.61, 2.64, 9.52, 2.78]);
+      // Balcony railings (keep player safely on balconies!)
+      rects.push([-1.75, 5.66, 3.45, 5.86], [3.38, 4.50, 3.54, 5.80]); // L-balcony South & East
+      rects.push([-0.80, 1.98, -0.10, 2.14]); // L-balcony North end
+      rects.push([5.84, 5.66, 9.76, 5.86], [5.78, 4.50, 5.94, 5.80], [9.62, 4.50, 9.80, 5.80]); // East balcony
+      // Major F2 furniture colliders
+      rects.push([0.24, 0.35, 0.99, 2.00], [1.45, 0.14, 3.67, 0.54], [3.14, 1.06, 3.74, 2.58]); // Desk, Bookshelf & Upright Piano
+      rects.push([3.86, 0.14, 4.46, 2.85], [5.12, 0.17, 6.97, 2.18], [7.72, 2.78, 9.38, 3.30]); // Wardrobe, King Bed, Vanity
+      rects.push([7.78, 0.16, 9.14, 0.90]); // Bathtub
+    } else if (level === 'STAIR1' || level === 'STAIR2') {
+      // Stairwell enclosure + central handrail core (clean 860mm wide U-corridor!)
+      rects.push([3.36, 4.40, 3.53, 6.82], [5.74, 4.40, 5.92, 6.82], [3.36, 6.67, 5.92, 6.82]);
+      rects.push([4.39, 4.38, 4.88, 5.81]); // Central core divider
+    } else if (level === 'ROOF') {
+      // Parapets around 45.4m² terrace (open Tum Thang door X=4.86..5.74)
+      rects.push([-0.15, -0.15, 9.75, 0.14], [-0.15, -0.15, 0.14, 4.54], [9.46, -0.15, 9.75, 4.54]);
+      rects.push([-0.15, 4.28, 4.85, 4.54], [5.75, 4.28, 9.75, 4.54]);
+      rects.push([1.15, 1.72, 2.15, 2.42], [7.55, 3.65, 9.35, 4.18]); // Tea table & planter
+    }
+    return rects;
+  }
+
+  function pointBlocked(x, z, level, doorsOpen, r = null) {
+    // Slimmer body clearance (16cm) inside the 86cm staircase & stair doorways so climbing never snags!
+    const inStairZone = (level === 'STAIR1' || level === 'STAIR2') || (x >= 3.45 && x <= 5.80 && z >= 4.00 && z <= 6.75);
+    const rad = r !== null ? r : (inStairZone ? 0.16 : 0.21);
+    // Angled West railing of L-Balcony on F2
+    if (level === 'F2' && x < -0.10 && z >= 2.05 && z <= 5.75) {
+      const xEdge = lerp(-0.71, -1.66, (z - 2.10) / (5.71 - 2.10));
+      if (x < xEdge + rad + 0.06) return true;
+    }
+    if (x < -12 || x > 22 || z < -8 || z > 18) return true;
+    const rects = getColliders(level, doorsOpen);
+    for (const [x0, z0, x1, z1] of rects) {
+      if (x + rad > x0 && x - rad < x1 && z + rad > z0 && z - rad < z1) return true;
+    }
+    return false;
+  }
+
+  function getFloorElevation(x, z, level) {
+    if (level === 'STAIR1') return lerp(0.22, 3.55, stairProgress(x, z));
+    if (level === 'STAIR2') return lerp(3.55, 6.85, stairProgress(x, z));
+    if (level === 'ROOF') return 6.85;
+    if (level === 'F2') {
+      if (x > 7.70 && z < 2.68) return 3.54;
+      return 3.55;
+    }
+    // Floor 1 interior vs courtyard vs setback vs alley/road
+    if (x > 7.82 && x < 9.52 && z > 0.08 && z < 2.68) return 0.17; // WC1 sunken floor
+    if (x > -0.08 && x < 9.65 && z > -0.05 && z < 4.45) return 0.22; // Core F1
+    if (x > 5.85 && x < 9.65 && z >= 4.45 && z < 6.72) return 0.22; // PN1
+    if (x > -2.4 && x < 10.5 && z > -0.5 && z < 7.5) return 0.13; // Courtyard plinth
+    if (x >= roadWestX && x < roadEastX) return 0.01; // Street
+    if (z >= 11) return 0.04;
+    if (z >= 9) return 0.03; // Path
+    return 0.09; // Grass setback
+  }
+
+  function detectRoom(x, z, level) {
+    if (level === 'ROOF') return ROOMS.rooftop;
+    if (level === 'STAIR1' || level === 'STAIR2') {
+      return {
+        name: level === 'STAIR1' ? 'External Staircase (F1 → F2)' : 'Tum Thang Staircase (F2 → Roof)',
+        floor: level === 'STAIR1' ? 'F1→F2' : 'F2→Roof',
+        area: '4.8 m²',
+        desc: '21-step oak and steel U-stair • Solid wall at the winders • High south daylight window'
+      };
+    }
+    if (level === 'F2') {
+      if (x < -0.10 || (x < 3.45 && z > 4.42)) return ROOMS.lbalcony;
+      if (x > 5.85 && z > 4.42) return ROOMS.ebalcony;
+      if (x >= 3.48 && x <= 5.80 && z >= 3.28) {
+        return { name: 'F2 Stair Landing (Sảnh Thang)', floor: 'F2', area: '2.1 m²',
+          desc: 'Full 2.21m wide landing: East leg down to F1 • West 860mm open stairs straight UP to Rooftop Solar Terrace!' };
+      }
+      if (x < 3.78) return ROOMS.working;
+      if (x > 7.68 && z < 2.70) return ROOMS.wcmaster;
+      return ROOMS.master;
+    }
+    // F1
+    if (z > 4.45 && x > 5.85 && x < 9.65 && z < 6.75) return ROOMS.pn1;
+    if (z > 4.45 || x < -0.05 || x > 9.65) return ROOMS.courtyard;
+    if (x < 3.42) return ROOMS.living;
+    if (x < 5.75) return ROOMS.dining;
+    if (x > 7.82 && z < 2.70) return ROOMS.wc1;
+    if (x > 7.82 && z >= 2.70) {
+      return { name: 'Laundry & Back Door (Khu Giặt)', floor: 'F1', area: '2.4 m²',
+        desc: 'Stacked front-load washer & heat-pump dryer tower • Back door opening to East air gap' };
+    }
+    return ROOMS.kitchen;
+  }
+
+  // ==================== 16. STATE & INTERACTION ====================
+  let dirty = true;
+  let mode = params.get('mode') === 'orbit' ? 'orbit' : 'fp';
+  let sunHour = params.has('hour') ? parseFloat(params.get('hour')) : 9.8;
+  let louverAmt = params.has('louver') ? parseFloat(params.get('louver')) : 0.45;
+  let lightMode = params.get('lights') || 'auto'; // 'auto' | 'on' | 'off'
+  let doorsOpen = params.get('doors') ? params.get('doors') !== '0' : true;
+  let showGrid = params.get('grid') === '1';
+  let fpFov = params.has('fov') ? parseFloat(params.get('fov')) : 52; // True 1:1 human perspective default!
+  let fpsLookMode = false; // Strictly true OS Pointer Lock (mouse trapped at center of scene!)
+  let bannerNoticeTimer = null;
+  let lastLockErrorTs = 0;
+  let noClip = false;
+  let playingSun = false;
+  let activeMapFloor = 'F1';
+  let hasInteracted = false;
+
+  const initSnap = params.get('snap') && ROOMS[params.get('snap')] ? params.get('snap') : 'living';
+  const r0 = ROOMS[initSnap];
+  const player = {
+    x: r0.pos[0], y: r0.pos[1], z: r0.pos[2],
+    yaw: r0.yaw, pitch: r0.pitch,
+    vx: 0, vz: 0,
+    level: r0.level,
+    bobPhase: 0,
+    glide: null // Smooth teleport animation {sx,sy,sz,syaw,spitch, tx,ty,tz,tyaw,tpitch, t, targetLevel}
+  };
+  let orbitCam = { yaw: -0.62, pitch: 0.22, dist: 22.0, target: [4.2, 3.6, 3.6] };
+
+  const nbrCfg = {
+    east:  params.get('east')  || '4f',   // Default ON (existing East adjacent building!)
+    back:  params.get('back')  || 'off',  // Default OFF ('off' | '1f' | '4f')
+    south: params.get('south') || 'off',  // Default OFF ('off' | '4f')
+    west:  params.get('west')  || 'off'   // Default OFF ('off' | 'garden3f' | 'row4f')
+  };
+
+  rebuildLouvers(louverAmt);
+  rebuildSlidingDoors(doorsOpen);
+  rebuildNeighbors(nbrCfg);
+
+  // Illustrative sun direction: 05:30 pre-dawn East (+X) -> 12:15 high South (+Z) -> 18:00 West (-X) -> Night
+  function getSunLighting(hour) {
+    // Daylight span: sunrise ~5.95, solar noon ~12.15, sunset ~18.35
+    const t = (hour - 12.15) / 6.20; // -1 at sunrise, 0 at noon, +1 at sunset
+    const az = clamp(t, -1.35, 1.35) * (Math.PI * 0.54);
+    const sinElev = Math.cos(clamp(t, -1.45, 1.45) * Math.PI * 0.5) * 0.88;
+    const elev = Math.asin(clamp(sinElev, -0.45, 0.96));
+    const cosE = Math.cos(elev);
+    // Morning (+X East), Noon (+Z South), Afternoon (-X West!)
+    const sunDir = V3.norm([-Math.sin(az) * cosE, Math.sin(elev), 0.34 * cosE + 0.38 * Math.cos(az) * cosE]);
+    const dayFactor = smoothstep(-0.08, 0.20, sunDir[1]);
+    const twilight = smoothstep(-0.22, 0.01, sunDir[1]) * (1.0 - smoothstep(0.02, 0.24, sunDir[1]));
+    let intLightAmt = 0.0;
+    if (lightMode === 'on') intLightAmt = 1.0;
+    else if (lightMode === 'off') intLightAmt = 0.0;
+    else {
+      // Auto: subtle warm accent (0.14) at bright noon -> full cozy warm glow (1.0) by dusk/night!
+      intLightAmt = lerp(1.0, 0.14, smoothstep(0.05, 0.48, sunDir[1]));
+    }
+    return { sunDir, dayFactor, twilight, intLightAmt };
+  }
+
+  function formatHourLabel(h) {
+    const hh = Math.floor(h), mm = Math.round((h - hh) * 60);
+    const padH = String(mm === 60 ? hh + 1 : hh).padStart(2, '0');
+    const padM = String(mm === 60 ? 0 : mm).padStart(2, '0');
+    let phase = 'Night';
+    if (h >= 5.5 && h < 7.0) phase = 'Dawn';
+    else if (h >= 7.0 && h < 11.2) phase = 'Morning';
+    else if (h >= 11.2 && h < 13.7) phase = 'Noon';
+    else if (h >= 13.7 && h < 17.1) phase = 'West Sun';
+    else if (h >= 17.1 && h < 18.8) phase = 'Sunset';
+    return `${padH}:${padM} • ${phase}`;
+  }
+
+  // ==================== 17. LIVE 2D ARCHITECTURAL MINIMAP ====================
+  const mapCanvas = document.getElementById('minimap');
+  const mctx = mapCanvas.getContext('2d');
+  const MAP_BOUNDS = { x0: -2.4, x1: 10.6, z0: -0.7, z1: 7.7 };
+  function worldToMap(x, z) {
+    const u = (x - MAP_BOUNDS.x0) / (MAP_BOUNDS.x1 - MAP_BOUNDS.x0);
+    const v = (z - MAP_BOUNDS.z0) / (MAP_BOUNDS.z1 - MAP_BOUNDS.z0);
+    return [u * mapCanvas.width, v * mapCanvas.height];
+  }
+  function mapToWorld(mx, my) {
+    const x = MAP_BOUNDS.x0 + (mx / mapCanvas.width) * (MAP_BOUNDS.x1 - MAP_BOUNDS.x0);
+    const z = MAP_BOUNDS.z0 + (my / mapCanvas.height) * (MAP_BOUNDS.z1 - MAP_BOUNDS.z0);
+    return [x, z];
+  }
+
+  function drawMinimap() {
+    const style = getComputedStyle(document.documentElement);
+    const isLight = document.documentElement.classList.contains('light');
+    const bg = isLight ? '#f8fafc' : '#0f172a';
+    const roomFill = isLight ? '#ffffff' : '#1e293b';
+    const balcFill = isLight ? '#ecfdf5' : '#134e4a';
+    const wallCol = isLight ? '#334155' : '#cbd5e1';
+    const furnCol = isLight ? '#cbd5e1' : '#334155';
+    const textCol = isLight ? '#475569' : '#94a3b8';
+    const accent = style.getPropertyValue('--primary').trim() || '#2563eb';
+
+    const w = mapCanvas.width, h = mapCanvas.height;
+    mctx.fillStyle = bg;
+    mctx.fillRect(0, 0, w, h);
+
+    const rectW = (x0, z0, x1, z1, fill, stroke=null) => {
+      const [ax, ay] = worldToMap(x0, z0), [bx, by] = worldToMap(x1, z1);
+      if (fill) { mctx.fillStyle = fill; mctx.fillRect(ax, ay, bx-ax, by-ay); }
+      if (stroke) { mctx.strokeStyle = stroke; mctx.lineWidth = 1.2; mctx.strokeRect(ax, ay, bx-ax, by-ay); }
+    };
+    const labelW = (x, z, txt) => {
+      const [px, py] = worldToMap(x, z);
+      mctx.fillStyle = textCol;
+      mctx.font = '600 9px system-ui, sans-serif';
+      mctx.textAlign = 'center';
+      mctx.fillText(txt, px, py);
+    };
+
+    if (activeMapFloor === 'F1') {
+      // Courtyard
+      rectW(-1.8, 4.5, 3.45, 7.1, isLight ? '#f1f5f9' : '#172033', null);
+      // Core rooms + PN1 + Stairs
+      rectW(0.0, 0.0, 9.6, 4.4, roomFill, wallCol);
+      rectW(3.45, 4.45, 5.82, 6.72, isLight ? '#fef3c7' : '#451a03', wallCol);
+      rectW(5.85, 4.45, 9.65, 6.72, roomFill, wallCol);
+      // WC1 partition
+      rectW(7.83, 0.0, 9.6, 2.70, isLight ? '#f0f9ff' : '#172554', wallCol);
+      // Furniture hints
+      rectW(0.60, 2.45, 2.80, 3.27, furnCol); // Sofa
+      rectW(3.95, 1.55, 5.35, 2.37, furnCol); // Dining
+      rectW(5.70, 0.11, 7.78, 0.71, furnCol); // Kitchen
+      rectW(7.55, 4.55, 9.55, 6.05, furnCol); // PN1 bed
+      labelW(1.7, 1.8, 'Living'); labelW(4.6, 1.1, 'Dining'); labelW(6.6, 1.9, 'Kitchen');
+      labelW(8.7, 1.5, 'WC1'); labelW(8.0, 5.8, 'PN1'); labelW(4.6, 5.8, 'Stair'); labelW(1.2, 6.0, 'Yard');
+    } else if (activeMapFloor === 'F2') {
+      // L-Balcony polygon
+      mctx.beginPath();
+      const lp = [[-0.11,2.10],[-0.71,2.10],[-1.66,5.71],[3.41,5.71],[3.41,4.51],[-0.11,4.51]];
+      lp.forEach((p, idx) => { const [px,py]=worldToMap(p[0],p[1]); idx===0 ? mctx.moveTo(px,py) : mctx.lineTo(px,py); });
+      mctx.closePath(); mctx.fillStyle = balcFill; mctx.fill(); mctx.strokeStyle = wallCol; mctx.lineWidth = 1; mctx.stroke();
+      // East Balcony
+      rectW(5.85, 4.51, 9.71, 5.71, balcFill, wallCol);
+      // Core F2 rooms + Stairs (with jogged full-width 2.21m Sảnh aligned cleanly to West stair!)
+      rectW(0.0, 0.0, 9.6, 4.4, roomFill, wallCol);
+      rectW(3.45, 4.45, 5.82, 6.72, isLight ? '#fef3c7' : '#451a03', wallCol);
+      rectW(0.0, 0.0, 3.79, 3.28, null, wallCol);
+      rectW(0.0, 3.28, 3.47, 4.40, null, wallCol);
+      rectW(7.68, 0.0, 9.6, 2.70, isLight ? '#f0f9ff' : '#172554', wallCol);
+      rectW(3.47, 3.28, 5.80, 4.40, isLight ? '#f8fafc' : '#0f172a', wallCol);
+      // Furniture hints
+      rectW(0.24, 0.35, 0.99, 2.00, furnCol); // Desk
+      rectW(3.16, 1.08, 3.74, 2.56, isLight ? '#475569' : '#64748b'); // Studio Upright Piano
+      rectW(2.66, 1.43, 3.02, 2.21, furnCol); // Piano bench
+      rectW(5.15, 0.17, 6.95, 2.17, furnCol); // King bed
+      rectW(3.86, 0.14, 4.46, 2.85, furnCol); // Wardrobe
+      labelW(1.9, 2.4, 'Working'); labelW(6.0, 2.7, 'Master'); labelW(8.6, 1.5, 'WC');
+      labelW(1.1, 5.2, 'L-Balc'); labelW(7.8, 5.2, 'Balc'); labelW(4.6, 5.8, '↑Roof');
+    } else {
+      // Rooftop Solar PV Terrace
+      rectW(0.0, 0.0, 9.6, 4.4, roomFill, wallCol);
+      rectW(0.16, 0.16, 7.12, 4.14, isLight ? '#dbeafe' : '#172554', '#3b82f6'); // Solar canopy footprint
+      rectW(3.45, 4.45, 5.82, 6.72, isLight ? '#fef3c7' : '#451a03', wallCol); // Tum Thang
+      rectW(7.50, 0.25, 9.05, 2.00, isLight ? '#e0f2fe' : '#0c4a6e', wallCol); // Water tank
+      labelW(1.7, 2.2, 'Tea Lounge'); labelW(5.1, 2.2, 'PV Canopy'); labelW(8.3, 1.2, '2000L'); labelW(4.6, 5.8, 'Tum');
+    }
+
+    // Player live position dot & directional FOV cone (if on matching floor or stair)
+    const pFloor = player.level === 'ROOF' ? 'ROOF' : (player.level === 'F2' || player.level === 'STAIR2' ? 'F2' : 'F1');
+    if (pFloor === activeMapFloor) {
+      const [px, py] = worldToMap(player.x, player.z);
+      // Forward vector in XZ: (sin(yaw), -cos(yaw))
+      const fx = Math.sin(player.yaw), fz = -Math.cos(player.yaw);
+      const baseAng = Math.atan2(fz, fx);
+      mctx.beginPath();
+      mctx.moveTo(px, py);
+      mctx.arc(px, py, 24, baseAng - 0.48, baseAng + 0.48);
+      mctx.closePath();
+      mctx.fillStyle = isLight ? 'rgba(37, 99, 235, 0.24)' : 'rgba(96, 165, 250, 0.28)';
+      mctx.fill();
+
+      mctx.beginPath();
+      mctx.arc(px, py, 4.5, 0, Math.PI * 2);
+      mctx.fillStyle = accent;
+      mctx.fill();
+      mctx.strokeStyle = '#ffffff';
+      mctx.lineWidth = 1.6;
+      mctx.stroke();
+    }
+  }
+
+  // ==================== 18. HUD UPDATE HELPERS ====================
+  const roomTitleEl = document.getElementById('roomTitle');
+  const roomFloorEl = document.getElementById('roomFloorBadge');
+  const roomDescEl = document.getElementById('roomDesc');
+  const sunEl = document.getElementById('sunHour');
+  const sunValEl = document.getElementById('sunHourVal');
+  const luvEl = document.getElementById('louverSlide');
+  const luvValEl = document.getElementById('louverVal');
+  const doorsEl = document.getElementById('doorsOpen');
+  const gridEl = document.getElementById('showGrid');
+  const scaleReadoutEl = document.getElementById('scaleReadout');
+  const crosshairEl = document.getElementById('crosshair');
+  const fpsBannerEl = document.getElementById('fpsBanner');
+  const fpsBannerTextEl = document.getElementById('fpsBannerText');
+  const btnFpsLook = document.getElementById('btnFpsLook');
+
+  let lastRoomName = '';
+  function updateRoomHUD() {
+    const info = detectRoom(player.x, player.z, player.level);
+    if (info.name !== lastRoomName) {
+      lastRoomName = info.name;
+      roomTitleEl.textContent = info.name;
+      roomFloorEl.textContent = `${info.floor} • ${info.area}`;
+      roomDescEl.textContent = info.desc;
+    }
+    if (scaleReadoutEl) {
+      scaleReadoutEl.textContent = `X ${player.x.toFixed(2)}m • Z ${player.z.toFixed(2)}m`;
+    }
+    const targetMap = player.level === 'ROOF' ? 'ROOF' : (player.level === 'F2' || player.level === 'STAIR2' ? 'F2' : 'F1');
+    if (activeMapFloor !== targetMap && !mapFloorManual) {
+      setMapFloor(targetMap, false);
+    }
+  }
+
+  let mapFloorManual = false;
+  function setMapFloor(f, manual=true) {
+    activeMapFloor = f;
+    mapFloorManual = manual;
+    document.querySelectorAll('.map-floor-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.mapfloor === f);
+    });
+    drawMinimap();
+  }
+
+  function jumpToRoom(roomKey, instant=false) {
+    const r = ROOMS[roomKey];
+    if (!r) return;
+    if (mode !== 'fp') setMode('fp');
+    mapFloorManual = false;
+    document.querySelectorAll('.room-btn').forEach(b => b.classList.toggle('active', b.dataset.room === roomKey));
+    if (instant) {
+      player.x = r.pos[0]; player.y = r.pos[1]; player.z = r.pos[2];
+      player.yaw = r.yaw; player.pitch = r.pitch; player.level = r.level;
+      player.glide = null;
+    } else {
+      // Short crisp ease-out glide!
+      let dYaw = r.yaw - player.yaw;
+      while (dYaw > Math.PI) dYaw -= Math.PI * 2;
+      while (dYaw < -Math.PI) dYaw += Math.PI * 2;
+      player.glide = {
+        sx: player.x, sy: player.y, sz: player.z, syaw: player.yaw, spitch: player.pitch,
+        tx: r.pos[0], ty: r.pos[1], tz: r.pos[2], tyaw: player.yaw + dYaw, tpitch: r.pitch,
+        t: 0, targetLevel: r.level
+      };
+    }
+    updateRoomHUD();
+    dirty = true;
+  }
+
+  function setMode(m) {
+    mode = m;
+    document.getElementById('modeFP').classList.toggle('active', m === 'fp');
+    document.getElementById('modeOrbit').classList.toggle('active', m === 'orbit');
+    if (m === 'orbit' && document.pointerLockElement === canvas) {
+      try { document.exitPointerLock(); } catch(_) {}
+    }
+    dirty = true;
+  }
+
+  function markInteracted() {
+    if (!hasInteracted) {
+      hasInteracted = true;
+      walkHint.style.opacity = '0';
+      setTimeout(() => { walkHint.style.display = 'none'; }, 650);
+    }
+  }
+
+  // ==================== 19. INPUT HANDLERS (TRUE CENTER-TRAPPED OS POINTER LOCK, KEYBOARD, MINIMAP) ====================
+  let drag = null;
+
+  function getFpsSensitivity() {
+    // FOV-calibrated radians/px (~0.0021 rad/px at 52° FOV) so scene turns 1:1 around the center crosshair
+    const baseH = clamp(window.innerHeight || 720, 480, 960);
+    return ((fpFov * Math.PI / 180) / baseH) * 1.65;
+  }
+
+  function showBannerNotice(text, autoHideMs = 0) {
+    if (bannerNoticeTimer) { clearTimeout(bannerNoticeTimer); bannerNoticeTimer = null; }
+    fpsBannerTextEl.textContent = text;
+    fpsBannerEl.classList.remove('hidden');
+    if (autoHideMs > 0) {
+      bannerNoticeTimer = setTimeout(() => {
+        bannerNoticeTimer = null;
+        if (document.pointerLockElement !== canvas) fpsBannerEl.classList.add('hidden');
+      }, autoHideMs);
+    }
+  }
+
+  function syncFpsLockUI() {
+    const locked = (document.pointerLockElement === canvas);
+    fpsLookMode = locked;
+    document.body.classList.toggle('fps-active', locked);
+    btnFpsLook.textContent = locked ? 'FPS Trapped: ON (Esc)' : 'FPS Aim (M / R-Click)';
+    btnFpsLook.classList.toggle('btn-primary-on', locked);
+    crosshairEl.classList.toggle('hidden', !locked);
+    crosshairEl.classList.toggle('flex', locked);
+    if (locked) {
+      if (bannerNoticeTimer) { clearTimeout(bannerNoticeTimer); bannerNoticeTimer = null; }
+      fpsBannerTextEl.textContent = 'FPS Mouse Trapped at Center • Move mouse to look • M, Right-Click, or Esc to release';
+      fpsBannerEl.classList.remove('hidden');
+    } else if (!bannerNoticeTimer) {
+      fpsBannerEl.classList.add('hidden');
+    }
+    dirty = true;
+  }
+
+  function handlePointerLockFailure(err) {
+    const now = performance.now();
+    if (now - lastLockErrorTs < 250) return;
+    lastLockErrorTs = now;
+    const msg = ((err && err.message) || '').toLowerCase();
+    const isCooldown = msg.includes('exited') || msg.includes('before this request') || (err && err.name === 'WrongDocumentError');
+    if (isCooldown) {
+      showBannerNotice('Browser requires ~1s after Esc before re-trapping — press M or Right-Click again', 2400);
+      return;
+    }
+    const inIframe = (window.self !== window.top);
+    if (inIframe || (err && err.name === 'SecurityError')) {
+      showBannerNotice('Embedded preview blocks OS mouse trapping — open this HTML file directly in Chrome/Safari for full FPS lock (or Left-Drag here)', 0);
+    } else {
+      showBannerNotice('Click the 3D scene or Right-Click to trap mouse at center (M / Esc to release)', 3000);
+    }
+  }
+
+  function setFpsLook(on) {
+    if (!on) {
+      if (document.pointerLockElement === canvas) {
+        try { document.exitPointerLock(); } catch(_) {}
+      }
+      syncFpsLockUI();
+      return;
+    }
+    if (mode !== 'fp') setMode('fp');
+    drag = null;
+    try { canvas.focus({ preventScroll: true }); } catch(_) {}
+    if (document.pointerLockElement === canvas) {
+      syncFpsLockUI();
+      return;
+    }
+    if (!canvas.requestPointerLock) {
+      showBannerNotice('Pointer Lock unavailable here — open this HTML file directly in a browser tab for trapped FPS mouse', 0);
+      return;
+    }
+    try {
+      const res = canvas.requestPointerLock();
+      if (res && typeof res.catch === 'function') {
+        res.catch(err => handlePointerLockFailure(err));
+      }
+    } catch (err) {
+      handlePointerLockFailure(err);
+    }
+  }
+
+  function isTextEntryFocused() {
+    const el = document.activeElement;
+    if (!el) return false;
+    if (el.tagName === 'TEXTAREA' || el.isContentEditable) return true;
+    if (el.tagName === 'INPUT') {
+      return !['range', 'checkbox', 'radio', 'button'].includes((el.type || '').toLowerCase());
+    }
+    return false;
+  }
+
+  const keys = {};
+  window.addEventListener('keydown', e => {
+    const code = e.code;
+    keys[code] = true;
+    const textFocus = isTextEntryFocused();
+    if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(code) && !textFocus &&
+        !(document.activeElement && document.activeElement.type === 'range')) {
+      e.preventDefault();
+    }
+    if (code === 'Escape' && document.pointerLockElement === canvas) {
+      e.preventDefault();
+      setFpsLook(false);
+    } else if (code === 'KeyM' && !e.repeat && !textFocus) {
+      e.preventDefault();
+      markInteracted();
+      setFpsLook(document.pointerLockElement !== canvas);
+    } else if (code === 'KeyG' && !e.repeat && !textFocus) {
+      showGrid = !showGrid; gridEl.checked = showGrid; dirty = true;
+    } else if (code === 'KeyH' && !e.repeat && !textFocus) {
+      toggleHud();
+    } else if (code === 'KeyV' && !e.repeat && !textFocus) {
+      toggleNoClip();
+    }
+    if (['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(code)) markInteracted();
+  });
+  window.addEventListener('keyup', e => { keys[e.code] = false; });
+  window.addEventListener('blur', () => {
+    for (const k in keys) keys[k] = false;
+    drag = null;
+  });
+
+  // Suppress native right-click menu on 3D viewport & whenever Pointer Lock is active
+  window.addEventListener('contextmenu', e => {
+    if (document.pointerLockElement === canvas || e.target === canvas) e.preventDefault();
+  });
+
+  // Right-Click instant trigger / release for true OS Pointer Lock
+  window.addEventListener('pointerdown', e => {
+    if (e.button === 2) {
+      if (document.pointerLockElement === canvas) {
+        e.preventDefault();
+        e.stopPropagation();
+        setFpsLook(false);
+        return;
+      }
+      if (mode === 'fp' && e.target === canvas) {
+        e.preventDefault();
+        e.stopPropagation();
+        markInteracted();
+        setFpsLook(true);
+        return;
+      }
+    }
+  }, true);
+
+  // True FPS Center-Trapped Mouse Control: ONLY fires when OS Pointer Lock is genuinely active!
+  window.addEventListener('mousemove', e => {
+    if (document.pointerLockElement !== canvas || mode !== 'fp') return;
+    const dx = e.movementX || 0, dy = e.movementY || 0;
+    if (Math.abs(dx) < 350 && Math.abs(dy) < 350) {
+      const sens = getFpsSensitivity();
+      player.yaw += dx * sens;
+      player.pitch = clamp(player.pitch - dy * sens * 0.92, -1.28, 1.28);
+      player.glide = null;
+      dirty = true;
+    }
+  });
+
+  // Left-click drag (when Pointer Lock is Off) & Exterior 360° Orbit / Pan
+  canvas.addEventListener('pointerdown', e => {
+    markInteracted();
+    try { canvas.focus({ preventScroll: true }); } catch(_) {}
+    if (document.pointerLockElement === canvas) return;
+    if (mode === 'fp' && e.button === 2) return;
+    drag = { x: e.clientX, y: e.clientY, mode: (e.button === 2 || e.shiftKey) ? 'pan' : 'look' };
+    try { canvas.setPointerCapture(e.pointerId); } catch(_) {}
+  });
+  canvas.addEventListener('pointermove', e => {
+    if (!drag || document.pointerLockElement === canvas) return;
+    const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+    drag.x = e.clientX; drag.y = e.clientY;
+    if (mode === 'fp') {
+      const sens = getFpsSensitivity() * 1.4;
+      player.yaw -= dx * sens;
+      player.pitch = clamp(player.pitch + dy * sens * 0.92, -1.25, 1.25);
+      player.glide = null;
+    } else {
+      if (drag.mode === 'look') {
+        orbitCam.yaw -= dx * 0.006;
+        orbitCam.pitch = clamp(orbitCam.pitch + dy * 0.005, 0.04, 1.28);
+      } else {
+        const s = orbitCam.dist * 0.0012;
+        orbitCam.target[0] -= Math.cos(orbitCam.yaw) * dx * s;
+        orbitCam.target[2] += Math.sin(orbitCam.yaw) * dx * s;
+        orbitCam.target[1] = clamp(orbitCam.target[1] + dy * s, 0.5, 9.5);
+      }
+    }
+    dirty = true;
+  });
+  canvas.addEventListener('pointerup', () => drag = null);
+  canvas.addEventListener('wheel', e => {
+    e.preventDefault();
+    if (mode === 'orbit') {
+      orbitCam.dist = clamp(orbitCam.dist * (1 + Math.sign(e.deltaY) * 0.08), 8.0, 48.0);
+    } else {
+      const step = -Math.sign(e.deltaY) * 0.35;
+      movePlayerStep(Math.sin(player.yaw) * step, -Math.cos(player.yaw) * step);
+    }
+    dirty = true;
+  }, { passive: false });
+
+  document.addEventListener('pointerlockchange', syncFpsLockUI);
+  document.addEventListener('pointerlockerror', () => handlePointerLockFailure(null));
+
+  // Minimap Click-to-Walk!
+  mapCanvas.addEventListener('click', e => {
+    markInteracted();
+    const rect = mapCanvas.getBoundingClientRect();
+    const [wx, wz] = mapToWorld(e.clientX - rect.left, e.clientY - rect.top);
+    let targetLevel = activeMapFloor;
+    if (wx > 3.50 && wx < 5.75 && wz > 4.48 && wz < 6.70) {
+      targetLevel = activeMapFloor === 'ROOF' ? 'STAIR2' : 'STAIR1';
+    }
+    const wy = getFloorElevation(wx, wz, targetLevel);
+    if (mode !== 'fp') setMode('fp');
+    player.glide = {
+      sx: player.x, sy: player.y, sz: player.z, syaw: player.yaw, spitch: player.pitch,
+      tx: wx, ty: wy, tz: wz, tyaw: player.yaw, tpitch: player.pitch,
+      t: 0, targetLevel
+    };
+    mapFloorManual = false;
+    dirty = true;
+  });
+
+  // UI Button Bindings
+  document.getElementById('modeFP').addEventListener('click', () => setMode('fp'));
+  document.getElementById('modeOrbit').addEventListener('click', () => { setFpsLook(false); setMode('orbit'); });
+  btnFpsLook.addEventListener('click', e => {
+    e.currentTarget.blur();
+    markInteracted();
+    setFpsLook(document.pointerLockElement !== canvas);
+  });
+
+  // 1:1 Lens FOV & 1m Reference Grid Controls
+  function setFov(deg) {
+    fpFov = deg;
+    document.querySelectorAll('.fov-btn').forEach(b => b.classList.toggle('active', parseFloat(b.dataset.fov) === deg));
+    dirty = true;
+  }
+  setFov(fpFov);
+  document.querySelectorAll('.fov-btn').forEach(b => b.addEventListener('click', () => setFov(parseFloat(b.dataset.fov))));
+  gridEl.checked = showGrid;
+  gridEl.addEventListener('change', () => { showGrid = gridEl.checked; dirty = true; });
+
+  function toggleNoClip() {
+    noClip = !noClip;
+    const btn = document.getElementById('btnNoClip');
+    btn.textContent = noClip ? 'Free Fly' : 'Walk';
+    btn.classList.toggle('btn-primary-on', noClip);
+  }
+  document.getElementById('btnNoClip').addEventListener('click', toggleNoClip);
+
+  let hudHidden = false;
+  function toggleHud() {
+    hudHidden = !hudHidden;
+    document.getElementById('hudTopBar').style.display = hudHidden ? 'none' : 'flex';
+    document.getElementById('hudBottomBar').style.display = hudHidden ? 'none' : 'flex';
+    document.getElementById('btnShowHud').classList.toggle('hidden', !hudHidden);
+  }
+  document.getElementById('btnHideHud').addEventListener('click', toggleHud);
+  document.getElementById('btnShowHud').addEventListener('click', toggleHud);
+
+  document.querySelectorAll('.room-btn').forEach(btn => {
+    btn.addEventListener('click', () => { markInteracted(); jumpToRoom(btn.dataset.room, false); });
+  });
+  document.querySelectorAll('.map-floor-btn').forEach(btn => {
+    btn.addEventListener('click', () => setMapFloor(btn.dataset.mapfloor, true));
+  });
+
+  // Time-of-Day Slider, Chips & Day-Cycle Animation
+  function setSunHour(h) {
+    sunHour = clamp(h, 5.5, 22.0);
+    sunEl.value = sunHour.toFixed(2);
+    sunValEl.textContent = formatHourLabel(sunHour);
+    document.querySelectorAll('.time-chip').forEach(c => {
+      c.classList.toggle('active', Math.abs(parseFloat(c.dataset.hour) - sunHour) < 0.25);
+    });
+    dirty = true;
+  }
+  setSunHour(sunHour);
+  sunEl.addEventListener('input', () => { playingSun = false; updatePlayBtn(); setSunHour(parseFloat(sunEl.value)); });
+  sunEl.addEventListener('change', () => sunEl.blur());
+  sunEl.addEventListener('pointerup', () => sunEl.blur());
+  document.querySelectorAll('.time-chip').forEach(chip => {
+    chip.addEventListener('click', () => { playingSun = false; updatePlayBtn(); setSunHour(parseFloat(chip.dataset.hour)); });
+  });
+  function updatePlayBtn() {
+    document.getElementById('playIcon').textContent = playingSun ? '⏸' : '▶';
+  }
+  document.getElementById('btnPlaySun').addEventListener('click', () => {
+    playingSun = !playingSun;
+    updatePlayBtn();
+    dirty = true;
+  });
+
+  // West Louver Slider
+  luvEl.value = louverAmt;
+  luvValEl.textContent = Math.round(louverAmt * 100) + '%';
+  luvEl.addEventListener('input', () => {
+    louverAmt = parseFloat(luvEl.value);
+    luvValEl.textContent = Math.round(louverAmt * 100) + '%';
+    rebuildLouvers(louverAmt);
+    dirty = true;
+  });
+  luvEl.addEventListener('change', () => luvEl.blur());
+  luvEl.addEventListener('pointerup', () => luvEl.blur());
+
+  // Interior Lights Mode (Auto / On / Off)
+  function setLightMode(m) {
+    lightMode = m;
+    document.querySelectorAll('.light-btn').forEach(b => b.classList.toggle('active', b.dataset.lights === m));
+    dirty = true;
+  }
+  setLightMode(lightMode);
+  document.querySelectorAll('.light-btn').forEach(b => b.addEventListener('click', () => setLightMode(b.dataset.lights)));
+
+  // Balcony & Courtyard Sliding Glass Doors Toggle
+  doorsEl.checked = doorsOpen;
+  doorsEl.addEventListener('change', () => {
+    doorsOpen = doorsEl.checked;
+    rebuildSlidingDoors(doorsOpen);
+    dirty = true;
+  });
+
+  // Adjacent Neighbor Building Toggles (East / Back / South / West)
+  function syncNeighborButtons() {
+    document.querySelectorAll('.nbr-btn').forEach(b => {
+      const side = b.dataset.nbrSide, val = b.dataset.nbrVal;
+      b.classList.toggle('active', nbrCfg[side] === val);
+    });
+  }
+  syncNeighborButtons();
+  document.querySelectorAll('.nbr-btn').forEach(b => {
+    b.addEventListener('click', () => {
+      const side = b.dataset.nbrSide, val = b.dataset.nbrVal;
+      if (nbrCfg[side] === val) return;
+      nbrCfg[side] = val;
+      syncNeighborButtons();
+      rebuildNeighbors(nbrCfg);
+      dirty = true;
+    });
+  });
+
+  // ==================== 20. FIRST-PERSON MOVEMENT & SEAMLESS STAIR TRANSITIONS ====================
+  function movePlayerStep(dx, dz) {
+    if (noClip) {
+      player.x += dx; player.z += dz;
+      return true;
+    }
+    const previousZ = player.z;
+    const nx = player.x + dx, nz = previousZ + dz;
+    let moved = false;
+    if (!pointBlocked(nx, player.z, player.level, doorsOpen)) { player.x = nx; moved = true; }
+    if (!pointBlocked(player.x, nz, player.level, doorsOpen)) { player.z = nz; moved = true; }
+
+    // Change levels only when crossing the north stair threshold through a doorway.
+    const px = player.x, pz = player.z;
+    const westDoor = px >= 3.53 && px <= 4.39;
+    const eastDoor = px >= 4.88 && px <= 5.74;
+    const threshold = 4.44;
+    if (previousZ <= threshold && pz > threshold) {
+      if (player.level === 'F1' && westDoor) player.level = 'STAIR1';
+      else if (player.level === 'F2' && eastDoor) player.level = 'STAIR1';
+      else if (player.level === 'F2' && westDoor) player.level = 'STAIR2';
+      else if (player.level === 'ROOF' && eastDoor) player.level = 'STAIR2';
+    } else if (previousZ > threshold && pz <= threshold) {
+      if (player.level === 'STAIR1' && westDoor) player.level = 'F1';
+      else if (player.level === 'STAIR1' && eastDoor) player.level = 'F2';
+      else if (player.level === 'STAIR2' && westDoor) player.level = 'F2';
+      else if (player.level === 'STAIR2' && eastDoor) player.level = 'ROOF';
+    }
+
+    const targetY = getFloorElevation(player.x, player.z, player.level);
+    player.y = lerp(player.y, targetY, 0.35);
+    updateRoomHUD();
+    return moved;
+  }
+
+  // ==================== 21. MAIN RENDER & SIMULATION LOOP ====================
+  let lastTs = performance.now();
+
+  function resize() {
+    const dpr = SNAP_MODE ? 1 : Math.min(window.devicePixelRatio || 1, 2);
+    const w = Math.floor(window.innerWidth * dpr), h = Math.floor(window.innerHeight * dpr);
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width = w; canvas.height = h;
+      dirty = true;
+    }
+  }
+
+  function stepSimulation(dt) {
+    let changed = false;
+
+    if (playingSun) {
+      let nextH = sunHour + dt * 1.15;
+      if (nextH > 22.0) nextH = 5.5;
+      setSunHour(nextH);
+      changed = true;
+    }
+
+    // Smooth room teleport glide
+    if (player.glide) {
+      player.glide.t = Math.min(1, player.glide.t + dt * 2.8);
+      const s = smoothstep(0, 1, player.glide.t);
+      player.x = lerp(player.glide.sx, player.glide.tx, s);
+      player.y = lerp(player.glide.sy, player.glide.ty, s);
+      player.z = lerp(player.glide.sz, player.glide.tz, s);
+      player.yaw = lerp(player.glide.syaw, player.glide.tyaw, s);
+      player.pitch = lerp(player.glide.spitch, player.glide.tpitch, s);
+      if (player.glide.t >= 0.5) player.level = player.glide.targetLevel;
+      if (player.glide.t >= 1) player.glide = null;
+      updateRoomHUD();
+      changed = true;
+    }
+
+    // Keyboard First-Person Walking & Turning
+    if (mode === 'fp') {
+      const turnSpeed = 1.9;
+      if (keys['KeyQ']) { player.yaw -= turnSpeed * dt; player.glide = null; changed = true; }
+      if (keys['KeyE']) { player.yaw += turnSpeed * dt; player.glide = null; changed = true; }
+
+      let fwdIn = 0, strIn = 0;
+      if (keys['KeyW'] || keys['ArrowUp']) fwdIn += 1;
+      if (keys['KeyS'] || keys['ArrowDown']) fwdIn -= 1;
+      if (keys['KeyD'] || keys['ArrowRight']) strIn += 1;
+      if (keys['KeyA'] || keys['ArrowLeft']) strIn -= 1;
+
+      if (noClip) {
+        if (keys['Space']) { player.y += 2.6 * dt; changed = true; }
+        if (keys['KeyC']) { player.y = Math.max(0.0, player.y - 2.6 * dt); changed = true; }
+      }
+
+      if (fwdIn !== 0 || strIn !== 0) {
+        player.glide = null;
+        const len = Math.hypot(fwdIn, strIn);
+        fwdIn /= len; strIn /= len;
+        // True 1:1 natural human indoor walking speed = 1.35 m/s (Shift = 2.60 m/s brisk walk)!
+        const speed = (keys['ShiftLeft'] || keys['ShiftRight']) ? 2.60 : 1.35;
+        const fx = Math.sin(player.yaw), fz = -Math.cos(player.yaw);
+        const rx = Math.cos(player.yaw), rz = Math.sin(player.yaw);
+        const vx = (fx * fwdIn + rx * strIn) * speed;
+        const vz = (fz * fwdIn + rz * strIn) * speed;
+        movePlayerStep(vx * dt, vz * dt);
+        player.bobPhase += dt * (speed > 2 ? 10.5 : 7.2);
+        changed = true;
+      } else {
+        const targetY = noClip ? player.y : getFloorElevation(player.x, player.z, player.level);
+        if (Math.abs(player.y - targetY) > 0.002) {
+          player.y = lerp(player.y, targetY, Math.min(1, dt * 12));
+          changed = true;
+        }
+      }
+    }
+    return changed;
+  }
+
+  function render(ts) {
+    const dt = Math.min(0.05, Math.max(0.001, (ts - lastTs) / 1000));
+    lastTs = ts;
+    resize();
+    if (stepSimulation(dt)) dirty = true;
+
+    if (!dirty) { requestAnimationFrame(render); return; }
+    dirty = false;
+
+    const { sunDir, dayFactor, twilight, intLightAmt } = getSunLighting(sunHour);
+
+    // Shadow Camera tightly fitted to house (auto-expands cleanly when extra neighbors are shown so their shadows cast accurately!)
+    const shadowSun = sunDir[1] > 0.04 ? sunDir : V3.norm([sunDir[0], 0.15, sunDir[2]]);
+    const hasExtraNbrs = (nbrCfg.back !== 'off' || nbrCfg.south !== 'off' || nbrCfg.west !== 'off');
+    const lightEye = V3.add([4.5, 4.2, 3.6], V3.scale(shadowSun, hasExtraNbrs ? 32.0 : 26.0));
+    const lightVP = hasExtraNbrs
+      ? mat4Mul(mat4Ortho(-19.5, 19.5, -15.0, 18.5, 2.0, 78.0), mat4LookAt(lightEye, [4.5, 4.2, 3.6], [0,1,0]))
+      : mat4Mul(mat4Ortho(-13.5, 13.5, -11.0, 12.5, 2.0, 62.0), mat4LookAt(lightEye, [4.5, 4.2, 3.6], [0,1,0]));
+
+    // Pass 1: 2048x2048 Shadow Depth Map (only needed when sun is above horizon)
+    if (sunDir[1] > -0.02) {
+      gl.bindFramebuffer(gl.FRAMEBUFFER, shadowFBO);
+      gl.viewport(0, 0, SHADOW_SIZE, SHADOW_SIZE);
+      gl.clear(gl.DEPTH_BUFFER_BIT);
+      gl.enable(gl.DEPTH_TEST);
+      gl.disable(gl.BLEND);
+      gl.enable(gl.CULL_FACE);
+      gl.cullFace(gl.FRONT);
+      gl.useProgram(shadowProg);
+      gl.uniformMatrix4fv(gl.getUniformLocation(shadowProg, 'uLightVP'), false, lightVP);
+      for (const buf of [opaqueBuf, louverBuf, doorOpBuf, neighborOpBuf]) {
+        if (!buf || !buf.count) continue;
+        gl.bindVertexArray(buf.vao);
+        gl.drawArrays(gl.TRIANGLES, 0, buf.count);
+      }
+      gl.cullFace(gl.BACK);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    }
+
+    // Main Camera Matrices
+    const aspect = canvas.width / canvas.height;
+    let eye, target, fovDeg;
+    if (mode === 'fp') {
+      fovDeg = fpFov; // Default 52° true 1:1 human perspective (toggleable to 66° Wide!)
+      const bob = (keys['KeyW']||keys['KeyS']||keys['KeyA']||keys['KeyD']||keys['ArrowUp']||keys['ArrowDown']) && !noClip
+        ? Math.sin(player.bobPhase) * 0.018 : 0;
+      eye = [player.x, player.y + EYE_H + bob, player.z];
+      const cosP = Math.cos(player.pitch);
+      const dir = [Math.sin(player.yaw) * cosP, Math.sin(player.pitch), -Math.cos(player.yaw) * cosP];
+      target = V3.add(eye, dir);
+    } else {
+      fovDeg = 42;
+      eye = [
+        orbitCam.target[0] + orbitCam.dist * Math.cos(orbitCam.pitch) * Math.sin(orbitCam.yaw),
+        Math.max(0.8, orbitCam.target[1] + orbitCam.dist * Math.sin(orbitCam.pitch)),
+        orbitCam.target[2] + orbitCam.dist * Math.cos(orbitCam.pitch) * Math.cos(orbitCam.yaw)
+      ];
+      target = orbitCam.target;
+    }
+    const fovRad = fovDeg * Math.PI / 180;
+    const view = mat4LookAt(eye, target, [0, 1, 0]);
+    const proj = mat4Perspective(fovRad, aspect, 0.06, 220.0);
+    const vp = mat4Mul(proj, view);
+    const fwd = V3.norm(V3.sub(target, eye));
+    const right = V3.norm(V3.cross(fwd, [0, 1, 0]));
+    const up = V3.cross(right, fwd);
+
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    // Pass 2: 24-Hour Atmospheric Sky Dome
+    gl.disable(gl.DEPTH_TEST);
+    gl.disable(gl.CULL_FACE);
+    gl.useProgram(skyProg);
+    gl.uniform3fv(gl.getUniformLocation(skyProg, 'uCamRight'), right);
+    gl.uniform3fv(gl.getUniformLocation(skyProg, 'uCamUp'), up);
+    gl.uniform3fv(gl.getUniformLocation(skyProg, 'uCamFwd'), fwd);
+    gl.uniform1f(gl.getUniformLocation(skyProg, 'uTanHalfFov'), Math.tan(fovRad / 2));
+    gl.uniform1f(gl.getUniformLocation(skyProg, 'uAspect'), aspect);
+    gl.uniform3fv(gl.getUniformLocation(skyProg, 'uSunDir'), sunDir);
+    gl.uniform1f(gl.getUniformLocation(skyProg, 'uDayFactor'), dayFactor);
+    gl.uniform1f(gl.getUniformLocation(skyProg, 'uTwilight'), twilight);
+    gl.bindVertexArray(emptyVAO);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+
+    // Pass 3: Opaque Architecture, Interior Furniture, Louvers & Door Frames
+    gl.enable(gl.DEPTH_TEST);
+    gl.depthMask(true);
+    gl.disable(gl.BLEND);
+    gl.enable(gl.CULL_FACE);
+    gl.cullFace(gl.BACK);
+    gl.useProgram(mainProg);
+    gl.uniformMatrix4fv(gl.getUniformLocation(mainProg, 'uVP'), false, vp);
+    gl.uniformMatrix4fv(gl.getUniformLocation(mainProg, 'uLightVP'), false, lightVP);
+    gl.uniform3fv(gl.getUniformLocation(mainProg, 'uCamPos'), eye);
+    gl.uniform3fv(gl.getUniformLocation(mainProg, 'uSunDir'), sunDir);
+    gl.uniform1f(gl.getUniformLocation(mainProg, 'uDayFactor'), dayFactor);
+    gl.uniform1f(gl.getUniformLocation(mainProg, 'uTwilight'), twilight);
+    gl.uniform1f(gl.getUniformLocation(mainProg, 'uIntLightAmt'), intLightAmt);
+    gl.uniform1f(gl.getUniformLocation(mainProg, 'uLouverAmt'), louverAmt);
+    gl.uniform1f(gl.getUniformLocation(mainProg, 'uShowGrid'), showGrid ? 1.0 : 0.0);
+    gl.uniform4fv(gl.getUniformLocation(mainProg, 'uLights[0]'), uLightsArr);
+    gl.uniform2fv(gl.getUniformLocation(mainProg, 'uLightYRange[0]'), uLightYArr);
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, shadowTex);
+    gl.uniform1i(gl.getUniformLocation(mainProg, 'uShadowMap'), 0);
+
+    for (const buf of [opaqueBuf, louverBuf, doorOpBuf, neighborOpBuf]) {
+      if (!buf || !buf.count) continue;
+      gl.bindVertexArray(buf.vao);
+      gl.drawArrays(gl.TRIANGLES, 0, buf.count);
+    }
+
+    // Pass 4: Transparent Low-E Glass, Shower Glass, Balustrades & Sheer Curtains (Double-sided!)
+    gl.disable(gl.CULL_FACE);
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    gl.depthMask(false);
+    for (const buf of [glassBuf, doorGlsBuf, neighborGlsBuf]) {
+      if (!buf || !buf.count) continue;
+      gl.bindVertexArray(buf.vao);
+      gl.drawArrays(gl.TRIANGLES, 0, buf.count);
+    }
+    gl.depthMask(true);
+    gl.disable(gl.BLEND);
+
+    drawMinimap();
+
+    if (SNAP_MODE) {
+      document.title = 'RENDER_READY';
+      return;
+    }
+    requestAnimationFrame(render);
+  }
+
+  // Live theme sync for Canvas2D minimap
+  window.addEventListener('themechange', drawMinimap);
+  window.addEventListener('resize', () => { dirty = true; });
+  updateRoomHUD();
+  drawMinimap();
+  requestAnimationFrame(render);
+})();
+</script>
+</body>
+</html>
