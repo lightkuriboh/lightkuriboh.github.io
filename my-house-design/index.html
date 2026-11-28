@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Plan C 3.1 — 3D Walkthrough (Hàng Rào Thực Địa 106.2m² & Nhà Sổ Đỏ 81.2m²)</title>
+<title>Plan C 4.1B — 3D Walkthrough (Variant Có Ban Công Master Đua Ngoài Sổ Đỏ • Chuẩn 100% Trong Thực Địa)</title>
 <style>
   *, *::before, *::after { box-sizing: border-box; }
   html, body {
@@ -192,12 +192,12 @@
         <div class="row-between">
           <div class="row min-w-0">
             <span id="roomDot" class="room-dot"></span>
-            <h1 id="roomTitle" class="text-sm font-semibold truncate">Living Room (Phòng Khách)</h1>
+            <h1 id="roomTitle" class="text-sm font-semibold truncate">Phòng Khách (Kính Panorama Tây 2.9m • Cung Thiên Y)</h1>
           </div>
           <span id="roomFloorBadge" class="room-badge font-mono">F1 • 13.8 m²</span>
         </div>
         <p id="roomDesc" class="room-desc">
-          Japandi oak &amp; oatmeal linen layout • 4-panel South glass door to courtyard • Fluted walnut TV wall
+          Vách kính hộp Panorama Low-E 2.90×1.85m (bệ đặc +60cm, 0% xuyên tâm) + Rèm 2 lớp • Tủ giày WPC góc 1-B • Thảm Terracotta
         </p>
         <div class="row-wrap divider-top">
           <div class="seg-group">
@@ -221,24 +221,26 @@
         <div class="row-wrap text-xs" style="gap:4px;">
           <span class="font-mono font-semibold muted" style="padding:0 6px;">F1:</span>
           <button data-room="courtyard" class="room-btn">Sân Thực Địa</button>
-          <button data-room="living" class="room-btn active">Living</button>
-          <button data-room="altar" class="room-btn">Tủ Thờ</button>
+          <button data-room="living" class="room-btn">Living</button>
+          <button data-room="altar" class="room-btn">Tủ Thờ Tây</button>
           <button data-room="dining" class="room-btn">Dining</button>
-          <button data-room="kitchen" class="room-btn">Kitchen</button>
+          <button data-room="kitchen" class="room-btn">Kitchen+DW</button>
+          <button data-room="laundry" class="room-btn">Washer+Robot</button>
           <button data-room="wc1" class="room-btn">WC 1</button>
           <button data-room="pn1" class="room-btn">Bedroom 1</button>
           <button data-room="stair1" class="room-btn">Stairs F1→F2</button>
         </div>
         <div class="row-wrap text-xs divider-top-sm" style="gap:4px;">
           <span class="font-mono font-semibold muted" style="padding:0 6px;">F2:</span>
-          <button data-room="working" class="room-btn">Working</button>
+          <button data-room="working" class="room-btn">P. Làm Việc</button>
+          <button data-room="subbed" class="room-btn">Phòng Ngủ Phụ</button>
+          <button data-room="master" class="room-btn">Master Mới</button>
+          <button data-room="sbalcony" class="room-btn active">BC Master (Thực Địa)</button>
+          <button data-room="wcmaster" class="room-btn">WC Master (1,68m)</button>
           <button data-room="lbalcony" class="room-btn">L-Balcony</button>
-          <button data-room="master" class="room-btn">Master Bed</button>
-          <button data-room="wcmaster" class="room-btn">WC Master</button>
-          <button data-room="ebalcony" class="room-btn">East Balc.</button>
-          <button data-room="stair2" class="room-btn">Stairs →Roof</button>
+          <button data-room="stair2" class="room-btn">Sảnh T2 (3 Cửa)</button>
           <span class="font-mono font-semibold muted" style="padding:0 4px 0 6px;">Roof:</span>
-          <button data-room="rooftop" class="room-btn">Solar Terrace</button>
+          <button data-room="rooftop" class="room-btn">Sân Thượng 54m²</button>
         </div>
       </div>
     </div>
@@ -294,7 +296,7 @@
       <!-- Architecture & 1:1 Scale Controls Row -->
       <div class="row-wrap divider-top text-xs" style="gap:12px;">
         <label class="row">
-          <span class="muted font-medium nowrap">West Louvers:</span>
+          <span class="muted font-medium nowrap" title="Điều khiển đồng thời Rèm 2 lớp Vách kính Tây T1 & Lam chắn nắng Tây T2">Rèm &amp; Lam Tây:</span>
           <input id="louverSlide" type="range" min="0" max="1" step="0.02" value="0.45" class="louver-range" />
           <span id="louverVal" class="font-mono font-semibold louver-val">45%</span>
         </label>
@@ -326,9 +328,14 @@
           <span>1m Grid</span>
         </label>
 
-        <label class="chk-label" title="Toggle between 03.1_PlanC high-daylight stair facade (5 wide 1.80m Low-E bands + unbroken +3.55/+6.85m tie beams) vs 100% solid structural wall">
+        <label class="chk-label" title="Toggle between high-daylight stair facade (5 wide 1.80m Low-E bands) vs solid wall">
           <input id="solidStair" type="checkbox" />
           <span>Solid Stair</span>
+        </label>
+
+        <label class="chk-label" title="Đóng/Mở Rèm tổ ong tráng bạc cản sáng 100% âm cổ trần Ô kính mái Bắc (650×1200mm chờ Giếng trời T3–4) & Rèm kính cao Phòng Ngủ Phụ">
+          <input id="skylightBlind" type="checkbox" />
+          <span>Rèm Kính Mái</span>
         </label>
       </div>
 
@@ -994,6 +1001,18 @@
         this.tri([x1,cy,cz], p11, p10, col, mat, [1,0,0]);
       }
     }
+    cylZ(z0, z1, cx, cy, r, col, mat, segs=16) {
+      for (let i=0; i<segs; i++) {
+        const a0 = 2*Math.PI*i/segs, a1 = 2*Math.PI*(i+1)/segs;
+        const c0=Math.cos(a0), s0=Math.sin(a0), c1=Math.cos(a1), s1=Math.sin(a1);
+        const p00=[cx+r*c0, cy+r*s0, z0], p10=[cx+r*c0, cy+r*s0, z1];
+        const p11=[cx+r*c1, cy+r*s1, z1], p01=[cx+r*c1, cy+r*s1, z0];
+        this.triSmooth(p00,p11,p10, [c0,s0,0],[c1,s1,0],[c0,s0,0], col, mat);
+        this.triSmooth(p00,p01,p11, [c0,s0,0],[c1,s1,0],[c1,s1,0], col, mat);
+        this.tri([cx,cy,z0], p01, p00, col, mat, [0,0,-1]);
+        this.tri([cx,cy,z1], p10, p11, col, mat, [0,0,1]);
+      }
+    }
     // True 3D sloped rectangular beam between two arbitrary 3D points pA -> pB (for sleek sloped stair handrails!)
     beam3D(pA, pB, halfW, halfH, col, mat) {
       const dx = pB[0]-pA[0], dy = pB[1]-pA[1], dz = pB[2]-pA[2];
@@ -1103,11 +1122,15 @@
   const C_POT       = [0.32, 0.33, 0.35];
   const C_CERAMIC_POT = [0.86, 0.83, 0.77];
   const C_SOIL      = [0.19, 0.14, 0.10];
-  const C_GLASS     = [0.12, 0.24, 0.32, 0.30];
-  const C_RAILGLASS = [0.46, 0.72, 0.80, 0.24];
-  const C_SHOWERGLS = [0.65, 0.82, 0.86, 0.22];
-  const C_GLOW_WARM = [1.00, 0.86, 0.64];
-  const C_CURTAIN   = [0.94, 0.92, 0.88, 0.52];
+  const C_WARM_BRONZE = [0.34, 0.27, 0.21];        // Anodized Warm Bronze / Champagne thermal-break aluminum (vượng Thổ-Kim!)
+  const C_SAND_STONE  = [0.89, 0.83, 0.72];        // Sand Beige sintered stone sill & backsplash
+  const C_GOLD_STONE  = [0.83, 0.69, 0.44];        // Desert Gold granite threshold (Hóa giải Lục Sát cửa Nam)
+  const C_DRAPE_SAND  = [0.86, 0.79, 0.68, 0.92];  // Sand Beige 95%-blackout outer curtain layer
+  const C_GLASS       = [0.18, 0.27, 0.30, 0.26];  // Neutral-warm Soft Low-E insulated glass (0% cold blue tint!)
+  const C_RAILGLASS   = [0.52, 0.72, 0.76, 0.24];
+  const C_SHOWERGLS   = [0.68, 0.82, 0.85, 0.22];
+  const C_GLOW_WARM   = [1.00, 0.86, 0.64];
+  const C_CURTAIN     = [0.95, 0.93, 0.88, 0.48];
 
   // ==================== ARCHITECTURAL & FURNITURE HELPERS ====================
   function addPlant(op, cx, cz, baseY, scale=1.0, seed=1) {
@@ -1227,25 +1250,25 @@
     gls.quad([xWall, y0+0.10, z0+0.05], [x1, y0+0.10, zEnd], [x1, y1-0.10, zEnd], [xWall, y1-0.10, z0+0.05], C_GLASS, 9);
   }
   function addWindowFixedSouth(op, gls, x0, x1, y0, y1, zMid, panels, frameW=0.05) {
-    op.box(x0, y1-frameW, zMid-0.05, x1, y1, zMid+0.05, C_CHARCOAL, 5);
-    op.box(x0, y0, zMid-0.05, x1, y0+frameW, zMid+0.05, C_CHARCOAL, 5);
-    op.box(x0, y0, zMid-0.05, x0+frameW, y1, zMid+0.05, C_CHARCOAL, 5);
-    op.box(x1-frameW, y0, zMid-0.05, x1, y1, zMid+0.05, C_CHARCOAL, 5);
+    op.box(x0, y1-frameW, zMid-0.05, x1, y1, zMid+0.05, C_WARM_BRONZE, 5);
+    op.box(x0, y0, zMid-0.05, x1, y0+frameW, zMid+0.05, C_WARM_BRONZE, 5);
+    op.box(x0, y0, zMid-0.05, x0+frameW, y1, zMid+0.05, C_WARM_BRONZE, 5);
+    op.box(x1-frameW, y0, zMid-0.05, x1, y1, zMid+0.05, C_WARM_BRONZE, 5);
     for (let i=1; i<panels; i++) {
       const xm = x0 + (x1-x0)*i/panels;
-      op.box(xm-0.022, y0, zMid-0.04, xm+0.022, y1, zMid+0.04, C_CHARCOAL, 5);
+      op.box(xm-0.022, y0, zMid-0.04, xm+0.022, y1, zMid+0.04, C_WARM_BRONZE, 5);
     }
     gls.quad([x0+frameW, y0+frameW, zMid], [x1-frameW, y0+frameW, zMid],
              [x1-frameW, y1-frameW, zMid], [x0+frameW, y1-frameW, zMid], C_GLASS, 9, [0,0,1]);
   }
   function addWindowFixedX(op, gls, xMid, z0, z1, y0, y1, panels, frameW=0.05) {
-    op.box(xMid-0.05, y1-frameW, z0, xMid+0.05, y1, z1, C_CHARCOAL, 5);
-    op.box(xMid-0.05, y0, z0, xMid+0.05, y0+frameW, z1, C_CHARCOAL, 5);
-    op.box(xMid-0.05, y0, z0, xMid+0.05, y1, z0+frameW, C_CHARCOAL, 5);
-    op.box(xMid-0.05, y0, z1-frameW, xMid+0.05, y1, z1, C_CHARCOAL, 5);
+    op.box(xMid-0.05, y1-frameW, z0, xMid+0.05, y1, z1, C_WARM_BRONZE, 5);
+    op.box(xMid-0.05, y0, z0, xMid+0.05, y0+frameW, z1, C_WARM_BRONZE, 5);
+    op.box(xMid-0.05, y0, z0, xMid+0.05, y1, z0+frameW, C_WARM_BRONZE, 5);
+    op.box(xMid-0.05, y0, z1-frameW, xMid+0.05, y1, z1, C_WARM_BRONZE, 5);
     for (let i=1; i<panels; i++) {
       const zm = z0 + (z1-z0)*i/panels;
-      op.box(xMid-0.04, y0, zm-0.022, xMid+0.04, y1, zm+0.022, C_CHARCOAL, 5);
+      op.box(xMid-0.04, y0, zm-0.022, xMid+0.04, y1, zm+0.022, C_WARM_BRONZE, 5);
     }
     gls.quad([xMid, y0+frameW, z0+frameW], [xMid, y0+frameW, z1-frameW],
              [xMid, y1-frameW, z1-frameW], [xMid, y1-frameW, z0+frameW], C_GLASS, 9, [-1,0,0]);
@@ -1301,20 +1324,41 @@
     // Chrome flush button
     op.box(xWall-0.14, y0+0.80, cz-0.04, xWall-0.08, y0+0.815, cz+0.04, C_GALV, 5);
   }
-  // Floating Oak Bathroom Vanity + Vessel Basin + Backlit Circular Mirror on East Wall
+  // Floating 100% Waterproof WPC PVC Vanity (+28-30cm clear floor below!) + Heated Anti-Fog LED Mirror Cabinet
   function addVanityEast(op, xWall, z0, z1, y0) {
     const cz = (z0 + z1) * 0.5;
-    op.box(xWall-0.48, y0+0.42, z0, xWall-0.01, y0+0.78, z1, C_OAK_LIGHT, 4);
-    op.box(xWall-0.50, y0+0.78, z0-0.01, xWall-0.01, y0+0.82, z1+0.01, C_QUARTZ, 15);
-    // Ceramic vessel sink
-    op.cyl(xWall-0.27, cz, y0+0.82, y0+0.93, 0.17, 0.19, C_CERAMIC, 16, 14);
-    op.cyl(xWall-0.27, cz, y0+0.91, y0+0.935, 0.15, 0.15, [0.76,0.84,0.88], 16, 12);
-    // Matte-black tall mixer faucet
-    op.cyl(xWall-0.09, cz, y0+0.82, y0+1.06, 0.016, 0.016, C_CHARCOAL, 5, 8);
-    op.box(xWall-0.22, y0+1.03, cz-0.012, xWall-0.08, y0+1.06, cz+0.012, C_CHARCOAL, 5);
-    // Backlit LED halo + crisp mirror disc on East wall
-    op.cylX(xWall-0.03, xWall-0.005, y0+1.48, cz, 0.30, C_GLOW_WARM, 10, 18);
-    op.cylX(xWall-0.042, xWall-0.025, y0+1.48, cz, 0.27, [0.76,0.83,0.88], 16, 18);
+    op.box(xWall-0.48, y0+0.30, z0, xWall-0.01, y0+0.79, z1, C_CREAM_CAB, 1);
+    op.box(xWall-0.485, y0+0.54, z0+0.02, xWall-0.475, y0+0.56, z1-0.02, C_CHARCOAL, 5); // Drawer reveal
+    op.box(xWall-0.44, y0+0.285, z0+0.06, xWall-0.12, y0+0.30, z1-0.06, C_GLOW_WARM, 10); // Floating under-vanity LED
+    op.box(xWall-0.50, y0+0.79, z0-0.01, xWall-0.01, y0+0.84, z1+0.01, C_QUARTZ, 15);
+    // Integrated easy-wipe undermount/semi-recessed ceramic basin (zero grime rim!)
+    op.box(xWall-0.43, y0+0.84, cz-0.21, xWall-0.11, y0+0.865, cz+0.21, C_CERAMIC, 16);
+    op.cyl(xWall-0.09, cz, y0+0.84, y0+1.04, 0.016, 0.016, C_CHARCOAL, 5, 8);
+    op.box(xWall-0.22, y0+1.01, cz-0.012, xWall-0.08, y0+1.04, cz+0.012, C_CHARCOAL, 5);
+    // Wall-hung Anti-Fog Heated LED Mirror Medicine Cabinet (stores toiletries dry & mold-free!)
+    op.box(xWall-0.14, y0+1.16, z0+0.02, xWall-0.01, y0+1.86, z1-0.02, C_CREAM_CAB, 1);
+    op.box(xWall-0.146, y0+1.18, z0+0.04, xWall-0.138, y0+1.84, z1-0.04, [0.76,0.84,0.89], 16);
+    op.box(xWall-0.135, y0+1.145, z0+0.05, xWall-0.04, y0+1.16, z1-0.05, C_GLOW_WARM, 10);
+    op.box(xWall-0.148, y0+1.24, cz-0.03, xWall-0.144, y0+1.26, cz+0.03, [0.35,0.85,0.95], 19); // Anti-fog heater touch icon
+  }
+  // Quiet 5-Blade DC Ceiling Fan for continuous anti-humidity air circulation
+  function addCeilingFanDC(op, cx, cz, ceilY) {
+    op.cyl(cx, cz, ceilY - 0.04, ceilY, 0.075, 0.085, C_CHARCOAL, 5, 12);
+    op.cyl(cx, cz, ceilY - 0.24, ceilY - 0.04, 0.018, 0.018, C_CHARCOAL, 5, 8);
+    op.cyl(cx, cz, ceilY - 0.29, ceilY - 0.23, 0.115, 0.105, C_CHARCOAL, 5, 16);
+    op.cyl(cx, cz, ceilY - 0.305, ceilY - 0.29, 0.085, 0.095, C_GLOW_WARM, 10, 14);
+    for (let i = 0; i < 5; i++) {
+      const a = (i * Math.PI * 2) / 5 + 0.25;
+      const bx = cx + Math.cos(a) * 0.36, bz = cz + Math.sin(a) * 0.36;
+      op.rotBox(bx, bz, 0.56, 0.105, ceilY - 0.275, ceilY - 0.258, a, C_WALNUT, 4);
+    }
+  }
+  // Round Smart Lidar Robot Vacuum + Auto-Mop unit
+  function addRobotVacuum(op, cx, cz, y0) {
+    op.cyl(cx, cz, y0 + 0.012, y0 + 0.092, 0.172, 0.175, C_WHITE, 16, 18);
+    op.cyl(cx, cz, y0 + 0.088, y0 + 0.096, 0.162, 0.165, C_CREAM_CAB, 1, 18);
+    op.cyl(cx - 0.04, cz, y0 + 0.094, y0 + 0.114, 0.042, 0.044, C_CHARCOAL, 5, 12); // Lidar turret
+    op.box(cx + 0.07, y0 + 0.095, cz - 0.018, cx + 0.10, y0 + 0.100, cz + 0.018, [0.18, 0.86, 0.72], 19); // Status LED
   }
 
   // ==================== BUILD STATIC SCENE GEOMETRY ====================
@@ -1322,7 +1366,7 @@
   const gls = new MeshBuilder();
 
   // ---------------- 1. STREET, 1.5m ALLEY & FULL "THỰC ĐỊA" (106.2 m²) COURTYARD + PERIMETER FENCE ----------------
-  // Exact 8 vertices of A-LOT-HIENTRANG (Thực địa = 106.2 m²) from 03.1_PlanC_CAD DXF:
+  // Exact 8 vertices of A-LOT-HIENTRANG (Thực địa = 106.2 m²) from 04.0_PlanC_CAD DXF:
   const THUC_DIA = [
     [-0.800, -0.110], // H0: NW corner (at Neighbor back wall & Main West Road)
     [ 3.926, -0.075], // H1: North midpoint
@@ -1333,7 +1377,7 @@
     [ 2.200,  8.840], // H6: South-West bend along Ngõ đi chung
     [-2.557,  8.601]  // H7: SW corner at Đường đi chính × Ngõ đi chung 1.5m
   ];
-  // Exact 4 vertices of A-LOT-SODO (Sổ Đỏ = 81.2 m²) from 03.1_PlanC_CAD DXF:
+  // Exact 4 vertices of A-LOT-SODO (Sổ Đỏ = 81.2 m²) from 04.0_PlanC_CAD DXF:
   const SO_DO = [
     [-0.190, -0.110],
     [10.200, -0.110],
@@ -1488,33 +1532,75 @@
   // Subtle structural ceiling beams on F1 along Axis 2 (X=3.42) and Axis 3 (X=5.85)
   op.box(3.31, 3.16, 0.11, 3.53, 3.35, 4.29, C_CEIL, 1);
   op.box(5.74, 3.16, 0.11, 5.96, 3.35, 4.29, C_CEIL, 1);
-  // Floor 2 finish flooring: Honey-Oak in Working Room, Landing & Master; Terrazzo in WC Master
-  op.box(0.11, 3.53, 0.11, 7.63, 3.55, 4.29, C_OAK_FLOOR, 12);
-  op.box(7.63, 3.53, 2.65, 9.49, 3.55, 4.29, C_OAK_FLOOR, 12);
-  op.box(7.63, 3.52, 0.11, 9.49, 3.54, 2.65, C_TERRAZZO, 13);
+  // Floor 2 finish flooring (Plan C 4.1: flat +3.550 across Working, Phòng Ngủ Phụ, Sảnh & Expanded Master over PN1!):
+  op.box(0.11, 3.53, 0.11, 7.36, 3.55, 4.51, C_OAK_FLOOR, 12);
+  op.box(7.36, 3.53, 2.65, 9.49, 3.55, 4.51, C_OAK_FLOOR, 12);
+  op.box(5.905, 3.35, 4.51, 9.59, 3.53, 6.67, C_CEIL, 1); // Flat +3.550m structural slab over PN1 (0% seepage!)
+  op.box(5.905, 3.53, 4.51, 9.59, 3.55, 6.67, C_OAK_FLOOR, 12);
+  // Widened WC Master sunken -10mm Terrazzo floor (5.1 m²: X=7.36..9.49, Z=0.11..2.65)
+  op.box(7.36, 3.52, 0.11, 9.49, 3.54, 2.65, C_TERRAZZO, 13);
 
-  // Rooftop Structural Slab (Y = 6.65 .. 6.85) + Floor 2 Ceiling + Rooftop Stone Terrace Tiles
-  op.box(-0.11, 6.65, -0.11, 9.71, 6.83, 4.51, C_CEIL, 1);
-  op.box(-0.11, 6.83, -0.11, 9.71, 6.85, 4.51, C_TERRAZZO, 13);
+  // Monolithic Expanded Rooftop Slab (+6.85m, 54.0 m²!) split around North-Wall Skylight / Future Lightwell (X=4.45..5.65, Z=0.15..0.80)!
+  // Placed flush near North Axis A (0% beam cut, 0% rooftop back-pocket water trap, ready to rise as T3-4 vertical lightwell!)
+  op.box(-0.11, 6.65, -0.11, 4.45, 6.83, 4.51, C_CEIL, 1);
+  op.box(5.65, 6.65, -0.11, 9.71, 6.83, 4.51, C_CEIL, 1);
+  op.box(4.45, 6.65, -0.11, 5.65, 6.83, 0.15, C_CEIL, 1);
+  op.box(4.45, 6.65, 0.80, 5.65, 6.83, 4.51, C_CEIL, 1);
+  op.box(-0.11, 6.83, -0.11, 4.45, 6.85, 4.51, C_TERRAZZO, 13);
+  op.box(5.65, 6.83, -0.11, 9.71, 6.85, 4.51, C_TERRAZZO, 13);
+  op.box(4.45, 6.83, -0.11, 5.65, 6.85, 0.15, C_TERRAZZO, 13);
+  op.box(4.45, 6.83, 0.80, 5.65, 6.85, 4.51, C_TERRAZZO, 13);
+  // Monolithic +200mm RC Skylight Curb merged flush against North Parapet Wall (0 water pocket!) + Double Laminated Low-E Glass
+  op.box(4.33, 6.65, 0.11, 5.77, 7.05, 0.155, C_WHITE, 1);
+  op.box(4.33, 6.65, 0.80, 5.77, 7.05, 0.92, C_WHITE, 1);
+  op.box(4.33, 6.65, 0.155, 4.45, 7.05, 0.80, C_WHITE, 1);
+  op.box(5.65, 6.65, 0.155, 5.77, 7.05, 0.80, C_WHITE, 1);
+  op.box(4.31, 7.05, 0.11, 5.79, 7.085, 0.94, C_CHARCOAL, 5);
+  gls.quad([4.45, 7.07, 0.15], [5.65, 7.07, 0.15], [5.65, 7.07, 0.80], [4.45, 7.07, 0.80], C_GLASS, 9, [0,1,0]);
+  // Recessed Aluminum Honeycomb-Blind Guide Tracks inside North Skylight Well at +6.67m (North motor cassette + E/W U-rails!)
+  op.box(4.44, 6.655, 0.145, 5.66, 6.705, 0.215, C_CHARCOAL, 5); // Motorized cassette box against North wall
+  op.box(4.44, 6.655, 0.145, 4.475, 6.695, 0.81, C_CHARCOAL, 5); // West U-channel blackout guide rail
+  op.box(5.625, 6.655, 0.145, 5.66, 6.695, 0.81, C_CHARCOAL, 5); // East U-channel blackout guide rail
+  // Expanded Monolithic Roof Slab over South-East Master Bedroom (X=5.85..9.71, Z=4.51..6.79 -> Total 54.0 m²!)
+  op.box(5.85, 6.65, 4.51, 9.71, 6.83, 6.79, C_CEIL, 1);
+  op.box(5.85, 6.83, 4.51, 9.71, 6.85, 6.79, C_TERRAZZO, 13);
 
   // ---------------- 3. EXTERIOR & STRUCTURAL PERIMETER WALLS (1:1 CAD WITH REAL OPENINGS) ----------------
   // North Solid Back Wall (Axis A, Z = -0.11 .. 0.11, Y = 0.13 .. 7.75 incl. 0.90m roof parapet!)
   op.box(-0.11, 0.13, -0.11, 9.71, 7.75, 0.11, C_INT_WALL, 1);
   // Subtle interior baseboard trim along North wall (F1 & F2)
   op.box(0.11, 0.22, 0.11, 5.70, 0.31, 0.125, C_OAK_LIGHT, 4);
-  op.box(0.11, 3.55, 0.11, 7.63, 3.64, 0.125, C_OAK_LIGHT, 4);
+  op.box(0.11, 3.55, 0.11, 7.36, 3.64, 0.125, C_OAK_LIGHT, 4);
 
-  // WEST WALL (Axis 1, X = -0.11 .. 0.11) — STRAIGHT VERTICAL FROM F1 TO ROOF PARAPET (Y=7.75)
-  // 03.1_PlanC West Wall: Solid 1-A corner, Kính hộp Low-E 2.15m (Z=0.75..2.90), Cửa Tây B-1 (Z=3.20..4.15)!
+  // WEST WALL (Axis 1, X = -0.11 .. 0.11) — PLAN C 4.0: NO B-1 DOOR (0% Xuyên Tâm!) + 2.90×1.85m PANORAMA LOW-E WINDOW!
+  // Solid NW pier (Z=-0.11..0.75), +600mm Solid Brick Sill (Y=0.13..0.82, Z=0.75..3.65), Lintel (Y=2.67..3.55), Solid SW 1-B Wall (Z=3.65..4.51)
   op.box(-0.11, 0.13, -0.11, 0.11, 3.55, 0.75, C_WHITE, 1);
-  op.box(-0.11, 0.13, 0.75, 0.11, 0.85, 2.90, C_WHITE, 1);
-  op.box(-0.11, 2.65, 0.75, 0.11, 3.55, 2.90, C_WHITE, 1);
-  op.box(-0.11, 0.13, 2.90, 0.11, 3.55, 3.20, C_WHITE, 1);
-  op.box(-0.11, 2.50, 3.20, 0.11, 3.55, 4.15, C_WHITE, 1);
-  op.box(-0.11, 0.13, 4.15, 0.11, 3.55, 4.51, C_WHITE, 1);
-  addWindowFixedX(op, gls, -0.02, 0.75, 2.90, 0.85, 2.65, 2);
-  addCurtainPairsWest(gls, 0.75, 2.90, 0.26, 3.25, 0.15);
-  addGlassEntranceDoorV(op, gls, -0.05, 3.20, 4.15, 0.22, 2.50);
+  op.box(-0.11, 0.13, 0.75, 0.11, 0.805, 3.65, C_WHITE, 1);
+  op.box(-0.11, 2.67, 0.75, 0.11, 3.55, 3.65, C_WHITE, 1);
+  op.box(-0.11, 0.13, 3.65, 0.11, 3.55, 4.51, C_WHITE, 1);
+  // 20mm Sand Beige Sintered-Stone Sill Cap with exterior drip overhang (Y = 0.805 .. 0.828)
+  op.box(-0.14, 0.805, 0.72, 0.14, 0.828, 3.68, C_SAND_STONE, 15);
+  // 2.90m × 1.85m Thermal-Break Warm-Bronze Panorama Double-Glazed Low-E Window (0.65m Awning + 1.60m Center Panorama + 0.65m Awning)
+  op.box(-0.055, 2.62, 0.75, 0.055, 2.67, 3.65, C_WARM_BRONZE, 5);
+  op.box(-0.055, 0.828, 0.75, 0.055, 0.878, 3.65, C_WARM_BRONZE, 5);
+  op.box(-0.055, 0.828, 0.75, 0.055, 2.67, 0.80, C_WARM_BRONZE, 5);
+  op.box(-0.055, 0.828, 3.60, 0.055, 2.67, 3.65, C_WARM_BRONZE, 5);
+  // Two vertical mullions at Z = 1.40 and Z = 3.00 -> leaves 1.60m completely unobstructed Panorama view in center!
+  op.box(-0.048, 0.828, 1.375, 0.048, 2.67, 1.425, C_WARM_BRONZE, 5);
+  op.box(-0.048, 0.828, 2.975, 0.048, 2.67, 3.025, C_WARM_BRONZE, 5);
+  // Double-glazed Argon Low-E panes (outer surface at X=-0.018, inner surface at X=+0.014)
+  gls.quad([-0.016, 0.878, 0.80], [-0.016, 0.878, 3.60], [-0.016, 2.62, 3.60], [-0.016, 2.62, 0.80], C_GLASS, 9, [-1,0,0]);
+  gls.quad([ 0.014, 0.878, 0.80], [ 0.014, 0.878, 3.60], [ 0.014, 2.62, 3.60], [ 0.014, 2.62, 0.80], [0.22,0.30,0.32,0.14], 9, [1,0,0]);
+  // Recessed Ceiling Gypsum Curtain Pelmet Box (220×150mm, Y=3.20..3.35, Z=0.68..3.72) + Warm Indirect Cove Glow
+  op.box(0.11, 3.20, 0.68, 0.14, 3.35, 3.72, C_CEIL, 1);
+  op.box(0.30, 3.20, 0.68, 0.34, 3.35, 3.72, C_CEIL, 1);
+  op.box(0.14, 3.32, 0.70, 0.30, 3.35, 3.70, C_CHARCOAL, 5); // Dual motorized curtain track rail
+  op.box(0.15, 3.305, 0.75, 0.19, 3.32, 3.65, C_GLOW_WARM, 10);
+
+  // South 4-Panel Main Entrance Feng Shui Threshold: Desert-Gold Granite Step + Flat-Woven Terracotta Mat at West-South Phục Vị Bay!
+  op.box(0.08, 0.132, 4.29, 3.34, 0.222, 4.58, C_GOLD_STONE, 15);
+  op.box(0.48, 0.131, 4.59, 1.68, 0.144, 5.02, C_TERRA, 14);
+  op.box(0.52, 0.143, 4.63, 1.64, 0.147, 4.98, [0.76, 0.44, 0.30], 14);
 
   // F2 West wall openings: Desk window Z=0.38..1.88 (Y=4.45..6.35), L-Balcony sliding door Z=2.35..3.95 (Y=3.55..6.35)
   op.box(-0.11, 3.55, -0.11, 0.11, 7.75, 0.38, C_WHITE, 1);
@@ -1526,7 +1612,7 @@
   addWindowFixedX(op, gls, -0.02, 0.38, 1.88, 4.45, 6.35, 2);
 
   // EAST WALL (Axis 4, X = 9.49 .. 9.71) — REAL WINDOWS FOR WC1, LAUNDRY DOOR, WC MASTER & MASTER VANITY!
-  // 03.1_PlanC East Wall: WC1 window 1.05m (Z=0.55..1.60), Cửa sau trượt 1.40m (Z=2.82..4.22 -> leads to East Thực địa walkway!)
+  // 04.0_PlanC East Wall: WC1 window 1.05m (Z=0.55..1.60), Cửa sau trượt 1.40m (Z=2.82..4.22 -> leads to East Thực địa walkway!)
   op.box(9.49, 0.13, -0.11, 9.71, 3.55, 0.55, C_WHITE, 1);
   op.box(9.49, 0.13, 0.55, 9.71, 1.45, 1.60, C_WHITE, 1);
   op.box(9.49, 2.50, 0.55, 9.71, 3.55, 1.60, C_WHITE, 1);
@@ -1539,16 +1625,16 @@
   op.box(9.53, 0.22, 2.82, 9.67, 0.25, 4.22, C_CHARCOAL, 5);
   addWindowFixedX(op, gls, 9.58, 2.82, 3.52, 0.24, 2.42, 1);
   addWindowFixedX(op, gls, 9.63, 2.86, 3.56, 0.24, 2.42, 1);
-  // F2: WC Master window Z=0.65..1.75 (Y=4.75..5.95), Master Vanity window Z=3.05..4.00 (Y=4.45..6.15)
-  op.box(9.49, 3.55, -0.11, 9.71, 7.75, 0.65, C_WHITE, 1);
-  op.box(9.49, 3.55, 0.65, 9.71, 4.75, 1.75, C_WHITE, 1);
-  op.box(9.49, 5.95, 0.65, 9.71, 7.75, 1.75, C_WHITE, 1);
-  op.box(9.49, 3.55, 1.75, 9.71, 7.75, 3.05, C_WHITE, 1);
-  op.box(9.49, 3.55, 3.05, 9.71, 4.45, 4.00, C_WHITE, 1);
-  op.box(9.49, 6.15, 3.05, 9.71, 7.75, 4.00, C_WHITE, 1);
-  op.box(9.49, 3.55, 4.00, 9.71, 7.75, 4.51, C_WHITE, 1);
-  addWindowFixedX(op, gls, 9.60, 0.65, 1.75, 4.75, 5.95, 2);
-  addWindowFixedX(op, gls, 9.60, 3.05, 4.00, 4.45, 6.15, 2);
+  // F2 East Wall (X=9.49..9.71) extended continuously to 4B' (Z=6.79): WC window Z=1.25..2.05, Master East window Z=2.95..3.90
+  op.box(9.49, 3.55, -0.11, 9.71, 7.75, 1.25, C_WHITE, 1);
+  op.box(9.49, 3.55, 1.25, 9.71, 5.20, 2.05, C_WHITE, 1);
+  op.box(9.49, 5.80, 1.25, 9.71, 7.75, 2.05, C_WHITE, 1);
+  op.box(9.49, 3.55, 2.05, 9.71, 7.75, 2.95, C_WHITE, 1);
+  op.box(9.49, 3.55, 2.95, 9.71, 4.45, 3.90, C_WHITE, 1);
+  op.box(9.49, 6.15, 2.95, 9.71, 7.75, 3.90, C_WHITE, 1);
+  op.box(9.49, 3.55, 3.90, 9.71, 7.75, 6.79, C_WHITE, 1); // Solid wall behind King Bed headboard (Tựa Sơn vững chãi!)
+  addWindowFixedX(op, gls, 9.60, 1.25, 2.05, 5.20, 5.80, 2);
+  addWindowFixedX(op, gls, 9.60, 2.95, 3.90, 4.45, 6.15, 2);
 
   // SOUTH WALL OF INNER CORE (Axis B, Z = 4.29 .. 4.51) — REAL WALK-THROUGH PORTALS!
   // F1 segments:
@@ -1581,27 +1667,25 @@
   op.box(-0.11, 3.55, 4.29, 0.55, 6.85, 4.51, C_WHITE, 1);
   op.box(0.55, 6.35, 4.29, 2.75, 6.85, 4.51, C_WHITE, 1);
   op.box(2.75, 3.55, 4.29, 3.53, 6.85, 4.51, C_WHITE, 1);
-  op.box(3.53, 6.30, 4.29, 4.39, 6.85, 4.51, C_INT_WALL, 1); // Lintel over FULL 860mm Flight 2 roof stair entrance!
-  op.box(4.39, 3.55, 4.29, 4.88, 6.85, 4.51, C_INT_WALL, 1); // Central stair divider
-  op.box(4.88, 6.30, 4.29, 5.74, 6.85, 4.51, C_INT_WALL, 1); // Lintel over FULL 860mm Flight 1 arrival!
-  op.box(5.74, 3.55, 4.29, 6.20, 6.85, 4.51, C_WHITE, 1);
-  op.box(6.20, 6.35, 4.29, 9.00, 6.85, 4.51, C_WHITE, 1);
-  op.box(9.00, 3.55, 4.29, 9.71, 6.85, 4.51, C_WHITE, 1);
+  op.box(3.53, 6.30, 4.29, 4.39, 6.85, 4.51, C_INT_WALL, 1);
+  op.box(4.39, 3.55, 4.29, 4.88, 6.85, 4.51, C_INT_WALL, 1);
+  op.box(4.88, 6.30, 4.29, 5.74, 6.85, 4.51, C_INT_WALL, 1);
+  op.box(5.74, 3.55, 4.29, 5.96, 6.85, 4.51, C_INT_WALL, 1); // Column 3B
+  // Overhead Frame Beam DB-2 (220x350) at Axis B inside Master — 0% wall below so Master spans 3.81m seamlessly!
+  op.box(5.96, 6.32, 4.29, 9.49, 6.65, 4.51, C_CEIL, 1);
   addCurtainPairsSouth(gls, 0.55, 2.75, 3.58, 6.58, 4.22);
-  addCurtainPairsSouth(gls, 6.20, 9.00, 3.58, 6.58, 4.22);
 
-  // Rooftop South Parapet (Z = 4.29..4.51, Y = 6.85..7.75) with OPEN Tum Thang Walk-out Door X = 4.86..5.74!
-  op.box(-0.11, 6.85, 4.29, 4.86, 7.75, 4.51, C_WHITE, 1);
-  op.box(5.74, 6.85, 4.29, 9.71, 7.75, 4.51, C_WHITE, 1);
-  // Roof parapet dark metal coping flashing along North, West, East, South
+  // Rooftop Parapet wrapping Expanded 54.0 m² Terrace (open passage X=5.905..9.49 onto SE Terrace!)
+  op.box(-0.11, 6.85, 4.29, 3.41, 7.75, 4.51, C_WHITE, 1);
+  op.box(5.905, 6.85, 6.67, 9.71, 7.75, 6.79, C_WHITE, 1);
   op.box(-0.13, 7.75, -0.13, 9.73, 7.80, 0.13, C_CHARCOAL, 5);
   op.box(-0.13, 7.75, -0.13, 0.13, 7.80, 4.53, C_CHARCOAL, 5);
-  op.box(9.47, 7.75, -0.13, 9.73, 7.80, 4.53, C_CHARCOAL, 5);
-  op.box(-0.13, 7.75, 4.27, 4.86, 7.80, 4.53, C_CHARCOAL, 5);
-  op.box(5.74, 7.75, 4.27, 9.73, 7.80, 4.53, C_CHARCOAL, 5);
+  op.box(9.47, 7.75, -0.13, 9.73, 7.80, 6.81, C_CHARCOAL, 5);
+  op.box(-0.13, 7.75, 4.27, 3.42, 7.80, 4.53, C_CHARCOAL, 5);
+  op.box(5.90, 7.75, 6.65, 9.73, 7.80, 6.81, C_CHARCOAL, 5);
 
   // ---------------- 4. INTERIOR PARTITIONS (F1 & F2 — EXACT CAD!) ----------------
-  // 03.1_PlanC WC 1 Partition (1.45×2.54m = 3.55m²: Solid West wall X=7.93..8.04; South wall Z=2.65..2.76 with outward 0.76m door!)
+  // 04.0_PlanC WC 1 Partition (1.45×2.54m = 3.55m²: Solid West wall X=7.93..8.04; South wall Z=2.65..2.76 with outward 0.76m door!)
   op.box(7.93, 0.17, 0.11, 8.04, 3.35, 2.76, C_INT_WALL, 1);
   op.box(7.93, 0.17, 2.65, 8.10, 3.35, 2.76, C_INT_WALL, 1);
   op.box(8.10, 2.35, 2.65, 8.86, 3.35, 2.76, C_INT_WALL, 1);
@@ -1612,31 +1696,40 @@
   op.box(9.19, 3.52, 0.11, 9.49, 6.65, 0.56, C_TERRAZZO, 13);
   op.box(9.19, 6.85, 0.11, 9.49, 7.75, 0.56, C_WHITE, 1);
 
-  // F2 Dividing Wall moved straight onto Column A2 (2A -> 2B, X=3.42..3.53) — ZERO dog-leg jog & Enlarged Master Bedroom (22.1 m²)!
+  // --- PLAN C 4.1: 3 INDEPENDENT DOORS AROUND SẢNH T2 (X=3.53..5.74, Z=3.34..4.29) ---
+  // 1) Wall V1 (Axis 2: X=3.42..3.53) + West Door D-LV (Z=3.38..4.20, 820x2200) -> Phòng Làm Việc & Piano (13.8 m²)
   op.box(3.42, 3.55, 0.11, 3.53, 6.65, 3.38, C_INT_WALL, 1);
-  op.box(3.42, 5.75, 3.38, 3.53, 6.65, 4.20, C_INT_WALL, 1); // Lintel above 820mm Working Room door
+  op.box(3.42, 5.75, 3.38, 3.53, 6.65, 4.20, C_INT_WALL, 1);
   op.box(3.42, 3.55, 4.20, 3.53, 6.65, 4.29, C_INT_WALL, 1);
-  addOpenDoorV(op, 3.475, 4.20, 0.82, 3.55, 5.75, -1, false, 0.08); // Swung flat against South wall, 100% clear!
+  addOpenDoorV(op, 3.475, 4.20, 0.82, 3.55, 5.75, -1, false, 0.08);
 
-  // F2 Expanded Landing Enclosure (Sảnh thang 2.1m²: X=3.53..5.74, Z=3.34..4.29 — full 2.21m width aligned with stairs!)
-  //   North wall Z = 3.23..3.34 extends straight to X=3.53 with walkable Master Door at X = 4.86 .. 5.68!
-  op.box(3.53, 3.55, 3.23, 4.86, 6.65, 3.34, C_INT_WALL, 1);
+  // 2) Wall V2 (North Sảnh T2: Z=3.23..3.34) + High Clerestory Glass (X=3.65..4.80, Y=5.82..6.52) + North Door D-PNP (X=4.86..5.68) -> Phòng Ngủ Phụ!
+  op.box(3.53, 3.55, 3.23, 4.86, 5.82, 3.34, C_INT_WALL, 1);
+  op.box(3.53, 6.52, 3.23, 4.86, 6.65, 3.34, C_INT_WALL, 1);
+  op.box(3.53, 5.82, 3.23, 3.65, 6.52, 3.34, C_INT_WALL, 1);
+  op.box(4.80, 5.82, 3.23, 4.86, 6.52, 3.34, C_INT_WALL, 1);
+  addWindowFixedSouth(op, gls, 3.65, 4.80, 5.82, 6.52, 3.285, 2, 0.035);
   op.box(4.86, 5.75, 3.23, 5.68, 6.65, 3.34, C_INT_WALL, 1);
-  op.box(5.68, 3.55, 3.23, 5.85, 6.65, 3.34, C_INT_WALL, 1);
-  op.box(5.74, 3.55, 3.34, 5.85, 6.65, 4.29, C_INT_WALL, 1);
-  addOpenDoorH(op, 4.86, 3.285, 0.82, 3.55, 5.75, -1, true, true); // Folded cleanly flat against landing wall!
+  op.box(5.68, 3.55, 3.23, 5.85, 6.65, 3.40, C_INT_WALL, 1);
+  addOpenDoorH(op, 4.86, 3.285, 0.82, 3.55, 5.75, -1, true, true);
 
-  // F2 Expanded WC Master Partition (X = 7.63..7.74, Z = 0.11..2.65; South Z = 2.65..2.76)
-  //   Walkable Door at Z = 1.85 .. 2.60
-  op.box(7.63, 3.55, 0.11, 7.74, 6.65, 1.85, C_INT_WALL, 1);
-  op.box(7.63, 5.70, 1.85, 7.74, 6.65, 2.60, C_INT_WALL, 1);
-  op.box(7.63, 3.55, 2.60, 7.74, 6.65, 2.76, C_INT_WALL, 1);
-  op.box(7.63, 3.55, 2.65, 9.49, 6.65, 2.76, C_INT_WALL, 1);
-  addOpenDoorV(op, 7.685, 2.60, 0.75, 3.55, 5.70, 1, false);
+  // 3) Wall V3 (East Sảnh T2: X=5.74..5.85) + East Door D-MS (Z=3.40..4.24, 840x2200) -> Phòng Ngủ Master Mở Rộng!
+  op.box(5.74, 3.55, 2.65, 5.85, 6.65, 3.40, C_INT_WALL, 1);
+  op.box(5.74, 5.75, 3.40, 5.85, 6.65, 4.24, C_INT_WALL, 1);
+  op.box(5.74, 3.55, 4.24, 5.85, 6.65, 4.29, C_INT_WALL, 1);
+  addOpenDoorV(op, 5.795, 4.24, 0.84, 3.55, 5.75, 1, false, 0.08);
 
-  // ---------------- 5. PROTRUDING 1-STORY BEDROOM BLOCK (PN1 — BAY 3-4) ----------------
+  // 4) Wall V4 (Z=2.65..2.76, X=5.74..9.49) with 100% OPEN Walk-Through WC Master Doorway at X=7.62..8.38, Y=3.55..5.75!
+  op.box(5.74, 3.55, 2.65, 7.62, 6.65, 2.76, C_INT_WALL, 1);
+  op.box(7.62, 5.75, 2.65, 8.38, 6.65, 2.76, C_INT_WALL, 1); // Lintel ONLY above Y=5.75 — ZERO blocking wall below!
+  op.box(8.38, 3.55, 2.65, 9.49, 6.65, 2.76, C_INT_WALL, 1);
+  addOpenDoorH(op, 7.62, 2.705, 0.76, 3.55, 5.75, -1, true, false); // Opens inward along WC Master's solid West wall!
+
+  // 5) Wall V5: Shifted West Wall of WC Master (X=7.36..7.47, Z=0.11..2.65 -> widens WC to 2.02x2.54m = 5.1 m² for 1.68m Tub!)
+  op.box(7.36, 3.55, 0.11, 7.47, 6.65, 2.65, C_INT_WALL, 1);
+
+  // ---------------- 5. FULL 2-STORY EAST BEDROOM VOLUME (PN1 ON F1 + EXPANDED MASTER ON F2 — 100% INSIDE SỔ ĐỎ!) ----------------
   op.box(9.59, 0.13, 4.51, 9.71, 3.55, 6.79, C_WHITE, 1);
-  op.box(5.905, 3.35, 4.51, 9.71, 3.55, 6.79, C_TERRAZZO, 13); // Flat roof = Master East Balcony!
   op.box(5.905, 0.13, 6.67, 7.10, 3.55, 6.79, C_WHITE, 1);
   op.box(7.10, 0.13, 6.67, 8.90, 0.95, 6.79, C_WHITE, 1);
   op.box(7.10, 2.55, 6.67, 8.90, 3.55, 6.79, C_WHITE, 1);
@@ -1644,18 +1737,47 @@
   addWindowFixedSouth(op, gls, 7.10, 8.90, 0.95, 2.55, 6.73, 2);
   addCurtainPairsSouth(gls, 7.10, 8.90, 0.28, 3.25, 6.60);
 
-  // Master East Balcony Glass Balustrade + Lush Planter Trough
-  gls.quad([5.91, 3.58, 5.71], [9.69, 3.58, 5.71], [9.69, 4.58, 5.71], [5.91, 4.58, 5.71], C_RAILGLASS, 9, [0,0,1]);
-  gls.quad([9.68, 3.58, 4.51], [9.68, 3.58, 5.71], [9.68, 4.58, 5.71], [9.68, 4.58, 4.51], C_RAILGLASS, 9, [1,0,0]);
-  op.box(5.90, 4.57, 5.68, 9.71, 4.62, 5.74, C_CHARCOAL, 5);
-  op.box(9.66, 4.57, 4.51, 9.71, 4.62, 5.74, C_CHARCOAL, 5);
-  // Planter trough stops cleanly at X=9.42 (isolated from Waterproofed RC Pilaster 4B'!)
-  op.box(5.94, 3.55, 6.26, 9.42, 3.92, 6.77, C_POT, 6);
-  op.box(6.00, 3.84, 6.32, 9.36, 3.93, 6.71, C_SOIL, 6);
-  addHedgeRow(op, [6.22, 6.52], [9.18, 6.52], 3.88, 0.44, 0.34, 3.7);
-  // Fix 4: Waterproofed solid RC protective pilaster 260x340mm at 4B' rising above planter soil (0% rebar corrosion!)
-  op.box(9.46, 3.55, 6.51, 9.74, 4.26, 6.87, C_WHITE, 1);
-  op.box(9.44, 4.26, 6.49, 9.76, 4.31, 6.89, C_CHARCOAL, 5);
+  // F2 South Exterior Wall of Enlarged Master Bedroom on Axis B' (Z=6.57..6.79, Y=3.55..6.85)
+  //   VARIANT 4.1B: Full 2.40×2.40m 3-Panel Walk-Out Sliding Glass Balcony Door (X=6.45..8.85, Y=3.55..5.95)!
+  op.box(5.905, 3.55, 6.57, 6.45, 6.85, 6.79, C_WHITE, 1);
+  op.box(6.45, 5.95, 6.57, 8.85, 6.85, 6.79, C_WHITE, 1); // RC Lintel above 2.40m balcony door
+  op.box(8.85, 3.55, 6.57, 9.71, 6.85, 6.79, C_WHITE, 1);
+  op.box(6.43, 3.52, 6.56, 8.87, 3.552, 6.80, C_GOLD_STONE, 15); // Weather-sealed granite step threshold (-3cm drop!)
+  addCurtainPairsSouth(gls, 6.45, 8.85, 3.58, 6.52, 6.51);
+
+  // --- CANTILEVERED SOUTH MASTER BALCONY (X=5.85..9.71, Z=6.79..7.89 -> 3.86×1.10m = 4.3 m², 100% INSIDE THỰC ĐỊA!) ---
+  // Tapered RC Cantilever Beams DC-BC3 (X=5.85..6.07) & DC-BC4 (X=9.49..9.71) projecting from Columns 3B' & 4B'
+  op.beam3D([5.96, 3.26, 6.79], [5.96, 3.34, 7.88], 0.11, 0.10, C_WHITE, 1);
+  op.beam3D([9.60, 3.26, 6.79], [9.60, 3.34, 7.88], 0.11, 0.10, C_WHITE, 1);
+  // Balcony structural slab + warm timber soffit underneath (doubles as 1.10m rain & noon-sun canopy for Bà's PN1 window!)
+  op.prism([[5.85,6.79],[9.71,6.79],[9.71,7.89],[5.85,7.89]], 3.36, 3.52, C_TERRAZZO, 13, C_SOFFIT, 4);
+  // Architectural charcoal fascia drip-edge trim around balcony perimeter
+  op.box(5.84, 3.35, 7.86, 9.72, 3.525, 7.90, C_CHARCOAL, 5);
+  op.box(5.84, 3.35, 6.79, 5.87, 3.525, 7.90, C_CHARCOAL, 5);
+  op.box(9.69, 3.35, 6.79, 9.72, 3.525, 7.90, C_CHARCOAL, 5);
+  // Subtle Terracotta/Brass Sổ-Đỏ Reference Strip inlaid on Balcony Floor ([5.85, 7.000] -> [9.71, 6.856])
+  //   Visually proves where Sổ Đỏ ends while Thực Địa fence stands 24–72cm further South!
+  op.wallSeg([5.85, 7.000], [9.71, 6.856], 3.520, 3.525, 0.032, C_TERRA, 18);
+
+  // 1.10m Frameless Tempered Glass Balustrade + Charcoal Top Handrail (matching West L-Balcony!)
+  gls.quad([5.87, 3.53, 6.79], [5.87, 3.53, 7.87], [5.87, 4.58, 7.87], [5.87, 4.58, 6.79], C_RAILGLASS, 9, [-1,0,0]);
+  gls.quad([5.87, 3.53, 7.87], [9.69, 3.53, 7.87], [9.69, 4.58, 7.87], [5.87, 4.58, 7.87], C_RAILGLASS, 9, [0,0,1]);
+  gls.quad([9.69, 3.53, 7.87], [9.69, 3.53, 6.79], [9.69, 4.58, 6.79], [9.69, 4.58, 7.87], C_RAILGLASS, 9, [1,0,0]);
+  op.box(5.85, 4.57, 6.79, 5.90, 4.62, 7.89, C_CHARCOAL, 5);
+  op.box(5.85, 4.57, 7.84, 9.71, 4.62, 7.89, C_CHARCOAL, 5);
+  op.box(9.66, 4.57, 6.79, 9.71, 4.62, 7.89, C_CHARCOAL, 5);
+
+  // Weatherproof Outdoor Lounge Chair + Sintered-Stone Tea Table (East corner, outside fixed leaf!) & Balcony Greenery (West corner)
+  op.rotBox(8.92, 7.36, 0.56, 0.56, 3.53, 3.86, -0.25, C_CHARCOAL, 5);
+  op.rotBox(8.92, 7.36, 0.52, 0.52, 3.86, 3.92, -0.25, C_GRAPHITE, 5);
+  op.rotBox(9.06, 7.28, 0.10, 0.54, 3.86, 4.30, -0.25, C_CHARCOAL, 5);
+  op.cyl(8.38, 7.42, 3.52, 3.96, 0.018, 0.018, C_CHARCOAL, 5, 8);
+  op.cyl(8.38, 7.42, 3.96, 3.99, 0.20, 0.20, C_QUARTZ, 15, 14);
+  addPottedPlant(op, 6.18, 7.46, 3.52, 0.78, 6.4, false);
+  addPottedPlant(op, 9.42, 7.52, 3.52, 0.62, 9.2, false);
+  // Outdoor overhang IP65 warm downlight under +6.85m Master roof eave
+  op.box(5.85, 6.65, 6.79, 9.71, 6.85, 7.05, C_WHITE, 1); // Subtle 26cm rain drip eave over balcony door
+  addDownlight(op, 7.65, 6.94, 6.65);
 
   // ---------------- 6. EXTERNAL STAIRCASE TOWER & TUM THANG (+0.22 -> +3.55 -> +6.85 -> +9.45) ----------------
   // Walls rise cleanly up to Tum Thang roof (+9.45m) per ME-02!
@@ -1674,9 +1796,15 @@
   // New 220x300 RC Columns C-2 at 2B', 3B', 4B'
   op.box(3.31, 0.13, 6.54, 3.53, 9.45, 6.84, C_WHITE, 1);
   op.box(5.74, 0.13, 6.54, 5.96, 9.45, 6.84, C_WHITE, 1);
-  op.box(9.49, 0.13, 6.54, 9.71, 3.55, 6.84, C_WHITE, 1);
-  // Enclosed Dry Shoe & Storage Closet under Stair Flight 1 (Gầm thang: Tủ giày + Kho khô)
-  op.box(4.36, 0.22, 4.52, 4.88, 1.95, 5.81, C_OAK_LIGHT, 4);
+  op.box(9.49, 0.13, 6.54, 9.71, 6.85, 6.84, C_WHITE, 1); // Column 4B' poured continuously to +6.85m!
+  op.box(9.46, 6.85, 6.51, 9.74, 7.92, 6.87, C_WHITE, 1); // Trụ BTCT Sika bọc Coupler 4B' at +6.85m Rooftop!
+  op.box(9.44, 7.92, 6.49, 9.76, 7.97, 6.89, C_CHARCOAL, 5);
+  // Ventilated 100% Waterproof WPC Family Shoe & Storage Closet under Stair Flight 1 (louvered doors prevent shoe mold!)
+  op.box(4.36, 0.22, 4.52, 4.88, 0.32, 5.81, C_CHARCOAL, 5); // 100mm PVC plinth
+  op.box(4.36, 0.32, 4.52, 4.88, 1.95, 5.81, C_CREAM_CAB, 1);
+  for (const ly of [0.55, 0.70, 0.85, 1.25, 1.40, 1.55]) {
+    op.box(4.875, ly, 4.66, 4.89, ly + 0.022, 5.66, C_CHARCOAL, 5); // Breathable CNC louver vents
+  }
   // Bolted lightweight insulated steel flat roof over Tum Thang (Y = 9.45 .. 9.63)
   op.box(3.28, 9.45, 4.40, 6.04, 9.63, 6.94, C_STEELROOF, 5);
   op.box(3.53, 9.38, 4.51, 5.74, 9.45, 6.67, C_CEIL, 1);
@@ -1758,165 +1886,299 @@
   addPottedPlant(op, -1.25, 5.28, 3.55, 0.85, 4, false);
   addPottedPlant(op, -0.55, 5.38, 3.55, 0.72, 7, false);
   addPottedPlant(op, 2.95, 5.36, 3.55, 0.80, 11, false);
-  // Small outdoor bistro table + 2 teak stools on sunny South wing of L-Balcony
-  op.cyl(1.45, 5.12, 3.55, 4.18, 0.03, 0.03, C_CHARCOAL, 5, 8);
-  op.cyl(1.45, 5.12, 4.18, 4.21, 0.28, 0.28, C_WOOD, 4, 14);
-  op.cyl(0.88, 5.15, 3.55, 3.98, 0.16, 0.17, C_WOOD, 4, 12);
-  op.cyl(2.02, 5.15, 3.55, 3.98, 0.16, 0.17, C_WOOD, 4, 12);
-
-  // ==================== 8. PROPOSED INTERIOR FURNITURE DESIGN — FLOOR 1 ====================
-  // --- A. LIVING ROOM (Phòng Khách — 13.8 m², X=0.11..3.42, Z=0.11..4.29) ---
-  // Fluted walnut TV feature wall + concealed warm LED halo strip
-  op.box(0.55, 0.22, 0.11, 2.95, 3.25, 0.155, C_WALNUT, 11);
-  op.box(0.54, 0.35, 0.12, 0.56, 3.20, 0.15, C_GLOW_WARM, 10);
-  op.box(2.94, 0.35, 0.12, 2.96, 3.20, 0.15, C_GLOW_WARM, 10);
-  // Floating matte cream & oak TV console (X=0.85..2.65, Z=0.15..0.52)
-  op.box(0.85, 0.38, 0.155, 2.65, 0.68, 0.52, C_CREAM_CAB, 1);
-  op.box(0.85, 0.68, 0.155, 2.65, 0.71, 0.53, C_OAK_LIGHT, 4);
-  op.box(0.88, 0.365, 0.22, 2.62, 0.38, 0.45, C_GLOW_WARM, 10); // Under-console ambient strip
-  // 65" Frameless OLED TV (X=1.05..2.45, Y=1.04..1.84)
-  op.box(1.04, 1.03, 0.155, 2.46, 1.85, 0.19, C_CHARCOAL, 5);
-  op.box(1.06, 1.05, 0.19, 2.44, 1.83, 0.20, [0.10, 0.14, 0.19], 19); // Subtle architectural art display
-  // Decor ceramic vase & books on TV console
-  op.cyl(1.04, 0.34, 0.71, 0.96, 0.06, 0.04, C_CERAMIC_POT, 16, 10);
-  op.box(2.24, 0.71, 0.28, 2.50, 0.76, 0.44, C_TERRA, 14);
-  op.box(2.26, 0.76, 0.30, 2.48, 0.80, 0.43, C_LINEN_LT, 14);
-
-  // Woven Area Rug under Living Seating (X=0.42..2.98, Z=1.15..3.45)
-  op.box(0.42, 0.22, 1.15, 2.98, 0.232, 3.45, C_RUG, 14);
-
-  // Low-Profile 3-Seat Linen Sofa facing North TV (X=0.60..2.80, Z=2.45..3.27)
-  // Tapered oak legs
-  for (const sx of [0.68, 2.72]) for (const sz of [2.52, 3.20]) op.cyl(sx, sz, 0.23, 0.36, 0.025, 0.020, C_WALNUT, 4, 6);
-  // Base deck, 3 plush seat cushions, wide armrests & deep backrest
-  op.box(0.60, 0.35, 2.45, 2.80, 0.46, 3.27, C_WALNUT, 4);
-  for (let i=0; i<3; i++) {
-    const cx0 = 0.76 + i * 0.635;
-    op.box(cx0, 0.46, 2.46, cx0 + 0.615, 0.64, 3.06, C_LINEN, 14);
-    op.box(cx0, 0.64, 2.96, cx0 + 0.615, 0.94, 3.16, C_LINEN, 14); // Back cushions
-  }
-  op.box(0.60, 0.46, 2.45, 0.76, 0.80, 3.27, C_LINEN, 14); // Left arm
-  op.box(2.64, 0.46, 2.45, 2.80, 0.80, 3.27, C_LINEN, 14); // Right arm
-  op.box(0.60, 0.46, 3.12, 2.80, 0.90, 3.27, C_LINEN, 14); // Back frame
-  // Accent throw pillows (Sage & Terracotta)
-  op.rotBox(0.92, 2.90, 0.34, 0.14, 0.64, 0.92, 0.28, C_SAGE, 14);
-  op.rotBox(2.48, 2.90, 0.34, 0.14, 0.64, 0.92, -0.32, C_TERRA, 14);
-  op.rotBox(2.26, 2.92, 0.30, 0.12, 0.64, 0.88, -0.18, C_LINEN_LT, 14);
-
-  // Natural Oak Coffee Table (X=1.15..2.25, Z=1.40..2.02) + Ceramic Tea Set & Art Book
-  op.box(1.15, 0.53, 1.40, 2.25, 0.58, 2.02, C_OAK_LIGHT, 4);
-  op.box(1.24, 0.32, 1.48, 2.16, 0.35, 1.94, C_OAK_LIGHT, 4); // Lower shelf
-  for (const lx of [1.24, 2.16]) for (const lz of [1.48, 1.94]) op.cyl(lx, lz, 0.23, 0.53, 0.022, 0.022, C_OAK_LIGHT, 4, 8);
-  op.cyl(1.55, 1.72, 0.58, 0.60, 0.16, 0.16, C_QUARTZ, 15, 14); // Marble tray
-  op.cyl(1.52, 1.70, 0.60, 0.72, 0.055, 0.045, C_CERAMIC, 16, 10); // Teapot
-  op.box(1.80, 0.58, 1.56, 2.08, 0.62, 1.82, C_SAGE, 14); // Coffee table book
-
-  // Bouclé Accent Armchair angled on West side (X=0.22..0.87, Z=1.40..2.05)
-  op.rotBox(0.55, 1.72, 0.62, 0.60, 0.24, 0.32, 0.35, C_WALNUT, 4);
-  op.rotBox(0.55, 1.72, 0.62, 0.58, 0.32, 0.54, 0.35, C_LINEN_LT, 14);
-  op.rotBox(0.36, 1.65, 0.16, 0.58, 0.52, 0.90, 0.35, C_LINEN_LT, 14);
-  // Warm Brushed-Brass Standing Floor Lamp (X=0.34, Z=2.55)
-  op.cyl(0.34, 2.55, 0.22, 0.26, 0.15, 0.14, C_BRASS, 18, 12);
-  op.cyl(0.34, 2.55, 0.26, 1.62, 0.014, 0.012, C_BRASS, 18, 8);
-  op.cyl(0.34, 2.55, 1.50, 1.76, 0.19, 0.15, C_GLOW_WARM, 10, 14); // Glowing warm linen shade!
-  // Tall Indoor Fiddle-Leaf Fig in SW corner (X=0.36, Z=3.85) + AC on North wall
-  addPottedPlant(op, 0.36, 3.85, 0.22, 1.05, 5.2, true);
-  addACUnit(op, 2.27, 3.03, 0.11, 0.31, 2.86, 3.14);
-
-  // --- B1. TỦ THỜ ĐỨNG 1.27m TẦNG 1 + VÁCH CNC (03.1_PlanC PC-KT01: X=3.60..4.87, Z=0.14..0.75 + CNC X=4.96..5.035) ---
-  op.box(3.56, 0.22, 0.11, 4.92, 3.32, 0.15, C_WALNUT, 11); // Fluted backdrop
-  op.box(3.62, 3.30, 0.15, 4.85, 3.345, 0.76, C_WALNUT, 4); // Ceiling smoke guard
-  op.cyl(4.235, 0.155, 2.18, 2.20, 0.22, 0.22, C_BRASS, 18, 18); // Brass lotus medallion
-  // CNC Lattice Partition Screen separating Altar from Kitchen (X=4.96..5.035, Z=0.11..0.97)
-  op.box(4.96, 0.22, 0.11, 5.02, 3.35, 0.18, C_WALNUT, 4);
-  op.box(4.96, 0.22, 0.90, 5.02, 3.35, 0.97, C_WALNUT, 4);
-  for (const sz of [0.28, 0.43, 0.58, 0.74]) op.box(4.975, 0.22, sz, 5.005, 3.32, sz+0.03, C_OAK_LIGHT, 4);
-  for (const sy of [1.05, 1.85, 2.65]) op.box(4.975, sy, 0.18, 5.005, sy+0.03, 0.90, C_OAK_LIGHT, 4);
-  // Tủ thờ 1.27m × 0.61m × 1.27m + Tucked Bàn cơm cúng (X=3.72..4.75, Z=0.22..0.66)
-  op.box(3.60, 1.43, 0.14, 4.87, 1.49, 0.75, C_WALNUT, 4);
-  op.box(3.58, 1.48, 0.14, 3.64, 1.53, 0.75, C_WALNUT, 4);
-  op.box(4.83, 1.48, 0.14, 4.89, 1.53, 0.75, C_WALNUT, 4);
-  op.box(3.64, 1.24, 0.17, 4.83, 1.43, 0.72, C_OAK_LIGHT, 4);
-  for (const lx of [3.65, 4.82]) for (const lz of [0.19, 0.70]) op.box(lx-0.03, 0.22, lz-0.03, lx+0.03, 1.43, lz+0.03, C_WALNUT, 4);
-  op.box(3.72, 0.22, 0.22, 4.75, 0.86, 0.66, C_WALNUT, 4); // Tủ cơm cúng dưới
-  // Incense urn & warm 3000K altar lamps
-  op.cyl(4.235, 0.44, 1.49, 1.63, 0.085, 0.095, C_CERAMIC_POT, 16, 14);
-  for (const lx of [3.76, 4.71]) {
-    op.cyl(lx, 0.40, 1.49, 1.74, 0.032, 0.018, C_BRASS, 18, 10);
-    op.sphere(lx, 1.79, 0.40, 0.055, 0.075, 0.055, C_GLOW_WARM, 10, 10, 7);
+  // Weatherproof Powder-Coated Aluminum & Sintered-Slate Bistro Set on L-Balcony (0% wood rot or rain mildew!)
+  op.cyl(1.45, 5.12, 3.55, 3.58, 0.20, 0.20, C_CHARCOAL, 5, 12);
+  op.cyl(1.45, 5.12, 3.58, 4.22, 0.028, 0.028, C_CHARCOAL, 5, 8);
+  op.cyl(1.45, 5.12, 4.22, 4.25, 0.31, 0.31, C_QUARTZ, 15, 16);
+  for (const [sx, dir] of [[0.86, -1], [2.04, 1]]) {
+    op.box(sx-0.19, 3.96, 4.94, sx+0.19, 4.00, 5.32, C_GRAPHITE, 5);
+    op.box(sx + dir*0.17, 4.00, 4.95, sx + dir*0.21, 4.38, 5.31, C_GRAPHITE, 5);
+    for (const lx of [sx-0.16, sx+0.16]) for (const lz of [4.97, 5.29]) op.cyl(lx, lz, 3.55, 3.96, 0.014, 0.014, C_CHARCOAL, 5, 6);
   }
 
-  // --- B2. DINING ROOM (PC-KT01: X=4.05..5.40, Z=2.00..2.80) ---
-  op.box(4.05, 0.93, 2.00, 5.40, 0.975, 2.80, C_OAK_LIGHT, 4);
-  op.box(4.12, 0.87, 2.07, 5.33, 0.93, 2.73, C_WALNUT, 4);
-  for (const tx of [4.16, 5.29]) for (const tz of [2.09, 2.71]) op.cyl(tx, tz, 0.22, 0.93, 0.028, 0.022, C_OAK_LIGHT, 4, 8);
-  op.cyl(4.725, 2.40, 0.975, 1.035, 0.10, 0.14, C_CERAMIC_POT, 16, 12);
-  addPlant(op, 4.725, 2.40, 1.03, 0.25, 9.1);
-  for (const cx of [4.24, 4.725, 5.21]) {
-    addDiningChair(op, cx, 1.79, 0.22, 1);
-    addDiningChair(op, cx, 3.01, 0.22, -1);
+  // ==================== 8. MODERN ANTI-MOISTURE & SPACE-EFFICIENT INTERIOR — FLOOR 1 (3.1) ====================
+  // --- A0. SOUTH-WEST ENTRYWAY (1-B): FLOATING WPC QUICK-SHOE & WET-UMBRELLA CABINET (X=0.12..0.46, Z=3.66..4.26) ---
+  // Placed right beside the 4-panel South entrance on the new solid 1-B wall (+16cm off floor for Robot Vacuum)!
+  op.box(0.12, 0.38, 3.76, 0.45, 1.26, 4.26, C_CREAM_CAB, 1);
+  op.box(0.12, 1.26, 3.66, 0.46, 1.295, 4.27, C_QUARTZ, 15); // Quartz key & card tray top
+  op.box(0.14, 0.365, 3.80, 0.42, 0.38, 4.22, C_GLOW_WARM, 10); // Warm floating under-glow
+  for (const vy of [0.58, 0.82, 1.06]) op.box(0.448, vy, 3.80, 0.458, vy+0.018, 4.22, C_WARM_BRONZE, 5); // Breathable shoe vents
+  // Integrated stainless wet-umbrella holder & removable drip tray at Z=3.66..3.76
+  op.box(0.14, 0.23, 3.66, 0.43, 0.27, 3.76, C_GALV, 5);
+  op.box(0.15, 0.68, 3.67, 0.42, 0.71, 3.75, C_WARM_BRONZE, 5);
+  // Smart Switch Glass Touch Panel (CT Smart Cửa Nam 1-B + Motorized West Curtain Control) at Y=1.42..1.51
+  op.box(0.11, 1.42, 3.92, 0.125, 1.51, 4.08, C_CHARCOAL, 5);
+  op.box(0.124, 1.455, 3.95, 0.128, 1.475, 4.05, [0.22, 0.88, 0.76], 19);
+  // Freed NW Corner (1-A: Diên Niên sector): Warm Ceramic-Potted Ficus Lyrata Tree flanking TV Wall!
+  addPottedPlant(op, 0.35, 0.42, 0.22, 0.96, 5.2, true);
+
+  // --- A. LIVING ROOM (Phòng Khách — 13.8 m², Zero Rug, 160mm Robot-Clear Legs, Floating Media Wall) ---
+  // Smooth matte anti-fingerprint HMR panel + wide easy-wipe oak surround (zero narrow floor dust grooves!)
+  op.box(0.55, 0.36, 0.11, 3.22, 3.26, 0.145, C_CREAM_CAB, 1);
+  op.box(0.52, 0.36, 0.11, 0.56, 3.26, 0.155, C_OAK_LIGHT, 4);
+  op.box(3.21, 0.36, 0.11, 3.25, 3.26, 0.155, C_OAK_LIGHT, 4);
+  op.box(0.50, 0.42, 0.115, 0.52, 3.20, 0.145, C_GLOW_WARM, 10);
+  op.box(3.25, 0.42, 0.115, 3.27, 3.20, 0.145, C_GLOW_WARM, 10);
+  // Legless Floating Media Console at +24cm above floor (X=0.72..3.08, Z=0.15..0.49, Y=0.46..0.74 -> 100% mop/robot clear!)
+  op.box(0.72, 0.46, 0.15, 3.08, 0.72, 0.48, C_CREAM_CAB, 1);
+  op.box(0.72, 0.72, 0.15, 3.08, 0.75, 0.49, C_QUARTZ, 15); // Non-porous quartz top
+  op.box(0.78, 0.445, 0.20, 3.02, 0.46, 0.42, C_GLOW_WARM, 10);
+  for (const dx of [1.50, 2.30]) op.box(dx-0.008, 0.48, 0.478, dx+0.008, 0.70, 0.488, C_CHARCOAL, 5);
+  // 65" Wall-Mounted OLED TV + Slim Dolby Soundbar (zero cables on floor!)
+  op.box(1.15, 1.10, 0.15, 2.65, 1.92, 0.185, C_CHARCOAL, 5);
+  op.box(1.17, 1.12, 0.185, 2.63, 1.90, 0.195, [0.09, 0.14, 0.20], 19);
+  op.box(1.38, 0.93, 0.155, 2.42, 0.985, 0.23, C_GRAPHITE, 5); // Wall-mounted soundbar
+  // Quiet 5-Blade DC Ceiling Fan (circulates air during humid Nồm days) + 12,000 BTU Inverter AC
+  addCeilingFanDC(op, 1.80, 2.05, 3.35);
+  addACUnit(op, 2.35, 3.15, 0.11, 0.30, 2.88, 3.14);
+
+  // High-Leg (160mm Clear!) L-Chaise Sofa in Water-Repellent Wipeable Performance Fabric (NO mold-trapping floor rug!)
+  for (const sx of [0.66, 1.72, 2.80]) for (const sz of [2.54, 3.20]) {
+    op.cyl(sx, sz, 0.22, 0.38, 0.018, 0.015, C_CHARCOAL, 5, 8); // 160mm steel legs!
   }
-  op.box(4.28, 3.32, 2.36, 5.18, 3.35, 2.44, C_BRASS, 18);
-  op.cyl(4.42, 2.40, 2.15, 3.32, 0.006, 0.006, C_CHARCOAL, 5, 6);
-  op.cyl(5.04, 2.40, 2.15, 3.32, 0.006, 0.006, C_CHARCOAL, 5, 6);
-  op.box(4.18, 2.12, 2.385, 5.28, 2.155, 2.415, C_BRASS, 18);
-  for (const gx of [4.32, 4.73, 5.14]) op.sphere(gx, 2.07, 2.40, 0.085, 0.085, 0.085, C_GLOW_WARM, 10, 10, 7);
+  for (const sx of [2.28, 2.80]) op.cyl(sx, 1.99, 0.22, 0.38, 0.018, 0.015, C_CHARCOAL, 5, 8);
+  op.box(0.58, 0.38, 2.48, 2.88, 0.46, 3.26, C_CHARCOAL, 5); // Slim steel & oak base frame
+  op.box(2.22, 0.38, 1.94, 2.88, 0.46, 2.48, C_CHARCOAL, 5); // Chaise deck
+  for (let i = 0; i < 3; i++) {
+    const cx0 = 0.73 + i * 0.665;
+    const zFront = (i === 2) ? 1.95 : 2.49;
+    op.box(cx0, 0.46, zFront, cx0 + 0.645, 0.63, 3.08, C_LINEN, 14);
+    op.box(cx0, 0.63, 2.98, cx0 + 0.645, 0.92, 3.16, C_LINEN, 14);
+  }
+  op.box(0.58, 0.46, 2.48, 0.73, 0.78, 3.26, C_LINEN, 14);
+  op.box(2.73, 0.46, 2.35, 2.88, 0.78, 3.26, C_LINEN, 14);
+  op.box(0.58, 0.46, 3.13, 2.88, 0.88, 3.26, C_LINEN, 14);
+  op.rotBox(0.88, 2.90, 0.32, 0.13, 0.63, 0.90, 0.26, C_SAGE, 14);
+  op.rotBox(2.54, 2.90, 0.32, 0.13, 0.63, 0.90, -0.28, C_TERRA, 14);
 
-  // Tech Inverter + 15kWh Battery Cabinet on 2B-3B Pier
-  op.box(4.55, 0.22, 3.84, 5.73, 2.38, 4.28, C_WALNUT, 11);
-  op.box(4.55, 2.38, 3.83, 5.73, 2.42, 4.29, C_OAK_LIGHT, 4);
-  op.box(4.75, 1.55, 3.832, 4.95, 1.58, 3.842, [0.18, 0.85, 0.58], 19);
+  // Nesting Round Non-Porous Sintered-Stone Coffee Tables (stain-proof, easy to slide aside!)
+  op.cyl(1.44, 1.74, 0.53, 0.565, 0.36, 0.36, C_QUARTZ, 15, 18);
+  for (const [lx, lz] of [[1.16, 1.74], [1.60, 1.46], [1.60, 2.02]]) op.cyl(lx, lz, 0.22, 0.53, 0.014, 0.014, C_CHARCOAL, 5, 6);
+  op.cyl(1.84, 1.58, 0.45, 0.482, 0.25, 0.25, C_WALNUT, 4, 16);
+  for (const [lx, lz] of [[1.65, 1.58], [1.94, 1.39], [1.94, 1.77]]) op.cyl(lx, lz, 0.22, 0.45, 0.013, 0.013, C_CHARCOAL, 5, 6);
+  op.cyl(1.42, 1.74, 0.565, 0.67, 0.05, 0.042, C_CERAMIC, 16, 10);
+  // Warm Brushed-Brass Standing Lamp + Easy-care Snake/Rubber Plant in ceramic pot on legged stand
+  op.cyl(0.34, 2.88, 0.22, 0.25, 0.14, 0.13, C_BRASS, 18, 12);
+  op.cyl(0.34, 2.88, 0.25, 1.64, 0.013, 0.011, C_BRASS, 18, 8);
+  op.cyl(0.34, 2.88, 1.52, 1.76, 0.18, 0.14, C_GLOW_WARM, 10, 14);
+  // Warm Terracotta & Sand accent cushions on Sofa (Hỏa – Thổ tương sinh)
 
-  // --- C. BẾP CHỮ L MỞ RỘNG +15cm (8.6 m², PC-KT01: X=5.70..7.93, Z=0.11..1.95 + Tủ lạnh Z=1.96..2.62) ---
-  op.box(5.70, 0.22, 0.11, 7.93, 0.32, 0.65, C_CHARCOAL, 5);
-  op.box(5.70, 0.32, 0.11, 7.93, 1.04, 0.71, C_OAK_LIGHT, 4);
-  op.box(7.39, 0.22, 0.71, 7.93, 0.32, 1.94, C_CHARCOAL, 5);
-  op.box(7.33, 0.32, 0.71, 7.93, 1.04, 1.94, C_OAK_LIGHT, 4);
-  op.box(5.68, 1.04, 0.11, 7.93, 1.08, 0.72, C_QUARTZ, 15);
-  op.box(7.32, 1.04, 0.72, 7.93, 1.08, 1.95, C_QUARTZ, 15);
-  op.box(5.70, 1.08, 0.11, 7.93, 1.72, 0.135, C_QUARTZ, 15);
-  op.box(7.905, 1.08, 0.135, 7.93, 1.72, 1.94, C_QUARTZ, 15);
-  op.box(5.70, 1.72, 0.11, 7.93, 2.68, 0.46, C_CREAM_CAB, 1);
-  op.box(7.57, 1.72, 0.46, 7.93, 2.68, 1.94, C_CREAM_CAB, 1);
-  op.box(5.74, 1.70, 0.16, 7.87, 1.72, 0.20, C_GLOW_WARM, 10);
-  op.box(7.83, 1.70, 0.22, 7.87, 1.72, 1.90, C_GLOW_WARM, 10);
-  op.box(6.20, 1.08, 0.20, 6.90, 1.095, 0.62, C_CHARCOAL, 5);
-  op.box(6.15, 1.66, 0.14, 6.95, 1.72, 0.56, C_GALV, 5);
-  op.box(7.41, 1.08, 0.96, 7.85, 1.09, 1.70, C_GALV, 5);
-  op.cyl(7.86, 1.33, 1.08, 1.41, 0.016, 0.016, C_CHARCOAL, 5, 8);
-  op.box(7.65, 1.38, 1.315, 7.87, 1.41, 1.345, C_CHARCOAL, 5);
-  // Tủ lạnh tucked neatly along solid West wall of WC1 (X=7.27..7.92, Z=1.96..2.62)
-  op.box(7.27, 0.22, 1.96, 7.92, 2.08, 2.62, C_GRAPHITE, 5);
-  op.box(7.26, 0.24, 2.28, 7.275, 2.06, 2.30, C_CHARCOAL, 5);
+  // --- B1. PLAN C 4.0: GIAN THỜ HƯỚNG TÂY (270° – CUNG THIÊN Y) + TƯỜNG GẠCH ĐẶC 110MM + TỦ ĐỒ KHÔ ĐỆM 620MM ---
+  // 1) New 110mm Solid Brick Backing Wall (X = 4.95 .. 5.06, Z = 0.11 .. 1.56, Y = 0.20 .. 3.35 kịch trần!)
+  //    2.98m clear from WC1 West wall (X=7.93) & 2.68m clear from F2 WC Master (X=7.63)!
+  op.box(4.95, 0.20, 0.11, 5.06, 3.35, 1.56, C_INT_WALL, 1);
+  op.box(4.945, 0.22, 1.53, 5.065, 3.35, 1.565, C_OAK_LIGHT, 4); // Crisp solid-oak end nose trim
 
-  // --- D. CHI TIẾT WC 1 AN TOÀN CHO BÀ (PC-KT01 1:35: 1.45×2.54m, X=8.04..9.49, Z=0.11..2.65) ---
-  // 73cm West glass splash screen (X=8.04..8.77, Z=1.12) leaving 72cm 0-step entry on right!
+  // 2) West Face (X = 4.915 .. 4.95): Warm Oak & Walnut Altar Feature Backing + Brass Trim + Dual 2700K Halo LED Strips
+  op.box(4.915, 0.22, 0.12, 4.95, 3.34, 1.53, C_WALNUT, 11);
+  op.box(4.910, 0.28, 0.13, 4.922, 3.28, 0.155, C_GLOW_WARM, 10);
+  op.box(4.910, 0.28, 1.495, 4.922, 3.28, 1.52, C_GLOW_WARM, 10);
+  // Glowing Brass / Trúc Chỉ Sacred Lotus Medallion facing WEST (-X = 270° Thiên Y!)
+  op.cylX(4.895, 4.915, 2.24, 0.795, 0.26, C_GLOW_WARM, 10, 22);
+  op.cylX(4.888, 4.902, 2.24, 0.795, 0.22, C_BRASS, 18, 22);
+  // Ceiling Smoke Shield (Tấm chống ám khói 1.23×0.60m)
+  op.box(4.32, 3.30, 0.18, 4.93, 3.345, 1.41, C_WALNUT, 4);
+
+  // 3) Standing Natural-Wood Altar 1.27 × 0.61 × 1.27 m (Lỗ Ban Đại Cát: X=4.34..4.95, Z=0.16..1.43, facing WEST!)
+  op.box(4.34, 1.43, 0.16, 4.92, 1.49, 1.43, C_WALNUT, 4);
+  op.box(4.35, 1.49, 0.17, 4.91, 1.503, 1.42, C_QUARTZ, 16); // Easy-wipe tempered glass ash shield
+  op.box(4.34, 1.48, 0.155, 4.92, 1.535, 0.21, C_WALNUT, 4); // North scroll ear
+  op.box(4.34, 1.48, 1.38, 4.92, 1.535, 1.435, C_WALNUT, 4); // South scroll ear
+  op.box(4.37, 1.22, 0.20, 4.90, 1.43, 1.39, C_OAK_LIGHT, 4); // Carved apron frieze
+  for (const lx of [4.39, 4.88]) for (const lz of [0.21, 1.38]) {
+    op.box(lx-0.032, 0.22, lz-0.032, lx+0.032, 1.43, lz+0.032, C_WALNUT, 4);
+  }
+  // Nested Roll-out Offering Table (Bàn cơm cúng 0.99 × 0.44 × 0.62m) facing WEST
+  op.box(4.42, 0.26, 0.30, 4.86, 0.86, 1.29, C_WALNUT, 4);
+  op.box(4.415, 0.56, 0.36, 4.425, 0.58, 1.23, C_BRASS, 18);
+  // Ceramic Incense Burner + Pair of Warm Brass Lotus Altar Lamps
+  op.cyl(4.62, 0.795, 1.503, 1.64, 0.085, 0.095, C_CERAMIC_POT, 16, 14);
+  for (const lz of [0.32, 1.27]) {
+    op.cyl(4.58, lz, 1.503, 1.75, 0.032, 0.018, C_BRASS, 18, 10);
+    op.sphere(4.58, 1.80, lz, 0.055, 0.075, 0.055, C_GLOW_WARM, 10, 10, 7);
+  }
+
+  // 4) East Face of 110mm Brick Wall (X = 5.06 .. 5.68, Z = 0.11 .. 0.71):
+  //    620×600mm Ceiling-Sealed WPC/HMR Dry Pantry Buffer Cabinet (100% thermal & odor isolation between Altar & Stove!)
+  op.box(5.06, 0.22, 0.11, 5.68, 0.32, 0.66, C_CHARCOAL, 5); // 100mm waterproof PVC plinth
+  op.box(5.06, 0.32, 0.11, 5.68, 1.045, 0.71, C_OAK_LIGHT, 4); // Lower pull-out dry pantry drawers
+  op.box(5.06, 1.045, 0.11, 5.68, 2.68, 0.71, C_CREAM_CAB, 1); // Tall dry-goods & tea pantry cabinet
+  op.box(5.06, 2.68, 0.11, 5.68, 3.35, 0.71, C_INT_WALL, 1);   // Ceiling-sealed soffit bulkhead
+  op.box(5.365, 0.34, 0.708, 5.375, 2.66, 0.716, C_CHARCOAL, 5); // Double-door seam
+  for (const px of [5.31, 5.43]) op.box(px-0.008, 1.15, 0.712, px+0.008, 1.68, 0.728, C_BRASS, 18); // Sleek brass handles
+
+  // --- B2. DINING ROOM (Shifted cleanly to X=3.85..5.25, Z=2.22..3.02 -> 2.26m wide open sightline!) ---
+  op.box(3.85, 0.94, 2.22, 5.25, 0.975, 3.02, C_QUARTZ, 15);
+  op.box(3.93, 0.89, 2.30, 5.17, 0.94, 2.94, C_CHARCOAL, 5);
+  for (const tx of [3.97, 5.13]) for (const tz of [2.32, 2.92]) op.cyl(tx, tz, 0.22, 0.94, 0.024, 0.018, C_CHARCOAL, 5, 8);
+  op.cyl(4.55, 2.62, 0.975, 1.03, 0.09, 0.12, C_CERAMIC_POT, 16, 12);
+  addPlant(op, 4.55, 2.62, 1.02, 0.22, 9.1);
+  for (const cx of [4.07, 4.55, 5.03]) {
+    addDiningChair(op, cx, 2.03, 0.22, 1);
+    addDiningChair(op, cx, 3.21, 0.22, -1);
+  }
+  op.box(4.02, 2.12, 2.605, 5.08, 2.155, 2.635, C_BRASS, 18);
+  op.cyl(4.23, 2.62, 2.15, 3.35, 0.005, 0.005, C_CHARCOAL, 5, 6);
+  op.cyl(4.87, 2.62, 2.15, 3.35, 0.005, 0.005, C_CHARCOAL, 5, 6);
+  for (const gx of [4.15, 4.55, 4.95]) op.sphere(gx, 2.07, 2.62, 0.08, 0.08, 0.08, C_GLOW_WARM, 10, 10, 7);
+
+  // Ceiling-Sealed Utility & Anti-Moisture Hub on 2B-3B Pier (X=4.48..5.72, Z=3.82..4.28, Y=0.22..3.35 kịch trần!)
+  op.box(4.48, 0.22, 3.84, 5.72, 0.32, 4.28, C_CHARCOAL, 5); // 100mm PVC plinth
+  // Left bay (4.48..5.16): Hybrid Solar Inverter + 15kWh LiFePO4 Battery + Mom's First-Aid Drawer
+  op.box(4.48, 0.32, 3.82, 5.16, 3.35, 4.28, C_CREAM_CAB, 1);
+  op.box(4.52, 0.96, 3.81, 5.12, 1.18, 3.825, C_OAK_LIGHT, 4); // Easy-reach medicine drawer
+  op.box(4.78, 1.56, 3.81, 4.90, 1.59, 3.822, [0.18, 0.85, 0.58], 19); // Solar green status bar
+  // Right bay (5.16..5.72): Open Docked 30L Auto-Drain Smart Dehumidifier (Y=0.32..1.02) + Upper Dry Storage (1.02..3.35)
+  op.box(5.16, 1.02, 3.82, 5.72, 3.35, 4.28, C_CREAM_CAB, 1);
+  op.box(5.16, 0.32, 4.22, 5.72, 1.02, 4.28, C_WALNUT, 4);
+  op.box(5.68, 0.32, 3.82, 5.72, 1.02, 4.28, C_CREAM_CAB, 1);
+  // 30L Continuous-Drain Smart Dehumidifier body (keeps F1 at crisp 55% RH in Nồm season with zero bucket emptying!)
+  op.box(5.23, 0.24, 3.86, 5.63, 0.92, 4.20, C_WHITE, 16);
+  op.box(5.26, 0.88, 3.90, 5.60, 0.93, 4.04, C_CHARCOAL, 5); // Top louver outlet
+  op.cyl(5.43, 3.855, 0.68, 0.70, 0.055, 0.055, [0.18, 0.82, 0.92], 19, 14); // Glowing 55% RH digital ring!
+
+  // --- C. BẾP CHỮ L CHỐNG ẨM 100% PICOMAT + MÁY RỬA BÁT 600MM (8.6 m², Counter Height = 860mm -> Y=1.08m!) ---
+  // 100mm Waterproof PVC Toe-Kick sealed with anti-mold silicone
+  op.box(5.68, 0.22, 0.11, 7.93, 0.32, 0.66, C_CHARCOAL, 5);
+  op.box(7.38, 0.22, 0.66, 7.93, 0.32, 1.96, C_CHARCOAL, 5);
+  // Lower 100% Waterproof WPC Picomat Carcasses (Matte Oak/Cream anti-fingerprint laminate, Y=0.32..1.045)
+  op.box(5.68, 0.32, 0.11, 7.93, 1.045, 0.71, C_OAK_LIGHT, 4); // North base run (Spice 400 + Hob/MW 800 + Drawers 450 + Corner 600)
+  op.box(7.33, 0.32, 0.71, 7.93, 1.045, 1.36, C_OAK_LIGHT, 4); // East Sink + RO Purifier bay (650mm)
+  // Built-in Combination Microwave-Convection Oven under Induction Hob (X=6.18..6.78, Y=0.52..0.90, Z=0.70..0.72)
+  op.box(6.18, 0.52, 0.70, 6.78, 0.90, 0.722, C_CHARCOAL, 5);
+  op.box(6.22, 0.56, 0.722, 6.74, 0.83, 0.728, [0.08, 0.10, 0.13], 16);
+  op.box(6.24, 0.85, 0.722, 6.72, 0.87, 0.732, C_GALV, 5);
+  // Vertical cabinet seam lines on North run
+  for (const sx of [6.08, 6.88, 7.33]) op.box(sx-0.005, 0.33, 0.708, sx+0.005, 1.04, 0.716, C_CHARCOAL, 5);
+
+  // *** FULL-SIZE 600mm (13–14 SET) BUILT-IN DISHWASHER at Z = 1.36 .. 1.96 (X = 7.32 .. 7.93, Y = 0.23 .. 1.045)! ***
+  op.box(7.325, 0.32, 1.362, 7.93, 1.042, 1.958, C_GRAPHITE, 5); // Brushed dark-stainless dishwasher body
+  op.box(7.315, 0.325, 1.368, 7.328, 0.925, 1.952, [0.30, 0.33, 0.37], 5); // Lower stainless door panel
+  op.box(7.312, 0.930, 1.368, 7.328, 1.038, 1.952, C_CHARCOAL, 5); // Semi-integrated digital control fascia!
+  op.box(7.308, 0.895, 1.46, 7.320, 0.920, 1.86, C_GALV, 5); // Sleek recessed horizontal pocket handle
+  op.box(7.309, 0.975, 1.61, 7.315, 0.998, 1.71, [0.22, 0.86, 0.98], 19); // Digital cycle timer display
+  op.cyl(7.27, 1.66, 0.22, 0.224, 0.022, 0.022, [0.95, 0.22, 0.20], 19, 10); // Bosch red InfoLight beam on floor!
+
+  // Continuous 20mm White Vicostone Quartz Countertop at exact +860mm above F1 floor (Y = 1.045 .. 1.080)
+  op.box(5.67, 1.045, 0.11, 7.93, 1.080, 0.725, C_QUARTZ, 15);
+  op.box(7.315, 1.045, 0.725, 7.93, 1.080, 1.965, C_QUARTZ, 15);
+  // Seamless 8mm Back-Painted Warm Sand-Cream Tempered Glass Backsplash (Vượng Thổ • 0 đường ron -> lau 10s sạch bóng!)
+  op.box(5.68, 1.080, 0.11, 7.93, 1.72, 0.132, [0.93, 0.88, 0.79], 16);
+  op.box(7.908, 1.080, 0.132, 7.93, 1.72, 1.965, [0.93, 0.88, 0.79], 16);
+
+  // Ceiling-Sealed Upper Cabinets + Soffit up to +3.35m (kịch trần -> 0% top dust/grease pocket!)
+  op.box(5.68, 1.72, 0.11, 7.93, 2.68, 0.46, C_CREAM_CAB, 1);
+  op.box(7.56, 1.72, 0.46, 7.93, 2.68, 1.965, C_CREAM_CAB, 1);
+  // Frosted glass-front Pull-Down SUS304 Dish-Drying Rack Cabinet directly above Sink (Z=0.71..1.36)
+  op.box(7.552, 1.75, 0.73, 7.562, 2.18, 1.34, [0.74, 0.83, 0.87], 16);
+  // Ceiling-sealed soffit bulkheads (Y=2.68..3.35)
+  op.box(5.68, 2.68, 0.11, 7.93, 3.35, 0.48, C_INT_WALL, 1);
+  op.box(7.26, 2.68, 0.48, 7.93, 3.35, 2.64, C_INT_WALL, 1);
+  // Warm Under-Cabinet Task LED Strips
+  op.box(5.72, 1.705, 0.18, 7.86, 1.72, 0.22, C_GLOW_WARM, 10);
+  op.box(7.82, 1.705, 0.22, 7.86, 1.72, 1.93, C_GLOW_WARM, 10);
+
+  // 2-Zone Induction Cooktop + Slanted Ducted Range Hood (X=6.13..6.83)
+  op.box(6.13, 1.080, 0.19, 6.83, 1.092, 0.61, C_CHARCOAL, 5);
+  op.cyl(6.32, 0.40, 1.091, 1.095, 0.09, 0.09, [0.95, 0.30, 0.18], 19, 14);
+  op.cyl(6.64, 0.40, 1.091, 1.095, 0.075, 0.075, [0.95, 0.30, 0.18], 19, 14);
+  op.box(6.10, 1.66, 0.14, 6.86, 1.72, 0.54, C_CHARCOAL, 5); // Ducted range hood visor
+  // Corner IH Rice Cooker + Kettle (X=7.52..7.82, Z=0.26..0.56) & Espresso Maker above Dishwasher (Z=1.52..1.78)
+  op.cyl(7.66, 0.42, 1.08, 1.29, 0.125, 0.135, C_WHITE, 16, 14); // Modern IH Rice Cooker
+  op.box(7.56, 1.08, 1.54, 7.84, 1.38, 1.78, C_CHARCOAL, 5); // Compact Espresso Machine
+
+  // Deep Single-Bowl Undermount SUS304 Nano Sink (Z=0.76..1.31) + Pull-Out Mixer + Slim RO Drinking Faucet!
+  op.box(7.40, 1.072, 0.76, 7.85, 1.084, 1.31, C_GALV, 5);
+  op.box(7.43, 1.060, 0.79, 7.82, 1.075, 1.28, C_GRAPHITE, 5);
+  op.cyl(7.86, 1.04, 1.08, 1.42, 0.015, 0.015, C_CHARCOAL, 5, 8); // Main pull-out sprayer faucet
+  op.box(7.64, 1.39, 1.025, 7.87, 1.42, 1.055, C_CHARCOAL, 5);
+  op.cyl(7.86, 0.83, 1.08, 1.29, 0.009, 0.009, C_GALV, 5, 8); // Dedicated RO pure drinking water faucet!
+  op.box(7.73, 1.27, 0.822, 7.86, 1.29, 0.838, C_GALV, 5);
+
+  // 18mm Waterproof WPC Thermal Divider Panel + 4-Door Flat Inverter Refrigerator + Bridge Cabinet (Z=1.965..2.64)
+  op.box(7.32, 0.22, 1.962, 7.93, 2.68, 1.980, C_CREAM_CAB, 1); // 18mm WPC thermal shield next to DW!
+  op.box(7.26, 0.22, 1.982, 7.92, 2.10, 2.63, C_GRAPHITE, 5); // 4-door Inverter Fridge
+  op.box(7.252, 0.24, 2.302, 7.264, 2.08, 2.312, C_CHARCOAL, 5); // Vertical door split
+  op.box(7.252, 1.06, 1.99, 7.266, 1.11, 2.62, C_CHARCOAL, 5); // Horizontal pocket handle groove
+  op.box(7.26, 2.11, 1.98, 7.93, 2.68, 2.64, C_CREAM_CAB, 1); // Overhead bridge cabinet flush to soffit
+
+  // --- C2. REAR LAUNDRY TOWER (WASHER + HEAT-PUMP DRYER) & AUTO-PLUMBED ROBOT VACUUM DOCK ---
+  // Enclosed 100% Waterproof WPC Picomat Tower up to +3.35m ceiling (X=6.68..7.88, Z=3.64..4.28)
+  op.box(7.20, 0.22, 3.64, 7.23, 3.35, 4.28, C_CREAM_CAB, 1); // Divider cheek
+  op.box(7.86, 0.22, 3.64, 7.89, 3.35, 4.28, C_CREAM_CAB, 1); // East cheek (leaves 1.60m clear aisle for Mom!)
+  op.box(7.20, 2.00, 3.64, 7.89, 3.35, 4.28, C_CREAM_CAB, 1); // Ceiling-sealed detergent cabinet
+  // 10.5kg Front-Load Inverter Washing Machine (bottom: Y=0.23..1.08)
+  op.box(7.23, 0.23, 3.66, 7.86, 1.08, 4.26, C_WHITE, 16);
+  op.cylZ(3.645, 3.665, 7.545, 0.63, 0.21, C_CHARCOAL, 5, 16); // Drum porthole bezel
+  op.cylZ(3.640, 3.650, 7.545, 0.63, 0.16, [0.12, 0.18, 0.24], 16, 16); // Tinted drum glass
+  op.box(7.26, 0.96, 3.652, 7.83, 1.05, 3.665, C_GRAPHITE, 5); // Washer control bar
+  // Pull-out laundry folding shelf between Washer & Dryer (Y=1.08..1.13)
+  op.box(7.23, 1.08, 3.64, 7.86, 1.13, 4.26, C_OAK_LIGHT, 4);
+  // 9kg Heat-Pump Tumble Dryer (essential for Nồm 95% humidity! Y=1.13..1.99)
+  op.box(7.23, 1.13, 3.66, 7.86, 1.99, 4.26, C_WHITE, 16);
+  op.cylZ(3.645, 3.665, 7.545, 1.53, 0.21, C_CHARCOAL, 5, 16);
+  op.cylZ(3.640, 3.650, 7.545, 1.53, 0.16, [0.12, 0.18, 0.24], 16, 16);
+  op.box(7.26, 1.87, 3.652, 7.83, 1.96, 3.665, C_GRAPHITE, 5);
+
+  // Left Niche (X=6.68..7.20, Z=3.76..4.28): Auto-Water Plumbed Robot Vacuum Base + Cordless Dyson Closet above!
+  op.box(6.68, 0.22, 3.76, 6.71, 3.35, 4.28, C_CREAM_CAB, 1);
+  op.box(6.68, 0.86, 3.76, 7.20, 3.35, 4.28, C_CREAM_CAB, 1); // Tall cordless vacuum & mop closet
+  op.box(6.75, 0.22, 3.86, 7.14, 0.78, 4.25, C_WHITE, 16); // Auto-wash & hot-air dry Robot Base Station!
+  op.box(6.78, 0.74, 3.88, 7.11, 0.79, 4.08, C_CHARCOAL, 5);
+  addRobotVacuum(op, 6.945, 3.76, 0.22); // Parked Lidar Robot Vacuum ready to sweep all of F1!
+
+  // --- D. WC 1 AN TOÀN & SẤY KHÔ NHANH CHO BÀ (1.45×2.54m, X=8.04..9.49, Z=0.11..2.65) ---
   gls.quad([8.04, 0.20, 1.12], [8.77, 0.20, 1.12], [8.77, 2.24, 1.12], [8.04, 2.24, 1.12], C_SHOWERGLS, 9, [0,0,1]);
   op.box(8.75, 0.20, 1.105, 8.78, 2.25, 1.135, C_CHARCOAL, 5);
-  op.box(8.065, 0.48, 0.52, 8.415, 0.53, 0.96, C_WOOD, 4); // Ghế gập gỗ Teak cho Bà!
-  op.box(8.04, 0.88, 0.35, 8.08, 0.91, 1.02, C_GALV, 5); // Tay vịn Inox chữ L!
+  op.box(8.065, 0.48, 0.52, 8.415, 0.53, 0.96, C_WOOD, 4); // Fold-up Teak/Phenolic shower seat
+  op.box(8.04, 0.88, 0.35, 8.08, 0.91, 1.02, C_GALV, 5); // SUS304 L-grab rails
   op.box(8.08, 0.88, 0.12, 8.65, 0.91, 0.16, C_GALV, 5);
   op.cyl(8.55, 0.16, 1.15, 2.22, 0.015, 0.015, C_CHARCOAL, 5, 8);
   op.cyl(8.55, 0.36, 2.18, 2.21, 0.12, 0.12, C_CHARCOAL, 5, 12);
-  op.box(8.80, 1.48, 0.11, 9.06, 1.82, 0.21, C_WHITE, 16); // Sen tắm nóng TT 4.5kW
+  op.box(8.80, 1.48, 0.11, 9.06, 1.82, 0.21, C_WHITE, 16);
+  // Ceiling 4-in-1 Bathroom Heater + Moisture Ventilation Dryer (keeps Mom warm in winter & dries floor in 15m!)
+  op.box(8.52, 3.32, 1.32, 8.98, 3.35, 1.68, C_WHITE, 16);
+  op.box(8.58, 3.315, 1.38, 8.92, 3.322, 1.50, C_GLOW_WARM, 10);
   addToiletEast(op, 9.49, 1.52, 0.20);
-  addVanityEast(op, 9.49, 1.94, 2.58, 0.20);
+  addVanityEast(op, 9.49, 1.94, 2.58, 0.20); // Floating WPC PVC vanity + heated anti-fog mirror cabinet!
 
-  // MG/S Stacked Washer + Dryer (PC-KT01: X=7.24..7.86, Z=3.68..4.28 — straight 1.64m path to rear!)
-  op.box(7.24, 0.22, 3.68, 7.86, 1.07, 4.28, [0.92,0.92,0.91], 16);
-  op.box(7.24, 1.09, 3.68, 7.86, 1.94, 4.28, [0.92,0.92,0.91], 16);
+  // --- E. PHÒNG NGỦ 1 CỦA BÀ (PN1 — 100% Unobstructed 1.8m South Window + 2.06m East Wardrobe/TV Wall!) ---
+  // Senior-Height (+54cm) Orthopedic Bed 1.40×1.95m on 160mm Robot-Clear Legs + Warm Under-Bed Motion Nightlight!
+  for (const bx of [6.02, 7.80]) for (const bz of [4.70, 5.94]) op.cyl(bx, bz, 0.22, 0.38, 0.022, 0.018, C_CHARCOAL, 5, 8);
+  op.box(6.05, 0.365, 4.72, 7.78, 0.38, 5.92, C_GLOW_WARM, 10); // Soft motion nightlight strip under bed!
+  op.box(5.92, 0.22, 4.62, 6.04, 1.26, 6.02, C_LINEN, 14); // Cushioned West headboard
+  op.box(6.02, 0.38, 4.62, 7.88, 0.50, 6.02, C_OAK_LIGHT, 4); // Elevated bed frame
+  op.box(6.05, 0.50, 4.65, 7.85, 0.76, 5.99, C_LINEN_LT, 14); // Orthopedic mattress at ergonomic senior height!
+  op.box(7.05, 0.75, 4.63, 7.86, 0.79, 6.01, C_SAGE, 14);
+  op.box(6.10, 0.76, 4.76, 6.50, 0.90, 5.28, [0.96,0.95,0.93], 14);
+  op.box(6.10, 0.76, 5.36, 6.50, 0.90, 5.88, [0.96,0.95,0.93], 14);
+  // Legless Floating Rounded Nightstand beside Mom's Bed (X=5.95..6.42, Z=6.06..6.52, Y=0.48..0.70)
+  op.box(5.95, 0.48, 6.06, 6.42, 0.70, 6.52, C_OAK_LIGHT, 4);
+  op.cyl(6.18, 6.29, 0.70, 0.75, 0.06, 0.05, C_BRASS, 18, 10);
+  op.sphere(6.18, 0.84, 6.29, 0.08, 0.08, 0.08, C_GLOW_WARM, 10, 10, 7);
 
-  // --- E. PHÒNG NGỦ 1 (BÀ) — PC-KT01: Headboard flipped to West (X=5.93..7.88, Z=4.60..6.10), Tủ áo 1.35m SE! ---
-  op.box(5.92, 0.22, 4.60, 6.04, 1.24, 6.10, C_LINEN, 14); // West headboard
-  op.box(6.02, 0.22, 4.60, 7.88, 0.44, 6.10, C_OAK_LIGHT, 4);
-  op.box(6.05, 0.44, 4.63, 7.85, 0.68, 6.07, C_LINEN_LT, 14);
-  op.box(7.05, 0.67, 4.61, 7.86, 0.71, 6.09, C_SAGE, 14);
-  op.box(6.10, 0.68, 4.74, 6.50, 0.82, 5.29, [0.96,0.95,0.93], 14);
-  op.box(6.10, 0.68, 5.40, 6.50, 0.82, 5.95, [0.96,0.95,0.93], 14);
-  // Tủ áo 1.35m in SE corner (X=8.20..9.55, Z=6.08..6.64)
-  op.box(8.20, 0.22, 6.08, 9.55, 2.65, 6.64, C_CREAM_CAB, 1);
-  for (const hx of [8.65, 9.10]) op.box(hx-0.01, 1.05, 6.05, hx+0.01, 1.65, 6.08, C_BRASS, 18);
-  addACUnit(op, 9.38, 9.59, 5.40, 6.14, 2.82, 3.10);
+  // East-Wall Ceiling-Sealed 2.06m Anti-Moisture Wardrobe + Center Eye-Level 43" Smart TV Niche (X=9.01..9.58, Z=4.56..6.62)
+  // Leaves 100% of the 1.80m South Window (X=7.10..8.90) COMPLETELY UNOBSTRUCTED for sunlight & fresh air!
+  op.box(9.01, 0.22, 4.56, 9.58, 0.32, 6.62, C_CHARCOAL, 5); // 100mm waterproof plinth
+  op.box(9.01, 0.32, 4.56, 9.58, 3.35, 5.16, C_CREAM_CAB, 1); // Left tall wardrobe bay (kịch trần)
+  op.box(9.01, 0.32, 5.96, 9.58, 3.35, 6.62, C_CREAM_CAB, 1); // Right tall dehumidified wardrobe bay (kịch trần)
+  op.box(9.01, 0.32, 5.16, 9.58, 0.94, 5.96, C_OAK_LIGHT, 4); // Center 3-drawer dresser
+  op.box(9.01, 2.08, 5.16, 9.58, 3.35, 5.96, C_CREAM_CAB, 1); // Upper blanket cabinet
+  op.box(9.52, 0.94, 5.16, 9.58, 2.08, 5.96, C_WALNUT, 4); // Warm walnut TV niche back panel
+  op.box(9.06, 2.06, 5.20, 9.50, 2.08, 5.92, C_GLOW_WARM, 10); // Soft niche top LED
+  // 43" Matte Anti-Glare Art-Mode Frame TV (0% mirror reflection onto Mom's bed!) + Sliding Oak Privacy Screen Rail
+  op.box(9.45, 1.18, 5.22, 9.51, 1.78, 5.90, C_OAK_LIGHT, 4);
+  op.box(9.44, 1.21, 5.25, 9.455, 1.75, 5.87, [0.91, 0.86, 0.78], 14); // Warm matte linen art canvas
+  op.box(9.435, 1.30, 5.36, 9.442, 1.62, 5.66, C_TERRA, 14); // Warm terracotta sun motif
+  op.box(9.432, 1.26, 5.54, 9.439, 1.52, 5.78, C_SAND_STONE, 14);
+  for (const hz of [5.08, 6.04]) op.box(8.995, 1.05, hz-0.012, 9.015, 1.75, hz+0.012, C_BRASS, 18);
+
+  // Sunny Window Cushioned Reading & Shoe-Putting Bench on 160mm Legs with Warm Terracotta Cushion (Hỏa sinh Thổ)
+  for (const lx of [7.42, 8.48]) for (const lz of [6.20, 6.52]) op.cyl(lx, lz, 0.22, 0.38, 0.016, 0.014, C_CHARCOAL, 5, 6);
+  op.box(7.35, 0.38, 6.14, 8.55, 0.45, 6.58, C_OAK_LIGHT, 4);
+  op.box(7.37, 0.45, 6.16, 8.53, 0.62, 6.56, C_TERRA, 14);
+  // Indirect-Flow 9,000 BTU Inverter AC on North wall (parallel to aisle, never blowing cold air directly onto Mom!)
+  addACUnit(op, 6.35, 7.15, 4.51, 4.70, 2.86, 3.12);
 
   // ==================== 9. PROPOSED INTERIOR FURNITURE DESIGN — FLOOR 2 ====================
   // --- A. WORKING / MULTI-PURPOSE ROOM (Phòng Làm Việc — 13.8 m², X=0.11..3.42, Z=0.11..4.29) ---
@@ -2043,94 +2305,128 @@
   op.box(3.688+pShift, 5.26, 1.56, 3.696+pShift, 5.72, 1.92, C_SAGE, 14);
   op.box(3.682+pShift, 5.22, 1.78, 3.689+pShift, 5.56, 2.08, C_TERRA, 14);
 
-  // Indoor plant tucked cleanly in SW corner pier (100% clear doorway & sliding-door paths!)
-  addPottedPlant(op, 0.34, 4.02, 3.55, 0.78, 14.3, true);
+  // Cozy Companion Reading Lounge Chair & Side Table in SW corner of Working Room
+  op.rotBox(0.58, 3.55, 0.60, 0.58, 3.56, 3.65, 0.35, C_WALNUT, 4);
+  op.rotBox(0.58, 3.55, 0.58, 0.55, 3.65, 3.90, 0.35, C_LINEN, 14);
+  op.rotBox(0.42, 3.45, 0.14, 0.54, 3.88, 4.24, 0.35, C_SAGE, 14);
+  op.cyl(1.02, 3.88, 3.55, 3.98, 0.016, 0.016, C_BRASS, 18, 8);
+  op.cyl(1.02, 3.88, 3.98, 4.01, 0.17, 0.17, C_QUARTZ, 15, 12);
   addACUnit(op, 1.57, 2.33, 4.09, 4.29, 6.15, 6.43);
 
-  // --- B. ENLARGED MASTER BEDROOM (Phòng Ngủ Master — 17.6 m² / Total 22.1 m², wall aligned on Column A2!) ---
-  // Huge 2.70m Floor-to-Ceiling Built-In Fluted Oak & Bronze Wardrobe hugging East face of new A2 Wall (X=3.54..4.14, Z=0.14..2.85)
-  op.box(3.54, 3.55, 0.14, 4.14, 6.58, 2.85, C_OAK_LIGHT, 4);
-  op.box(4.135, 3.60, 0.16, 4.155, 6.52, 2.83, C_WALNUT, 11); // Subtle vertical groove fronts
-  for (const wz of [0.80, 1.48, 2.16]) op.box(4.15, 4.45, wz-0.012, 4.175, 5.25, wz+0.012, C_BRASS, 18); // Brass pulls
+  // --- B1. PHÒNG NGỦ PHỤ (11.0 m², Rộng 3.83m × Sâu 2.54m: X=3.53..7.36, Z=0.11..2.65/3.23 — Cửa Bắc Độc Lập + Kính Mái Cản Sáng!) ---
+  // Ceiling-Sealed 2.44m Anti-Moisture Wardrobe along straight A2 Wall (X=3.54..4.12, Z=0.14..2.58, Y=3.55..6.65)
+  op.box(3.54, 3.55, 0.14, 4.12, 3.65, 2.58, C_CHARCOAL, 5);
+  op.box(3.54, 3.65, 0.14, 4.12, 6.65, 2.58, C_CREAM_CAB, 1);
+  for (const wz of [0.74, 1.36, 1.98]) op.box(4.12, 4.35, wz-0.010, 4.142, 5.25, wz+0.010, C_BRASS, 18);
 
-  // Full-Width Ribbed Walnut Headboard Accent Wall + Warm Backlit LED Halo (X=4.58..7.52, Z=0.11..0.18)
-  op.box(4.58, 3.55, 0.11, 7.52, 6.55, 0.165, C_WALNUT, 11);
-  op.box(4.56, 3.65, 0.12, 4.58, 6.50, 0.155, C_GLOW_WARM, 10);
-  op.box(7.52, 3.65, 0.12, 7.54, 6.50, 0.155, C_GLOW_WARM, 10);
+  // Study / Reading Desk on North Wall bathed directly in North Skylight wall-grazing daylight! (X=4.18..5.30, Z=0.14..0.66)
+  op.box(4.18, 4.26, 0.14, 5.30, 4.30, 0.66, C_OAK_LIGHT, 4);
+  op.box(4.22, 3.55, 0.18, 4.27, 4.26, 0.62, C_CHARCOAL, 5);
+  op.box(5.22, 3.55, 0.18, 5.27, 4.26, 0.62, C_CHARCOAL, 5);
+  op.box(4.18, 4.92, 0.14, 5.30, 4.96, 0.36, C_WALNUT, 4);
+  op.box(4.54, 3.96, 0.62, 4.92, 4.02, 0.98, C_GRAPHITE, 14);
+  op.cyl(4.73, 0.80, 3.55, 3.96, 0.022, 0.022, C_CHARCOAL, 5, 8);
 
-  // Plush Wool Area Rug under King Bed (X=4.68..7.42, Z=0.72..2.62)
-  op.box(4.68, 3.55, 0.72, 7.42, 3.562, 2.62, C_RUG, 14);
+  // 1.40×2.00m Double Bed on 160mm Robot-Clear Legs against solid East wall V5 (X=5.36..7.34, Z=0.20..1.60 — 100% East of F1 Altar X=5.06!)
+  for (const lx of [5.46, 7.22]) for (const lz of [0.28, 1.52]) op.cyl(lx, lz, 3.55, 3.71, 0.020, 0.016, C_CHARCOAL, 5, 8);
+  op.box(5.48, 3.695, 0.32, 7.20, 3.71, 1.48, C_GLOW_WARM, 10);
+  op.box(7.24, 3.71, 0.20, 7.355, 4.62, 1.60, C_SAGE, 14);
+  op.box(5.36, 3.71, 0.20, 7.26, 3.85, 1.60, C_OAK_LIGHT, 4);
+  op.box(5.39, 3.85, 0.23, 7.23, 4.10, 1.57, C_LINEN_LT, 14);
+  op.box(5.38, 4.09, 0.22, 6.12, 4.13, 1.58, C_SAGE, 14);
+  op.box(6.78, 4.10, 0.34, 7.18, 4.24, 0.86, [0.97,0.96,0.94], 14);
+  op.box(6.78, 4.10, 0.94, 7.18, 4.24, 1.46, [0.97,0.96,0.94], 14);
+  // Floating Nightstand + Bedside Skylight-Blind Smart Switch & Warm Lamp (X=6.86..7.35, Z=1.64..2.08)
+  op.box(6.86, 3.84, 1.64, 7.35, 4.06, 2.08, C_OAK_LIGHT, 4);
+  op.cyl(7.10, 1.86, 4.06, 4.11, 0.06, 0.05, C_BRASS, 18, 10);
+  op.sphere(7.10, 4.20, 1.86, 0.075, 0.075, 0.075, C_GLOW_WARM, 10, 10, 7);
+  op.box(7.345, 4.30, 1.76, 7.36, 4.39, 1.94, C_CHARCOAL, 5); // Smart wall switch for Motorized Skylight Blind!
+  addACUnit(op, 6.15, 6.95, 0.11, 0.30, 6.15, 6.42);
 
-  // King Bed 1.8x2.0m (X=5.145..6.945, Z=0.17..2.17)
-  op.box(5.05, 3.55, 0.165, 7.04, 4.68, 0.28, C_LINEN, 14); // Plush upholstered headboard
-  op.box(5.12, 3.56, 0.28, 6.97, 3.84, 2.18, C_OAK_LIGHT, 4); // Oak bed base
-  op.box(5.15, 3.84, 0.30, 6.94, 4.10, 2.14, C_LINEN_LT, 14); // King mattress & duvet
-  op.box(5.13, 4.09, 1.38, 6.96, 4.14, 2.16, C_TERRA, 14); // Warm terracotta throw blanket
-  for (const px of [5.30, 6.14]) {
-    op.box(px, 4.10, 0.34, px+0.64, 4.28, 0.70, [0.97,0.96,0.94], 14); // Large pillows
-    op.box(px+0.08, 4.10, 0.68, px+0.56, 4.24, 0.90, C_SAGE, 14); // Front accent cushions
+  // --- B2. PHÒNG NGỦ MASTER MỞ RỘNG 100% TRẦN PN1 (14.5 m² + 5.1 m² WC = 19.6 m² — Tọa Đông Hướng Tây Thiên Y + Nắng Nam!) ---
+  // Ceiling-Sealed 1.66m Anti-Moisture Wardrobe on North Wall stopping cleanly at X=7.52 (leaves X=7.62..8.38 WC Door 100% clear!)
+  op.box(5.86, 3.55, 2.76, 7.52, 3.65, 3.35, C_CHARCOAL, 5);
+  op.box(5.86, 3.65, 2.76, 7.52, 6.65, 3.35, C_CREAM_CAB, 1);
+  op.box(6.42, 3.72, 3.342, 6.98, 6.56, 3.360, [0.22, 0.19, 0.16], 16);
+  for (const wx of [6.36, 7.04]) op.box(wx-0.010, 4.35, 3.352, wx+0.010, 5.35, 3.372, C_BRASS, 18);
+
+  // Legless Floating Dressing Vanity under East Morning Window (X=8.50..9.46, Z=2.80..3.32 — clear East of WC door X=8.38!)
+  op.box(8.50, 4.16, 2.80, 9.46, 4.32, 3.32, C_OAK_LIGHT, 4);
+  op.box(8.50, 4.32, 2.80, 9.46, 4.35, 3.33, C_QUARTZ, 15);
+  op.cyl(8.98, 3.54, 3.55, 3.96, 0.19, 0.19, C_TERRA, 14, 14);
+
+  // Smooth Wipeable Matte & Wide-Oak Headboard Wall on Solid East Wall (X=9.43..9.49, Z=4.00..6.50 — 0 window behind headboard!)
+  op.box(9.44, 3.55, 4.00, 9.49, 6.58, 6.50, C_CREAM_CAB, 1);
+  op.box(9.425, 3.55, 4.00, 9.445, 4.78, 6.50, C_OAK_LIGHT, 4);
+  op.box(9.44, 3.65, 3.98, 9.48, 6.50, 4.00, C_GLOW_WARM, 10);
+  op.box(9.44, 3.65, 6.50, 9.48, 6.50, 6.52, C_GLOW_WARM, 10);
+
+  // High-Leg (160mm Robot-Clear!) King Bed 1.80×2.00m (X=7.48..9.48, Z=4.15..5.95)
+  for (const lx of [7.58, 9.34]) for (const lz of [4.25, 5.85]) op.cyl(lx, lz, 3.55, 3.71, 0.022, 0.018, C_CHARCOAL, 5, 8);
+  op.box(7.62, 3.695, 4.29, 9.30, 3.71, 5.81, C_GLOW_WARM, 10);
+  op.box(9.36, 3.71, 4.10, 9.48, 4.72, 6.00, C_LINEN, 14);
+  op.box(7.48, 3.71, 4.15, 9.36, 3.86, 5.95, C_OAK_LIGHT, 4);
+  op.box(7.51, 3.86, 4.18, 9.34, 4.13, 5.92, C_LINEN_LT, 14);
+  op.box(7.49, 4.12, 4.17, 8.22, 4.16, 5.93, C_TERRA, 14);
+  for (const pz of [4.31, 5.13]) {
+    op.box(8.92, 4.13, pz, 9.30, 4.30, pz+0.64, [0.97,0.96,0.94], 14);
+    op.box(8.68, 4.13, pz+0.08, 8.92, 4.26, pz+0.56, C_SAGE, 14);
   }
-  // Two Matching Oak Nightstands + Warm Frosted-Globe Bedside Lamps
-  for (const [nx0, nx1] of [[4.60, 5.06], [7.03, 7.49]]) {
-    const cx = (nx0 + nx1) * 0.5;
-    op.box(nx0, 3.74, 0.17, nx1, 4.08, 0.56, C_OAK_LIGHT, 4);
-    op.box(nx0+0.03, 3.55, 0.20, nx0+0.06, 3.74, 0.53, C_WALNUT, 4);
-    op.box(nx1-0.06, 3.55, 0.20, nx1-0.03, 3.74, 0.53, C_WALNUT, 4);
-    op.cyl(cx, 0.36, 4.08, 4.13, 0.07, 0.055, C_BRASS, 18, 10);
-    op.sphere(cx, 4.24, 0.36, 0.095, 0.095, 0.095, C_GLOW_WARM, 10, 10, 7);
+  for (const [nz0, nz1] of [[3.98, 4.14], [5.96, 6.44]]) {
+    const cz = (nz0 + nz1) * 0.5;
+    op.box(9.02, 3.84, nz0, 9.48, 4.08, nz1, C_OAK_LIGHT, 4);
+    op.box(9.02, 4.08, nz0, 9.48, 4.105, nz1, C_QUARTZ, 15);
+    op.sphere(9.28, 4.36, cz, 0.075, 0.075, 0.075, C_GLOW_WARM, 10, 10, 7);
   }
 
-  // Bright SE Corner Vanity / Dressing Table (X=7.72..9.38, Z=2.78..3.30) + Backlit Mirror + Velvet Ottoman
-  op.box(7.72, 4.16, 2.78, 9.38, 4.30, 3.30, C_OAK_LIGHT, 4);
-  op.box(7.72, 4.30, 2.78, 9.38, 4.33, 3.31, C_QUARTZ, 15);
-  for (const vx of [7.78, 9.32]) for (const vz of [2.84, 3.24]) op.cyl(vx, vz, 3.55, 4.16, 0.02, 0.02, C_BRASS, 18, 8);
-  // Backlit Circular Vanity Mirror mounted on South wall of WC Master (Z = 2.76)
-  for (let i=0; i<16; i++) {
-    const a0 = 2*Math.PI*i/16, a1 = 2*Math.PI*(i+1)/16;
-    const cx=8.55, cy=4.96, rO=0.38, rI=0.35;
-    op.tri([cx,cy,2.78], [cx+rO*Math.cos(a0), cy+rO*Math.sin(a0), 2.78], [cx+rO*Math.cos(a1), cy+rO*Math.sin(a1), 2.78], C_GLOW_WARM, 10, [0,0,1]);
-    op.tri([cx,cy,2.795], [cx+rI*Math.cos(a0), cy+rI*Math.sin(a0), 2.795], [cx+rI*Math.cos(a1), cy+rI*Math.sin(a1), 2.795], [0.76,0.83,0.88], 16, [0,0,1]);
-  }
-  op.cyl(8.55, 3.56, 3.55, 3.98, 0.21, 0.21, C_TERRA, 14, 14); // Velvet ottoman stool
-  // Cozy Curved Reading Lounge Chair + Brass Side Table by South Panoramic Balcony Door (X=6.20..6.95, Z=3.36..4.02)
-  op.rotBox(6.48, 3.68, 0.66, 0.64, 3.56, 3.65, -0.45, C_WALNUT, 4);
-  op.rotBox(6.48, 3.68, 0.64, 0.60, 3.65, 3.92, -0.45, C_LINEN, 14);
-  op.rotBox(6.32, 3.54, 0.62, 0.16, 3.92, 4.30, -0.45, C_LINEN, 14);
-  op.cyl(7.02, 3.68, 3.55, 4.04, 0.018, 0.018, C_BRASS, 18, 8);
-  op.cyl(7.02, 3.68, 4.04, 4.07, 0.19, 0.19, C_QUARTZ, 15, 12);
-  addPottedPlant(op, 9.18, 3.96, 3.55, 0.85, 8.8, true);
-  addACUnit(op, 9.28, 9.49, 3.16, 3.94, 6.15, 6.43);
+  // Legless Floating Media Console + 55" Frame TV on West Wall (X=5.96..6.35, Z=4.80..6.36)
+  op.box(5.96, 4.14, 4.80, 6.35, 4.32, 6.36, C_OAK_LIGHT, 4);
+  op.box(5.96, 4.32, 4.80, 6.36, 4.35, 6.37, C_QUARTZ, 15);
+  op.box(5.96, 4.62, 4.94, 6.01, 5.34, 6.06, C_WALNUT, 4);
+  op.box(6.01, 4.65, 4.97, 6.02, 5.31, 6.03, [0.12, 0.18, 0.24], 19);
+  addCeilingFanDC(op, 7.62, 5.05, 6.65);
+  addPottedPlant(op, 6.22, 6.32, 3.55, 0.72, 8.8, true);
+  addACUnit(op, 9.28, 9.49, 4.65, 5.45, 6.18, 6.46);
 
-  // --- C. MASTER ENSUITE BATHROOM — WC MASTER (4.5 m², X=7.74..9.49, Z=0.11..2.65) ---
-  // Warm Large-Format Travertine Wall Tile Cladding on North, West & South WC Master walls
-  op.box(7.74, 3.54, 0.11, 9.19, 6.64, 0.135, C_TERRAZZO, 13);
-  op.box(7.74, 3.54, 0.135, 7.765, 6.64, 1.85, C_TERRAZZO, 13);
-  op.box(7.74, 3.54, 2.625, 9.49, 6.64, 2.65, C_TERRAZZO, 13);
-  // Sculpted 1.55m Recessed Soaking Bathtub (X=7.78..9.14, Z=0.16..0.90) + Oak Bath Caddy & Folded Towel
-  op.box(7.78, 3.54, 0.16, 9.14, 3.68, 0.90, C_CERAMIC, 16); // Tub floor
-  op.box(7.78, 3.68, 0.16, 9.14, 4.14, 0.24, C_CERAMIC, 16); // North rim
-  op.box(7.78, 3.68, 0.82, 9.14, 4.14, 0.90, C_CERAMIC, 16); // South rim
-  op.box(7.78, 3.68, 0.24, 7.88, 4.14, 0.82, C_CERAMIC, 16); // West rim
-  op.box(9.04, 3.68, 0.24, 9.14, 4.14, 0.82, C_CERAMIC, 16); // East rim
-  op.box(8.35, 4.14, 0.15, 8.62, 4.17, 0.91, C_OAK_LIGHT, 4); // Solid oak bath caddy tray!
-  op.box(8.40, 4.17, 0.36, 8.57, 4.24, 0.64, C_LINEN_LT, 14); // Rolled spa towel
-  op.cyl(7.88, 0.95, 3.54, 4.42, 0.022, 0.022, C_CHARCOAL, 5, 8); // Freestanding matte-black tub filler
-  op.box(7.86, 4.38, 0.72, 7.90, 4.42, 0.96, C_CHARCOAL, 5);
+  // --- C. WIDENED WC MASTER (5.1 m², 2.02×2.54m — FULL STANDARD 1.68m–1.70m SOAKING BATHTUB & SPLIT SOUTH DOOR CLADDING!) ---
+  // Interior Travertine/Terrazzo Tile Cladding — SPLIT CLEANLY AROUND SOUTH DOORWAY (X=7.62..8.38, Y=3.55..5.75 -> 0% BLOCKING WALL!)
+  op.box(7.47, 3.54, 0.11, 9.19, 6.64, 0.135, C_TERRAZZO, 13);   // North wall tile
+  op.box(7.47, 3.54, 0.135, 7.495, 6.64, 2.625, C_TERRAZZO, 13); // Solid West wall tile
+  op.box(7.47, 3.54, 2.625, 7.62, 6.64, 2.65, C_TERRAZZO, 13);   // South wall tile — West pier only!
+  op.box(7.62, 5.75, 2.625, 8.38, 6.64, 2.65, C_TERRAZZO, 13);   // South wall tile — Lintel above doorway ONLY!
+  op.box(8.38, 3.54, 2.625, 9.49, 6.64, 2.65, C_TERRAZZO, 13);   // South wall tile — East pier only!
+
+  // FULL-SIZE STANDARD 1,680–1,700 × 780mm Wall-to-Wall Soaking Bathtub (X=7.495..9.190 = 1.695m tiled, Z=0.135..0.915 = 0.78m!)
+  op.box(7.495, 3.54, 0.135, 9.190, 3.68, 0.915, C_CERAMIC, 16); // Tub floor base
+  op.box(7.495, 3.68, 0.135, 9.190, 4.12, 0.225, C_CERAMIC, 16); // North rim
+  op.box(7.495, 3.68, 0.825, 9.190, 4.12, 0.915, C_CERAMIC, 16); // South apron (520–580mm ergonomic step-over!)
+  op.box(7.495, 3.68, 0.225, 7.585, 4.12, 0.825, C_CERAMIC, 16); // West faucet deck
+  op.box(9.070, 3.68, 0.225, 9.190, 4.12, 0.825, C_CERAMIC, 16); // East sloped backrest rim
+  // Ergonomic Sloped Lumbar Backrest + Soft Charcoal Waterproof Headrest Pillow on East end (full leg-stretching comfort!)
+  op.beam3D([9.01, 3.68, 0.525], [9.09, 4.11, 0.525], 0.28, 0.035, C_CERAMIC, 16);
+  op.box(9.04, 4.11, 0.34, 9.16, 4.17, 0.71, C_GRAPHITE, 14); // Cushioned neck/headrest pillow!
+  op.cyl(7.68, 0.525, 3.68, 3.69, 0.032, 0.032, C_BRASS, 18, 12); // Pop-up brass drain
+  // Nano-Coated Tempered Glass Splash Screen on tub rim (X=7.495..8.28)
+  gls.quad([7.495, 4.12, 0.895], [8.28, 4.12, 0.895], [8.28, 6.02, 0.895], [7.495, 6.02, 0.895], C_SHOWERGLS, 9, [0,0,1]);
+  op.box(8.26, 4.12, 0.88, 8.29, 6.03, 0.91, C_CHARCOAL, 5);
+  // Wall-mounted thermostatic rain shower + waterfall tub spout on West tiled wall (X=7.495)
+  op.cyl(7.53, 0.525, 4.35, 5.75, 0.015, 0.015, C_CHARCOAL, 5, 8);
+  op.cyl(7.76, 0.525, 5.71, 5.74, 0.13, 0.13, C_CHARCOAL, 5, 12);
+  op.box(7.495, 4.22, 0.485, 7.61, 4.25, 0.565, C_CHARCOAL, 5);
+  // Ceiling 4-in-1 Bathroom Heater + Moisture Exhaust Dryer + Toilet & Floating Vanity on East Wall
+  op.box(8.25, 6.62, 1.32, 8.71, 6.65, 1.68, C_WHITE, 16);
   addToiletEast(op, 9.49, 1.39, 3.54);
   addVanityEast(op, 9.49, 1.95, 2.57, 3.54);
 
-  // ==================== 10. ROOFTOP SOLAR PV TERRACE (+6.850, 45.4 m²) ====================
-  // Elevated Galvanized Steel Frame (anchored onto the 8 main columns up to +9.55m -> 2.7m clear!)
+  // ==================== 10. ROOFTOP SOLAR PV TERRACE (+6.850, 45.4 m² — WEATHERPROOF ALUMINUM & SMART DRYING) ====================
   const canopyCols = [[0.0,0.0],[3.42,0.0],[5.85,0.0],[7.25,0.0],[0.0,4.40],[3.42,4.40],[5.85,4.40],[7.25,4.40]];
   for (const [cx, cz] of canopyCols) {
-    const topY = cz < 2.0 ? 9.65 : 9.40; // Gentle 25cm South drainage slope!
+    const topY = cz < 2.0 ? 9.65 : 9.40;
     op.box(cx-0.055, 6.85, cz-0.055, cx+0.055, topY, cz+0.055, C_GALV, 5);
   }
-  // Longitudinal steel purlin beams
   op.box(-0.06, 9.58, -0.06, 7.31, 9.68, 0.06, C_GALV, 5);
   op.box(-0.06, 9.46, 2.14, 7.31, 9.56, 2.26, C_GALV, 5);
   op.box(-0.06, 9.33, 4.34, 7.31, 9.43, 4.46, C_GALV, 5);
-  // 11 × 550W Monocrystalline Solar PV Panels (Row 1: 5 panels; Row 2: 6 panels, 1.08 x 1.92m each!)
   for (let r=0; r<2; r++) {
     const nPan = r === 1 ? 6 : 5;
     const pz0 = r === 0 ? 0.16 : 2.22;
@@ -2139,38 +2435,38 @@
     const y1 = r === 0 ? 9.54 : 9.40;
     for (let i=0; i<nPan; i++) {
       const px0 = 0.16 + i * 1.16, px1 = px0 + 1.08;
-      // Aluminum frame & top silicon glass surface (solid slab casts real cool shade below!)
       op.box(px0, Math.min(y0,y1)-0.04, pz0, px1, Math.max(y0,y1), pz1, C_SOLAR_PV, 17);
       op.box(px0-0.02, Math.min(y0,y1)-0.05, pz0-0.02, px1+0.02, Math.min(y0,y1)-0.02, pz1+0.02, C_GALV, 5);
     }
   }
-  // West Tea & Relax Lounge under cool 2.7m PV shade (X=0.60..2.70, Z=1.40..2.80)
-  op.box(1.15, 7.25, 1.72, 2.15, 7.30, 2.42, C_WOOD, 4); // Teak low tea table
-  for (const tx of [1.22, 2.08]) for (const tz of [1.79, 2.35]) op.cyl(tx, tz, 6.85, 7.25, 0.025, 0.022, C_CHARCOAL, 5, 6);
-  op.cyl(1.65, 2.07, 7.30, 7.42, 0.06, 0.05, C_CERAMIC, 16, 10); // Teapot
+  // Weatherproof Powder-Coated Aluminum & Sintered-Stone Tea Lounge (0% rot/mold outdoors!)
+  op.box(1.15, 7.25, 1.72, 2.15, 7.29, 2.42, C_QUARTZ, 15);
+  for (const tx of [1.22, 2.08]) for (const tz of [1.79, 2.35]) op.cyl(tx, tz, 6.85, 7.25, 0.024, 0.020, C_CHARCOAL, 5, 6);
+  op.cyl(1.65, 2.07, 7.29, 7.41, 0.06, 0.05, C_CERAMIC, 16, 10);
   for (const [ax, az, rot, bOff] of [[0.78, 2.08, 0.12, -0.24], [2.52, 2.08, -0.12, 0.24]]) {
-    op.rotBox(ax, az, 0.58, 0.62, 6.86, 7.20, rot, C_WOOD, 4);
-    op.rotBox(ax, az, 0.54, 0.56, 7.20, 7.30, rot, C_LINEN_LT, 14);
-    op.rotBox(ax + bOff, az, 0.12, 0.58, 7.20, 7.68, rot, C_WOOD, 4);
-    op.rotBox(ax + bOff * 0.72, az, 0.12, 0.52, 7.30, 7.64, rot, C_SAGE, 14);
+    op.rotBox(ax, az, 0.58, 0.62, 6.86, 7.20, rot, C_CHARCOAL, 5);
+    op.rotBox(ax, az, 0.54, 0.56, 7.20, 7.28, rot, C_GRAPHITE, 5); // Quick-dry Textilene mesh seat
+    op.rotBox(ax + bOff, az, 0.10, 0.58, 7.20, 7.68, rot, C_CHARCOAL, 5);
   }
-  // Center Breezy Covered Clothes-Drying Zone (hanging stainless bars cleanly anchored under PV purlins!)
-  for (const dz of [1.45, 1.85]) {
+  // Dual Pulley/Electric SUS304 Smart Ceiling Clothes-Drying Racks + Waterproof Outdoor Storage Chest
+  op.box(4.80, 9.38, 1.55, 5.30, 9.46, 1.75, C_WHITE, 16); // Smart electric hoist motor + UV dryer bar
+  for (const dz of [1.40, 1.90]) {
     op.cylX(3.85, 6.25, 8.75, dz, 0.016, C_GALV, 5, 8);
-    op.cyl(3.95, dz, 8.75, 9.40, 0.008, 0.008, C_GALV, 5, 6);
-    op.cyl(6.15, dz, 8.75, 9.40, 0.008, 0.008, C_GALV, 5, 6);
+    op.cyl(3.95, dz, 8.75, 9.42, 0.007, 0.007, C_GALV, 5, 6);
+    op.cyl(6.15, dz, 8.75, 9.42, 0.007, 0.007, C_GALV, 5, 6);
   }
-  // NE Elevated 2000L Stainless Water Tank on 2.5m Steel Stand (X=7.45..9.05, Z=0.25..2.00)
+  op.box(3.60, 6.85, 3.78, 4.65, 7.42, 4.24, C_GRAPHITE, 5); // Waterproof composite outdoor storage chest!
+  op.box(3.58, 7.42, 3.76, 4.67, 7.46, 4.26, C_CHARCOAL, 5);
+  // NE Elevated 2000L Stainless Water Tank on 2.5m Steel Stand
   for (const wx of [7.55, 8.95]) for (const wz of [0.35, 1.90]) op.box(wx-0.04, 6.85, wz-0.04, wx+0.04, 9.35, wz+0.04, C_GALV, 5);
   op.box(7.50, 9.30, 0.30, 9.00, 9.38, 1.95, C_GALV, 5);
-  op.cylX(7.55, 8.95, 10.02, 1.12, 0.62, [0.76,0.79,0.82], 5, 16); // Stainless 2000L horizontal tank!
-  // East Sunny Rooftop Planters (X=7.55..9.35, Z=2.55..4.15)
-  op.box(7.55, 6.85, 3.65, 9.35, 7.35, 4.18, C_POT, 6);
-  op.box(7.62, 7.28, 3.72, 9.28, 7.36, 4.11, C_SOIL, 6);
-  addHedgeRow(op, [7.78, 3.92], [9.15, 3.92], 7.34, 0.55, 0.36, 15.1);
+  op.cylX(7.55, 8.95, 10.02, 1.12, 0.62, [0.76,0.79,0.82], 5, 16);
+  // Lush Raised Planter along South-East Rooftop Extension (54.0 m² total!)
+  op.box(6.25, 6.85, 6.12, 9.25, 7.32, 6.64, C_POT, 6);
+  op.box(6.32, 7.25, 6.18, 9.18, 7.33, 6.58, C_SOIL, 6);
+  addHedgeRow(op, [6.50, 6.38], [9.00, 6.38], 7.30, 0.52, 0.34, 15.1);
   addPottedPlant(op, 0.45, 0.55, 6.85, 1.0, 21.0, false);
   addPottedPlant(op, 0.45, 3.80, 6.85, 0.9, 22.4, false);
-  // SW Corner Micro-Wind Turbine (VAWT) on canopy frame corner (X=0.12, Z=4.35, Y=9.45..10.95)
   op.cyl(0.12, 4.35, 9.40, 10.95, 0.032, 0.026, C_GALV, 5, 10);
   for (let i=0; i<3; i++) {
     const a = i * Math.PI * 2 / 3;
@@ -2189,9 +2485,10 @@
   for (const [lx, lz] of F1_LIGHTS_VIS) addDownlight(op, lx, lz, 3.35);
 
   const F2_LIGHTS_VIS = [
-    [1.05,1.20],[2.75,1.20],[1.05,3.15],[2.75,3.15],
-    [5.05,1.20],[6.95,1.20],[5.05,2.62],[6.95,2.62],[8.55,3.55],
-    [8.60,1.10],[8.60,2.20],[5.10,3.80]
+    [1.05,1.20],[2.75,1.20],[1.05,3.15],[2.75,3.15], // P. Làm Việc
+    [4.18,1.55],[6.55,1.35],[4.65,2.55],             // Phòng Ngủ Phụ (clear of North Skylight 4.45..5.65 x 0.15..0.80!)
+    [6.65,3.75],[8.45,3.75],[6.65,5.65],[8.45,5.65], // Phòng Ngủ Master Mở Rộng
+    [8.45,1.15],[8.45,2.15],[4.65,3.80]              // WC Master & Sảnh T2
   ];
   for (const [lx, lz] of F2_LIGHTS_VIS) addDownlight(op, lx, lz, 6.65);
 
@@ -2202,10 +2499,37 @@
   const glassBuf = gls.toBuffer();
 
   // ==================== 12. DYNAMIC WEST SUN-SHADING LOUVERS & SLIDING GLASS DOORS ====================
-  let louverBuf = null;
+  let louverBuf = null, curtainGlsBuf = null;
   function rebuildLouvers(slideAmt) {
     if (louverBuf) { gl.deleteBuffer(louverBuf.vbo); gl.deleteVertexArray(louverBuf.vao); }
+    if (curtainGlsBuf) { gl.deleteBuffer(curtainGlsBuf.vbo); gl.deleteVertexArray(curtainGlsBuf.vao); }
     const lb = new MeshBuilder();
+    const cg = new MeshBuilder();
+    // 0) PLAN C 4.0: F1 Living Room Motorized 2-Layer Curtains on 2.90m Panorama Low-E Window (Z=0.72..3.68, Y=0.25..3.32, +3cm off floor!)
+    //    slideAmt = 0 -> tucked neatly at sides (0.38m stacks) for 100% open Panorama glass view;
+    //    slideAmt = 1 -> drawn fully closed across all 2.90m to filter afternoon West sun!
+    const halfSpan = 1.48; // half of 2.96m curtain span (center Z = 2.20)
+    const drapeW = lerp(0.38, halfSpan, slideAmt);
+    const sheerW = lerp(0.52, halfSpan, clamp(slideAmt * 1.25, 0, 1));
+    for (const [zStart, dir] of [[0.72, 1], [3.68, -1]]) {
+      // Outer Layer: Sand Beige 95%-Blackout pleated drape (X = 0.24..0.28, stops at Y=0.25 -> +3cm above floor!)
+      const nFolds = Math.max(5, Math.round(drapeW / 0.085));
+      for (let i = 0; i < nFolds; i++) {
+        const za = zStart + dir * (drapeW * (i / nFolds));
+        const zb = zStart + dir * (drapeW * ((i + 1) / nFolds));
+        const xa = 0.245 + (i % 2) * 0.038, xb = 0.245 + ((i + 1) % 2) * 0.038;
+        const zMin = Math.min(za, zb), zMax = Math.max(za, zb);
+        lb.wallSeg([xa, za], [xb, zb], 0.25, 3.32, 0.012, [0.85, 0.78, 0.67], 14);
+      }
+      // Inner Layer: Soft Ivory Sheer Day Curtain filtering Thiên Y sunlight gently (X = 0.16..0.19)
+      const nSheer = Math.max(4, Math.round(sheerW / 0.12));
+      for (let i = 0; i < nSheer; i++) {
+        const za = zStart + dir * (sheerW * (i / nSheer));
+        const zb = zStart + dir * (sheerW * ((i + 1) / nSheer));
+        const xa = 0.155 + (i % 2) * 0.025, xb = 0.155 + ((i + 1) % 2) * 0.025;
+        cg.quad([xa, 0.26, za], [xb, 0.26, zb], [xb, 3.31, zb], [xa, 3.31, za], C_CURTAIN, 14, [1, 0, 0]);
+      }
+    }
     // 1) Sliding vertical wood louvers outside F2 Working Room West Desk Window (X=-0.22, Z=0.38..1.88, Y=4.45..6.35)
     //    Slides from 15% tucked to 100% full West sun coverage!
     const deskCov = 0.38 + (0.18 + 0.82 * slideAmt) * 1.48;
@@ -2238,6 +2562,7 @@
       }
     }
     louverBuf = lb.toBuffer();
+    curtainGlsBuf = cg.toBuffer();
   }
 
   let doorOpBuf = null, doorGlsBuf = null;
@@ -2249,18 +2574,18 @@
 
     function slidingPanelH(x0, x1, y0, y1, zMid) {
       const fw = 0.045;
-      dop.box(x0, y1-fw, zMid-0.025, x1, y1, zMid+0.025, C_CHARCOAL, 5);
-      dop.box(x0, y0, zMid-0.025, x1, y0+fw, zMid+0.025, C_CHARCOAL, 5);
-      dop.box(x0, y0, zMid-0.025, x0+fw, y1, zMid+0.025, C_CHARCOAL, 5);
-      dop.box(x1-fw, y0, zMid-0.025, x1, y1, zMid+0.025, C_CHARCOAL, 5);
+      dop.box(x0, y1-fw, zMid-0.025, x1, y1, zMid+0.025, C_WARM_BRONZE, 5);
+      dop.box(x0, y0, zMid-0.025, x1, y0+fw, zMid+0.025, C_WARM_BRONZE, 5);
+      dop.box(x0, y0, zMid-0.025, x0+fw, y1, zMid+0.025, C_WARM_BRONZE, 5);
+      dop.box(x1-fw, y0, zMid-0.025, x1, y1, zMid+0.025, C_WARM_BRONZE, 5);
       dgl.quad([x0+fw, y0+fw, zMid], [x1-fw, y0+fw, zMid], [x1-fw, y1-fw, zMid], [x0+fw, y1-fw, zMid], C_GLASS, 9, [0,0,1]);
     }
     function slidingPanelV(xMid, z0, z1, y0, y1) {
       const fw = 0.045;
-      dop.box(xMid-0.025, y1-fw, z0, xMid+0.025, y1, z1, C_CHARCOAL, 5);
-      dop.box(xMid-0.025, y0, z0, xMid+0.025, y0+fw, z1, C_CHARCOAL, 5);
-      dop.box(xMid-0.025, y0, z0, xMid+0.025, y1, z0+fw, C_CHARCOAL, 5);
-      dop.box(xMid-0.025, y0, z1-fw, xMid+0.025, y1, z1, C_CHARCOAL, 5);
+      dop.box(xMid-0.025, y1-fw, z0, xMid+0.025, y1, z1, C_WARM_BRONZE, 5);
+      dop.box(xMid-0.025, y0, z0, xMid+0.025, y0+fw, z1, C_WARM_BRONZE, 5);
+      dop.box(xMid-0.025, y0, z0, xMid+0.025, y1, z0+fw, C_WARM_BRONZE, 5);
+      dop.box(xMid-0.025, y0, z1-fw, xMid+0.025, y1, z1, C_WARM_BRONZE, 5);
       dgl.quad([xMid, y0+fw, z0+fw], [xMid, y0+fw, z1-fw], [xMid, y1-fw, z1-fw], [xMid, y1-fw, z0+fw], C_GLASS, 9, [-1,0,0]);
     }
     // Outer tracks for all 4 sliding doors
@@ -2287,14 +2612,15 @@
     const wsShift = isOpen ? 1.02 : 0.0;
     slidingPanelH(1.64 - wsShift, 2.75 - wsShift, 3.56, 6.31, 4.36);
 
-    // 4) F2 Master Panoramic 3-panel (X=6.20..9.00, Z=4.40, Y=3.55..6.35)
-    dop.box(6.20, 6.30, 4.33, 9.00, 6.35, 4.47, C_CHARCOAL, 5);
-    dop.box(6.20, 3.54, 4.33, 9.00, 3.57, 4.47, C_CHARCOAL, 5);
-    slidingPanelH(6.20, 7.15, 3.56, 6.31, 4.43);
-    const mShift1 = isOpen ? 0.88 : 0.0;
-    const mShift2 = isOpen ? 1.76 : 0.0;
-    slidingPanelH(7.13 - mShift1, 8.08 - mShift1, 3.56, 6.31, 4.39);
-    slidingPanelH(8.05 - mShift2, 9.00 - mShift2, 3.56, 6.31, 4.35);
+    // 4) Plan C 4.1B: Master South Balcony 3-Panel Walk-Out Sliding Glass Door (X=6.45..8.85, Y=3.55..5.95, Z=6.68)
+    //    Fixed East panel (X=8.03..8.85); West & Center panels slide Eastward -> leaves X=6.45..8.03 (1.58m) wide open right in front of the X=6.95 Master aisle!
+    dop.box(6.45, 5.90, 6.61, 8.85, 5.95, 6.75, C_CHARCOAL, 5);
+    dop.box(6.45, 3.53, 6.61, 8.85, 3.56, 6.75, C_CHARCOAL, 5);
+    slidingPanelH(8.03, 8.85, 3.55, 5.91, 6.71); // Fixed East glass panel
+    const mbShift1 = isOpen ? 0.78 : 0.0;
+    const mbShift2 = isOpen ? 1.56 : 0.0;
+    slidingPanelH(7.24 + mbShift1, 8.06 + mbShift1, 3.55, 5.91, 6.67);
+    slidingPanelH(6.45 + mbShift2, 7.27 + mbShift2, 3.55, 5.91, 6.63);
 
     // Dynamic Center Panel of Staircase South Wall (X=3.76..5.56, width=1.80m, Z=6.67..6.79):
     //   Unchecked = High-Daylight Structural Stair (+37% glass: 5 wide 1.80m 3-panel Low-E ribbons between unbroken RC tie beams DK-T2 & DK-Mái!)
@@ -2321,6 +2647,36 @@
 
     doorOpBuf = dop.toBuffer();
     doorGlsBuf = dgl.toBuffer();
+  }
+
+  // ==================== 12A-2. DYNAMIC MOTORIZED HONEYCOMB SKYLIGHT & CLERESTORY BLACKOUT BLIND ====================
+  let skyBlindBuf = null;
+  function rebuildSkylightBlind(isClosed) {
+    if (skyBlindBuf) { gl.deleteBuffer(skyBlindBuf.vbo); gl.deleteVertexArray(skyBlindBuf.vao); }
+    const sb = new MeshBuilder();
+    // 1) North-Wall Skylight Motorized Honeycomb Blind (X=4.46..5.64, Z=0.20..0.80, Y=6.66..6.70)
+    //    Open -> retracted to 6cm stack at North motor cassette (Z=0.20..0.265);
+    //    Closed -> spans 100% to Z=0.80, sealing all sky light & casting real shadow in Phòng Ngủ Phụ!
+    const zEnd = isClosed ? 0.80 : 0.265;
+    const nCells = isClosed ? 14 : 3;
+    const stepZ = (zEnd - 0.20) / nCells;
+    for (let i = 0; i < nCells; i++) {
+      const za = 0.20 + i * stepZ, zb = za + stepZ * 0.96, zm = (za + zb) * 0.5;
+      // Bottom warm matte pleated cellular fabric (seen from Phòng Ngủ Phụ)
+      sb.quad([4.465, 6.662, za], [5.635, 6.662, za], [5.635, 6.678, zm], [4.465, 6.678, zm], C_LINEN_LT, 14, [0,-1,0]);
+      sb.quad([4.465, 6.678, zm], [5.635, 6.678, zm], [5.635, 6.662, zb], [4.465, 6.662, zb], [0.87,0.85,0.80], 14, [0,-1,0]);
+      // Top aluminum-foil thermal & 100%-blackout barrier facing skylight glass
+      sb.box(4.465, 6.680, za, 5.635, 6.696, zb, C_GALV, 5);
+    }
+    // Pull-bar rail at leading edge of honeycomb blind
+    sb.box(4.46, 6.658, zEnd - 0.022, 5.64, 6.698, zEnd + 0.008, C_CHARCOAL, 5);
+
+    // 2) Matching Blackout Roller/Honeycomb Blind on High Sảnh Clerestory Window (X=3.65..4.80, Y=5.82..6.52, Z=3.25)
+    const yBot = isClosed ? 5.82 : 6.45;
+    sb.box(3.64, 6.48, 3.235, 4.81, 6.525, 3.275, C_CHARCOAL, 5); // Top cassette
+    sb.box(3.65, yBot, 3.248, 4.80, 6.48, 3.268, C_LINEN_LT, 14);
+    sb.box(3.65, yBot - 0.015, 3.244, 4.80, yBot + 0.012, 3.272, C_CHARCOAL, 5);
+    skyBlindBuf = sb.toBuffer();
   }
 
   // ==================== 12B. DYNAMIC ADJACENT NEIGHBOR BUILDINGS (SIMPLE STYLE + REAL SHADOWS) ====================
@@ -2491,7 +2847,7 @@
     // Floor 1 (Y band: 0.12 .. 3.40)
     { pos: [1.75, 3.12, 1.35], rad: 4.9, yr: [0.12, 3.40] }, // Living North / TV
     { pos: [1.55, 2.85, 2.90], rad: 4.7, yr: [0.12, 3.40] }, // Living South / Sofa & Floor lamp
-    { pos: [4.64, 2.22, 1.96], rad: 5.0, yr: [0.12, 3.40] }, // Dining Linear Pendant
+    { pos: [4.55, 2.22, 2.45], rad: 5.2, yr: [0.12, 3.40] }, // Dining Linear Pendant & West Altar Glow
     { pos: [6.55, 3.05, 1.25], rad: 4.4, yr: [0.12, 3.40] }, // Kitchen L-Counter
     { pos: [6.75, 3.05, 3.25], rad: 4.0, yr: [0.12, 3.40] }, // Kitchen South / Fridge / Hall
     { pos: [8.65, 3.05, 1.45], rad: 3.3, yr: [0.12, 3.40] }, // WC 1
@@ -2505,11 +2861,11 @@
     { pos: [1.50, 6.35, 1.40], rad: 4.9, yr: [3.48, 6.72] }, // Working Room Desk & Bookshelf
     { pos: [2.10, 6.35, 3.15], rad: 4.8, yr: [3.48, 6.72] }, // Working Room Lounge
     { pos: [4.80, 6.35, 3.82], rad: 3.3, yr: [3.48, 6.72] }, // F2 Stair Landing
-    { pos: [6.05, 6.35, 1.60], rad: 5.0, yr: [3.48, 6.72] }, // Master Bed Center
-    { pos: [8.10, 6.35, 3.48], rad: 4.8, yr: [3.48, 6.72] }, // Master Vanity & Reading Chair
-    { pos: [8.60, 6.35, 1.45], rad: 3.6, yr: [3.48, 6.72] }, // WC Master
+    { pos: [5.55, 6.35, 1.55], rad: 4.6, yr: [3.48, 6.72] }, // Phòng Ngủ Phụ
+    { pos: [7.55, 6.35, 3.55], rad: 4.8, yr: [3.48, 6.72] }, // Master North / Wardrobe / Vanity
+    { pos: [8.40, 6.35, 1.45], rad: 3.8, yr: [3.48, 6.72] }, // Widened WC Master (5.1m²)
     { pos: [1.05, 6.15, 5.05], rad: 4.5, yr: [3.45, 6.75] }, // L-Balcony Outdoor Sconce
-    { pos: [7.80, 6.15, 5.10], rad: 4.5, yr: [3.45, 6.75] }, // Master East Balcony
+    { pos: [7.65, 6.35, 5.35], rad: 5.2, yr: [3.48, 6.72] }, // Expanded SE Master Bed Zone
     // Rooftop Solar Terrace (Y band: 6.75 .. 9.85)
     { pos: [3.20, 9.20, 2.25], rad: 7.2, yr: [6.75, 9.85] }  // Solar PV Canopy Lights
   ];
@@ -2544,48 +2900,54 @@
     courtyard: { name: 'Sân Thực Địa Rộng (Hàng Rào Thực Địa 106.2 m²)', floor: 'F1', area: 'Thực địa 106.2 m²', level: 'F1',
       pos: [-0.85, 0.13, 7.65], yaw: 0.52, pitch: 0.06,
       desc: 'Hàng rào & Cổng trượt 3.9m bám đúng Ranh Thực Địa (106.2m²) • Vạch đồng chỉ Ranh Sổ Đỏ & Hố neo 1B′ thẳng hàng 2B′ (Z=6.69m)' },
-    living:    { name: 'Living Room (Phòng Khách — Cửa B-1)', floor: 'F1', area: '13.8 m²', level: 'F1',
-      pos: [1.05, 0.22, 3.72], yaw: 0.56, pitch: -0.04,
-      desc: 'Cửa phụ Tây dời về sát B-1 • Kính hộp Low-E 2.15m • Cửa kính 4 cánh mở ra sân ô tô thoáng rộng' },
-    altar:     { name: 'Tủ Thờ Gia Tiên 1.27m (Tầng 1)', floor: 'F1', area: 'Gian Giữa', level: 'F1',
-      pos: [4.24, 0.22, 1.62], yaw: 0.0, pitch: 0.02,
-      desc: 'Tủ thờ đứng 1.27m kèm bàn cơm cúng tại Tầng 1 tiện cho Bà • Vách CNC ngăn Bếp • Trọn 100% phía Đông tường trục 2A' },
-    dining:    { name: 'Dining Room (Phòng Ăn)', floor: 'F1', area: '10.2 m²', level: 'F1',
-      pos: [3.55, 0.22, 3.55], yaw: 0.58, pitch: -0.04,
-      desc: 'Bàn ăn 6 ghế gỗ Sồi • Tủ kỹ thuật Inverter Hybrid + Pin lưu trữ 15kWh trên vách 2B–3B' },
-    kitchen:   { name: 'Bếp Chữ L Mở Rộng (+15cm)', floor: 'F1', area: '8.6 m²', level: 'F1',
-      pos: [5.80, 0.22, 2.85], yaw: 0.58, pitch: -0.06,
-      desc: 'Mở rộng +15cm nhờ thu gọn WC1 • Tủ lạnh kê sát vách đặc WC1 • Mặt bằng sàn phẳng 100% thông thoáng' },
-    wc1:       { name: 'WC 1 An Toàn Cho Bà (1.45×2.54m)', floor: 'F1', area: '3.55 m²', level: 'F1',
+    living:    { name: 'Phòng Khách (Kính Panorama Tây 2.9m • Cung Thiên Y)', floor: 'F1', area: '13.8 m²', level: 'F1',
+      pos: [1.18, 0.22, 3.62], yaw: 0.52, pitch: -0.03,
+      desc: 'Vách kính hộp Panorama Low-E 2.90×1.85m (bệ đặc +60cm giữ Địa khí, 0% xuyên tâm) + Rèm tự động 2 lớp • Tủ giày WPC góc 1-B' },
+    altar:     { name: 'Gian Thờ Quay Hướng Tây (270° – Cung Thiên Y)', floor: 'F1', area: 'Cung Thiên Y', level: 'F1',
+      pos: [3.08, 0.22, 0.84], yaw: 1.54, pitch: 0.02,
+      desc: 'Tủ thờ 1.27m quay chính Hướng Tây (Thiên Y) • Tựa tường gạch đặc 110mm + Đệm Tủ đồ khô 620mm (Cách WC1 tròn 2.98m!)' },
+    dining:    { name: 'Phòng Ăn & Tủ Hút Ẩm Tự Xả 30L', floor: 'F1', area: '10.2 m²', level: 'F1',
+      pos: [3.42, 0.22, 3.58], yaw: 0.85, pitch: -0.04,
+      desc: 'Bàn ăn Đá Nung Kết 6 ghế • Kề khoang Tủ đồ khô đệm 620mm • Tủ Solar 15kWh + Máy hút ẩm 30L tự thoát nước ngưng mùa nồm!' },
+    kitchen:   { name: 'Bếp Picomat + Máy Rửa Bát 600mm (14 Bộ)', floor: 'F1', area: '8.6 m²', level: 'F1',
+      pos: [5.88, 0.22, 2.35], yaw: 0.92, pitch: -0.10,
+      desc: 'Thùng nhựa Picomat 100% kháng nước • Cao 860mm lắp vừa Máy rửa bát 600mm (Z=1.36–1.96m) • Chậu 1 hố + RO • Bếp từ + Lò VS âm' },
+    laundry:   { name: 'Tháp Giặt-Sấy Heatpump & Trạm Robot', floor: 'F1', area: 'Utility Hub', level: 'F1',
+      pos: [6.55, 0.22, 2.90], yaw: 2.75, pitch: -0.12,
+      desc: 'Tháp WPC kịch trần: Máy giặt 10.5kg + Máy sấy bơm nhiệt 9kg (khô thơm mùa nồm) • Trạm Robot hút lau tự cấp xả nước' },
+    wc1:       { name: 'WC 1 An Toàn & Sấy Khô Cho Bà', floor: 'F1', area: '3.55 m²', level: 'F1',
       pos: [8.42, 0.20, 2.25], yaw: 0.08, pitch: -0.08,
-      desc: 'Tách vùng ướt 0 bậc (ghế Teak gập + tay vịn Inox chữ L) & vùng khô • Cửa mở ra ngoài an toàn cấp cứu' },
-    pn1:       { name: 'Phòng Ngủ 1 Của Bà (PN1)', floor: 'F1', area: '7.9 m²', level: 'F1',
-      pos: [8.40, 0.22, 5.10], yaw: -1.42, pitch: -0.06,
-      desc: 'Đầu giường quay hướng Tây • Cửa X=8.02–8.84m đi thẳng 1.64m sang WC 1 • Tủ áo 1.35m góc ĐN' },
+      desc: 'Tắm 0 bậc + ghế gập + tay vịn • Tủ Lavabo PVC treo +30cm • Tủ gương LED sấy chống mờ • Máy sưởi & sấy khô âm trần' },
+    pn1:       { name: 'Phòng Ngủ Bà (Đầu Tựa Tây Thiên Y • TV 43" Matte)', floor: 'F1', area: '7.9 m²', level: 'F1',
+      pos: [8.35, 0.22, 4.95], yaw: -1.25, pitch: -0.06,
+      desc: 'Đầu giường tựa Tây (Thiên Y) • TV 43" Màn hình Nhám (0% phản gương chiếu giường) • Cửa sổ Nam 1.8m + Ghế nệm Terracotta ấm' },
     stair1:    { name: 'External 21-Step U-Staircase (5 Băng Kính 1.8m)', floor: 'F1→F2', area: '4.8 m²', level: 'STAIR1',
       pos: [3.96, 0.42, 4.65], yaw: 2.86, pitch: 0.22,
       desc: 'Khung cứng dầm liên tục +3.55/+6.85m • 5 băng kính hộp Low-E rộng 1.80m (+37% sáng) • 0% chạm bậc' },
-    working:   { name: 'Working Room & Piano (Tường Thẳng A2)', floor: 'F2', area: '13.8 m²', level: 'F2',
-      pos: [0.92, 3.55, 3.58], yaw: 0.56, pitch: -0.04,
-      desc: 'Phòng vuông vắn thẳng cột 2A • Bàn đứng 1.65m • Tủ sách 1.9m • Đàn Piano đứng áp tường trục 2' },
-    lbalcony:  { name: 'Wrap-Around L-Balcony', floor: 'F2', area: '8.1 m²', level: 'F2',
+    working:   { name: 'Phòng Làm Việc & Piano (Hướng Tây • Vách Kẹp XPS D240)', floor: 'F2', area: '13.8 m²', level: 'F2',
+      pos: [1.15, 3.55, 3.45], yaw: 0.42, pitch: -0.04,
+      desc: 'Cửa Tây riêng từ Sảnh • Tường Tây 2 lớp kẹp XPS chống nóng • Bàn nâng hạ 1.65m + Tủ sách + Piano + Ghế đọc sách phụ' },
+    subbed:    { name: 'Phòng Ngủ Phụ (Ô Kính Mái Bắc Chờ Giếng Trời T3–4)', floor: 'F2', area: '11.0 m²', level: 'F2',
+      pos: [5.05, 3.55, 2.75], yaw: 0.18, pitch: 0.12,
+      desc: 'Ô kính mái 650×1200 đặt sát tường Bắc Trục A (lên Tầng 3–4 nối thẳng thành Giếng trời thông tầng!) • Bấm "Rèm Kính Mái" đóng/mở rèm tổ ong 100%' },
+    master:    { name: 'Phòng Ngủ Master Mở Rộng + Cửa Lùa Ra Ban Công Nam', floor: 'F2', area: '14.5 m² + BC 4.3 m²', level: 'F2',
+      pos: [6.45, 3.55, 3.82], yaw: 2.35, pitch: -0.04,
+      desc: 'Khép kín 100% trần PN1 + Cửa lùa kính 3 cánh 2.40m bước thẳng ra Ban công Nam Master 4.3m² ngập gió Đông Nam!' },
+    sbalcony:  { name: 'Ban Công Nam Master (Đua Ngoài Sổ • Chuẩn 100% Thực Địa)', floor: 'F2', area: '4.3 m² (3.86×1.10m)', level: 'F2',
+      pos: [7.15, 3.52, 7.36], yaw: 0.45, pitch: -0.06,
+      desc: 'Đua công-xôn 1.10m ngoài Sổ Đỏ (vạch đồng dưới chân) nhưng lùi an toàn 24–72cm TRONG hàng rào Thực Địa (0% lấn ngõ 1.5m!) • Che mưa cửa sổ PN1' },
+    wcmaster:  { name: 'WC Master Mở Rộng (Bồn Tắm Nằm Chuẩn 1,68m)', floor: 'F2', area: '5.1 m²', level: 'F2',
+      pos: [7.98, 3.54, 2.38], yaw: 0.25, pitch: -0.14,
+      desc: 'Lùi vách Tây 27cm (X=7.36m, rộng 2.02×2.54m) -> Hốc thô 1.72m lắp vừa Bồn tắm nằm chuẩn 1.68m–1.70m • Cửa thông thoáng thẳng ra Master!' },
+    lbalcony:  { name: 'Ban Công Chữ L (Hướng Nam & Tây)', floor: 'F2', area: '8.1 m²', level: 'F2',
       pos: [-0.95, 3.55, 5.02], yaw: 0.72, pitch: -0.02,
-      desc: 'Connects both balcony wings • Tempered glass railing • Movable West wood sun-shading louvers' },
-    master:    { name: 'Master Bedroom Mở Rộng (Tường Thẳng A2)', floor: 'F2', area: '17.6 m² (22.1 m²)', level: 'F2',
-      pos: [7.65, 3.55, 3.62], yaw: -0.78, pitch: -0.04,
-      desc: 'Mở rộng thêm +32cm (+1.1 m²) nhờ dời tường thẳng trục 2A • Tủ áo 2.7m lùi sát trục 2 • Giường King & Cửa 2.8m' },
-    wcmaster:  { name: 'Master Ensuite Bathroom', floor: 'F2', area: '4.5 m²', level: 'F2',
-      pos: [7.96, 3.54, 2.38], yaw: 0.56, pitch: -0.14,
-      desc: '1.42m soaking bathtub with oak caddy & matte-black filler • Backlit round mirror • Natural East window' },
-    ebalcony:  { name: 'Master East Balcony (Trụ BTCT Bảo Vệ 4B′)', floor: 'F2', area: '4.6 m²', level: 'F2',
-      pos: [6.45, 3.55, 5.15], yaw: 1.25, pitch: -0.04,
-      desc: '1.2m deep over PN1 flat roof • Trụ BTCT Sika bọc kín Coupler 4B′ tách khỏi đất bồn cây ở góc Đông Nam' },
-    stair2:    { name: 'F2 Landing → Rooftop Stairs', floor: 'F2→Roof', area: '2.1 m²', level: 'F2',
-      pos: [4.02, 3.55, 3.68], yaw: 3.12, pitch: 0.14,
-      desc: 'Full 860mm unobstructed stair mouth (X=3.53–4.39m) leading straight up 21 oak steps to the Solar PV Rooftop' },
-    rooftop:   { name: 'Rooftop Solar PV Terrace', floor: 'Roof', area: '45.4 m²', level: 'ROOF',
-      pos: [5.45, 6.85, 3.68], yaw: -1.06, pitch: -0.02,
-      desc: '11×550W (6.05 kWp) elevated 2.7m Solar PV shade canopy • Shaded tea lounge • Covered drying • 2000L NE tank' }
+      desc: 'Không gian hóng gió & ngắm cảnh ngoài trời Tầng 2 • Hệ lam gỗ trượt chắn nắng Tây • Bàn trà Nhôm & Đá ngoài trời' },
+    stair2:    { name: 'Sảnh Tầng 2 (Ngã Ba 3 Cửa Độc Lập)', floor: 'F2→Roof', area: '2.1 m²', level: 'F2',
+      pos: [4.62, 3.55, 3.85], yaw: 0.0, pitch: -0.02,
+      desc: 'Cửa Tây → P.Làm Việc (13.8m²) • Cửa Bắc → Phòng Ngủ Phụ (11.0m²) • Cửa Đông → Master (19.6m²) • Cầu thang lên Sân thượng 54.0m²!' },
+    rooftop:   { name: 'Sân Thượng Solar Mở Rộng (54.0 m²)', floor: 'Roof', area: '54.0 m²', level: 'ROOF',
+      pos: [7.65, 6.85, 5.35], yaw: -0.75, pitch: -0.04,
+      desc: 'Mở rộng từ 45.4 lên 54.0 m² trên trần Master • Ô kính mái gờ BTCT +20cm dưới giàn PV 6.05kWp • Trụ Sika bọc Coupler 4B′ tại +6.850' }
   };
 
   // Continuous U-stair progress u in [0..1] matching exact 21-riser geometry!
@@ -2611,9 +2973,9 @@
   function getColliders(level, doorsOpen) {
     const rects = [];
     if (level === 'F1') {
-      // North wall, West wall (open B-1 door Z=3.20..4.15), East wall (open 1.4m sliding door Z=3.52..4.22)
+      // North wall, West wall (Plan C 4.0: solid +600mm sill & 1-B wall — 0% xuyên tâm!), East wall (open 1.4m sliding door Z=3.52..4.22)
       rects.push([-0.85, -0.16, 10.45, 0.14]);
-      rects.push([-0.14, -0.15, 0.14, 3.18], [-0.14, 4.16, 0.14, 4.52]);
+      rects.push([-0.14, -0.15, 0.14, 4.52]);
       rects.push([9.46, -0.15, 9.75, 3.50], [9.46, 4.23, 9.75, 4.52]);
       // South core wall: open Living door X=0.91..2.51, open Stair entry X=3.53..4.43, open Bà's PN1 door X=8.02..8.84
       if (doorsOpen) {
@@ -2622,7 +2984,7 @@
         rects.push([-0.14, 4.26, 3.52, 4.54]);
       }
       rects.push([4.44, 4.26, 8.01, 4.54], [8.85, 4.38, 9.75, 4.54]);
-      // 03.1_PlanC WC1 partition (solid West wall X=7.91..8.06; South wall open door X=8.10..8.86)
+      // 04.0_PlanC WC1 partition (solid West wall X=7.91..8.06; South wall open door X=8.10..8.86)
       rects.push([7.91, 0.11, 8.06, 2.78], [8.87, 2.63, 9.52, 2.78]);
       // Stairwell & PN1 outer walls (NO Sổ Đỏ courtyard curb — full Thực địa yard is open!)
       rects.push([3.39, 4.50, 3.54, 6.81], [5.73, 4.50, 5.92, 6.81]);
@@ -2630,54 +2992,56 @@
       // Outer Thực Địa East wall (X=10.42..10.72) & South Thực Địa Fence (leaving SE Alley Gate X=9.64..10.54 open!)
       rects.push([10.42, -0.15, 10.75, 8.02]);
       rects.push([-2.58, 8.55, 2.25, 8.88], [2.20, 8.68, 4.45, 8.86], [4.40, 8.52, 6.42, 8.75], [6.38, 8.12, 9.62, 8.58]);
-      // Furniture colliders (03.1_PlanC)
-      rects.push([3.58, 0.11, 5.03, 0.78]); // Tủ thờ 1.27m + Vách CNC
-      rects.push([5.70, 0.11, 7.93, 0.72], [7.31, 0.72, 7.93, 1.95], [7.26, 1.96, 7.93, 2.63]); // Kitchen & Fridge
-      rects.push([7.24, 3.68, 7.86, 4.30]); // MG/S
-      rects.push([4.55, 3.84, 5.73, 4.29]); // Tech cabinet
-      rects.push([5.93, 4.60, 7.88, 6.10], [8.20, 6.08, 9.56, 6.65]); // Bà's West bed & SE wardrobe
-      rects.push([0.60, 2.45, 2.80, 3.27], [1.15, 1.40, 2.25, 2.02]); // Sofa & Coffee table
-      rects.push([4.05, 2.00, 5.40, 2.80]); // Dining table
+      // Furniture colliders (Plan C 4.0 Phong Thủy Cung Khôn & Anti-Mold Edition)
+      rects.push([0.12, 3.66, 0.46, 4.26]); // Relocated 1-B Floating WPC Shoe & Umbrella Cabinet
+      rects.push([4.34, 0.11, 5.07, 1.57]); // West-facing Altar 1.27m + 110mm Solid Brick Backing Wall
+      rects.push([5.06, 0.11, 7.93, 0.72], [7.31, 0.72, 7.93, 1.97], [7.25, 1.98, 7.93, 2.64]); // 620 Dry Pantry + L-Kitchen + 600mm DW + Fridge
+      rects.push([6.68, 3.64, 7.89, 4.30]); // Stacked Washer/Heat-Pump Dryer + Plumbed Robot Dock
+      rects.push([4.48, 3.82, 5.73, 4.29]); // Solar + 30L Auto-Drain Dehumidifier Hub
+      rects.push([5.93, 4.62, 7.88, 6.02], [9.01, 4.56, 9.59, 6.62], [7.35, 6.14, 8.55, 6.58]); // Bà's Bed, 2.06m East Wardrobe/TV & Window Bench
+      rects.push([0.58, 2.48, 2.88, 3.26], [2.22, 1.94, 2.88, 2.48], [1.10, 1.38, 2.08, 2.08]); // L-Chaise Sofa & Nesting Stone Tables
+      rects.push([3.85, 2.22, 5.25, 3.02]); // Repositioned Sintered-Stone Dining Table
     } else if (level === 'F2') {
-      // North wall & East wall
-      rects.push([-0.15, -0.15, 9.75, 0.14], [9.46, -0.15, 9.75, 4.54]);
-      // West wall (open balcony sliding door Z=3.16..3.95 when doorsOpen!)
+      rects.push([-0.15, -0.15, 9.75, 0.14], [9.46, -0.15, 9.75, 6.81]);
+      // Master South Wall (Z=6.56..6.80): open 1.56m sliding balcony doorway X=6.46..8.02 directly aligned with X=6.95 Master aisle!
+      if (doorsOpen) {
+        rects.push([5.74, 6.56, 6.45, 6.80], [8.03, 6.56, 9.75, 6.80]);
+      } else {
+        rects.push([5.74, 6.56, 9.75, 6.80]);
+      }
+      // Cantilevered South Master Balcony Glass Railings (keep player safely inside X=5.87..9.68, Z=6.79..7.86!)
+      rects.push([5.80, 6.78, 5.91, 7.92], [9.65, 6.78, 9.76, 7.92], [5.80, 7.84, 9.76, 7.96]);
       if (doorsOpen) {
         rects.push([-0.14, -0.15, 0.14, 3.15], [-0.14, 3.96, 0.14, 4.54]);
       } else {
         rects.push([-0.14, -0.15, 0.14, 4.54]);
       }
-      // South core wall: open Working South door X=1.66..2.75, FULL 860mm open Flight2 X=3.53..4.39, open Flight1 X=4.88..5.74, open Master X=7.15..9.00
       if (doorsOpen) {
         rects.push([-0.14, 4.26, 1.65, 4.54], [2.76, 4.26, 3.52, 4.54]);
-        rects.push([5.75, 4.26, 7.14, 4.54], [9.01, 4.26, 9.75, 4.54]);
       } else {
-        rects.push([-0.14, 4.26, 3.52, 4.54], [5.75, 4.26, 9.75, 4.54]);
+        rects.push([-0.14, 4.26, 3.52, 4.54]);
       }
-      rects.push([4.40, 4.26, 4.87, 4.54]); // Stair center divider (leaves FULL 88cm clear for Flight 2 & Flight 1!)
-      // Interior partitions: Straight wall along Column A2 (2A -> 2B: X=3.42..3.53, open Working door Z=3.38..4.20)
+      rects.push([4.40, 4.26, 4.87, 4.54], [5.73, 4.25, 5.96, 6.80]);
+      // V1 (open Working door Z=3.38..4.20), V2 (open Phòng Ngủ Phụ door X=4.86..5.68), V3 (open Master door Z=3.40..4.24)
       rects.push([3.41, 0.11, 3.54, 3.37], [3.41, 4.21, 3.54, 4.32]);
-      // Landing box (open Master door X=4.86..5.68)
-      rects.push([3.52, 3.21, 4.85, 3.36], [5.69, 3.21, 5.87, 3.36], [5.72, 3.34, 5.87, 4.32]);
-      // WC Master partition (open door Z=1.85..2.60)
-      rects.push([7.61, 0.11, 7.76, 1.84], [7.61, 2.61, 7.76, 2.78], [7.61, 2.64, 9.52, 2.78]);
-      // Balcony railings (keep player safely on balconies!)
-      rects.push([-1.75, 5.66, 3.45, 5.86], [3.38, 4.50, 3.54, 5.80]); // L-balcony South & East
-      rects.push([-0.80, 1.98, -0.10, 2.14]); // L-balcony North end
-      rects.push([5.84, 5.66, 9.76, 5.86], [5.78, 4.50, 5.94, 5.80], [9.62, 4.50, 9.80, 5.80]); // East balcony
-      // Major F2 furniture colliders (synced to straight A2 wall!)
-      rects.push([0.24, 0.35, 0.99, 2.00], [1.45, 0.14, 3.31, 0.54], [2.82, 1.06, 3.42, 2.58]); // Desk, 1.9m Bookshelf & Upright Piano
-      rects.push([3.54, 0.14, 4.14, 2.85], [5.12, 0.17, 6.97, 2.18], [7.72, 2.78, 9.38, 3.30]); // Wardrobe, King Bed, Vanity
-      rects.push([7.78, 0.16, 9.14, 0.90]); // Bathtub
+      rects.push([3.52, 3.21, 4.85, 3.36], [5.69, 3.21, 5.87, 3.39], [5.72, 2.64, 5.87, 3.39]);
+      // V4 + V5: Widened WC Master (X=7.36..7.47) with 100% OPEN South Door X=7.62..8.38!
+      rects.push([5.74, 2.63, 7.61, 2.78], [8.39, 2.63, 9.52, 2.78], [7.34, 0.11, 7.49, 2.68]);
+      // L-Balcony railings
+      rects.push([-1.75, 5.66, 3.45, 5.86], [3.38, 4.50, 3.54, 5.80], [-0.80, 1.98, -0.10, 2.14]);
+      // F2 Furniture Colliders
+      rects.push([0.24, 0.35, 0.99, 2.00], [1.45, 0.14, 3.31, 0.54], [2.82, 1.06, 3.42, 2.58], [0.26, 3.26, 0.96, 3.96]);
+      rects.push([3.54, 0.14, 4.12, 2.58], [5.36, 0.20, 7.34, 1.60], [4.18, 0.14, 5.30, 0.66]);
+      rects.push([5.86, 2.76, 7.52, 3.36], [7.48, 4.15, 9.48, 5.95], [5.96, 4.80, 6.36, 6.37], [8.50, 2.80, 9.46, 3.33]);
+      rects.push([7.49, 0.14, 9.19, 0.92]); // Full 1.695m Soaking Bathtub
     } else if (level === 'STAIR1' || level === 'STAIR2') {
-      // Stairwell enclosure + central handrail core (clean 860mm wide U-corridor!)
       rects.push([3.36, 4.40, 3.53, 6.82], [5.74, 4.40, 5.92, 6.82], [3.36, 6.67, 5.92, 6.82]);
-      rects.push([4.39, 4.38, 4.88, 5.81]); // Central core divider
+      rects.push([4.39, 4.38, 4.88, 5.81]);
     } else if (level === 'ROOF') {
-      // Parapets around 45.4m² terrace (open Tum Thang door X=4.86..5.74)
-      rects.push([-0.15, -0.15, 9.75, 0.14], [-0.15, -0.15, 0.14, 4.54], [9.46, -0.15, 9.75, 4.54]);
-      rects.push([-0.15, 4.28, 4.85, 4.54], [5.75, 4.28, 9.75, 4.54]);
-      rects.push([1.15, 1.72, 2.15, 2.42], [7.55, 3.65, 9.35, 4.18]); // Tea table & planter
+      rects.push([-0.15, -0.15, 9.75, 0.14], [-0.15, -0.15, 0.14, 4.54], [9.46, -0.15, 9.75, 6.82]);
+      rects.push([-0.15, 4.28, 3.42, 4.54], [3.40, 4.40, 4.85, 6.82], [5.75, 4.40, 5.92, 6.82], [5.85, 6.65, 9.75, 6.82]);
+      rects.push([4.31, 0.11, 5.79, 0.94]); // North-wall Skylight curb collider (tucked flush against North parapet!)
+      rects.push([1.15, 1.72, 2.15, 2.42], [6.25, 6.12, 9.25, 6.64], [3.60, 3.78, 4.65, 4.24]);
     }
     return rects;
   }
@@ -2709,7 +3073,8 @@
     if (level === 'STAIR2') return lerp(3.55, 6.85, stairProgress(x, z));
     if (level === 'ROOF') return 6.85;
     if (level === 'F2') {
-      if (x > 7.70 && z < 2.68) return 3.54;
+      if (x > 7.42 && z < 2.66) return 3.54;
+      if (x >= 5.84 && x <= 9.72 && z > 6.75) return 3.52; // -30mm rain step onto South Master Balcony!
       return 3.55;
     }
     // Floor 1 interior vs courtyard vs setback vs alley/road
@@ -2734,22 +3099,21 @@
     }
     if (level === 'F2') {
       if (x < -0.10 || (x < 3.45 && z > 4.42)) return ROOMS.lbalcony;
-      if (x > 5.85 && z > 4.42) return ROOMS.ebalcony;
-      if (x >= 3.48 && x <= 5.80 && z >= 3.28) {
-        return { name: 'F2 Stair Landing (Sảnh Thang)', floor: 'F2', area: '2.1 m²',
-          desc: 'Full 2.21m wide landing: East leg down to F1 • West 860mm open stairs straight UP to Rooftop Solar Terrace!' };
-      }
+      if (x >= 5.82 && z > 6.74) return ROOMS.sbalcony;
+      if (x >= 3.48 && x <= 5.82 && z >= 3.28 && z <= 4.48) return ROOMS.stair2;
       if (x < 3.47) return ROOMS.working;
-      if (x > 7.68 && z < 2.70) return ROOMS.wcmaster;
+      if (x > 7.42 && z < 2.70) return ROOMS.wcmaster;
+      if (z < 2.70 || (x <= 5.82 && z < 3.30)) return ROOMS.subbed;
       return ROOMS.master;
     }
     // F1
     if (z > 4.45 && x > 5.85 && x < 9.65 && z < 6.75) return ROOMS.pn1;
     if (z > 4.45 || x < -0.05 || x > 9.65) return ROOMS.courtyard;
+    if (x >= 2.85 && x < 5.06 && z < 1.72) return ROOMS.altar;
     if (x < 3.42) return ROOMS.living;
-    if (x < 5.10 && z < 1.75) return ROOMS.altar;
     if (x < 5.75) return ROOMS.dining;
     if (x > 8.00 && z < 2.70) return ROOMS.wc1;
+    if (x >= 6.20 && x <= 7.88 && z >= 2.85) return ROOMS.laundry;
     if (x > 7.85 && z >= 2.70) {
       return { name: 'Sảnh Sau & Lối Đi Thẳng 1.64m (PN1 ↔ WC1)', floor: 'F1', area: 'Sảnh Bà',
         desc: 'Đi thẳng 1.64m từ PN1 vào WC1 • Cửa trượt 1.4m mở ra hành lang Đông trong hàng rào Thực địa' };
@@ -2765,6 +3129,7 @@
   let lightMode = params.get('lights') || 'auto'; // 'auto' | 'on' | 'off'
   let doorsOpen = params.get('doors') ? params.get('doors') !== '0' : true;
   let solidStairWall = params.get('solidstair') === '1';
+  let skylightBlindClosed = params.get('skyblind') === '1';
   let showGrid = params.get('grid') === '1';
   let fpFov = params.has('fov') ? parseFloat(params.get('fov')) : 52; // True 1:1 human perspective default!
   let fpsLookMode = false; // Strictly true OS Pointer Lock (mouse trapped at center of scene!)
@@ -2775,7 +3140,7 @@
   let activeMapFloor = 'F1';
   let hasInteracted = false;
 
-  const initSnap = params.get('snap') && ROOMS[params.get('snap')] ? params.get('snap') : 'living';
+  const initSnap = params.get('snap') && ROOMS[params.get('snap')] ? params.get('snap') : 'sbalcony';
   const r0 = ROOMS[initSnap];
   const player = {
     x: r0.pos[0], y: r0.pos[1], z: r0.pos[2],
@@ -2796,6 +3161,7 @@
 
   rebuildLouvers(louverAmt);
   rebuildSlidingDoors(doorsOpen);
+  rebuildSkylightBlind(skylightBlindClosed);
   rebuildNeighbors(nbrCfg);
 
   // Illustrative sun direction: 05:30 pre-dawn East (+X) -> 12:15 high South (+Z) -> 18:00 West (-X) -> Night
@@ -2903,42 +3269,62 @@
       rectW(3.45, 4.45, 5.82, 6.72, isLight ? '#fef3c7' : '#451a03', wallCol);
       rectW(5.85, 4.45, 9.65, 6.72, roomFill, wallCol);
       rectW(7.98, 0.0, 9.6, 2.70, isLight ? '#f0f9ff' : '#172554', wallCol);
-      rectW(3.60, 0.14, 4.87, 0.75, isLight ? '#fde68a' : '#78350f', '#d97706'); // Tủ thờ
-      rectW(0.60, 2.45, 2.80, 3.27, furnCol);
-      rectW(4.05, 2.00, 5.40, 2.80, furnCol);
-      rectW(5.70, 0.11, 7.93, 0.71, furnCol);
-      rectW(5.93, 4.60, 7.88, 6.10, furnCol);
-      labelW(1.7, 1.8, 'Living'); labelW(4.3, 0.65, 'Thờ'); labelW(4.7, 2.5, 'Ăn'); labelW(6.6, 1.7, 'Bếp');
+      rectW(-0.08, 0.75, 0.10, 3.65, '#38bdf8', '#0284c7'); // 2.90m Panorama Low-E Window!
+      rectW(0.12, 3.66, 0.46, 4.26, isLight ? '#a7f3d0' : '#065f46'); // 1-B WPC Shoe Cabinet
+      rectW(4.34, 0.16, 4.95, 1.43, isLight ? '#fde68a' : '#78350f', '#d97706'); // Tủ thờ hướng Tây (Thiên Y)
+      rectW(4.95, 0.11, 5.06, 1.56, wallCol); // 110mm Solid Brick Altar Wall
+      rectW(5.06, 0.11, 5.68, 0.71, isLight ? '#a7f3d0' : '#065f46'); // 620mm Dry Pantry Buffer
+      rectW(0.58, 2.48, 2.88, 3.26, furnCol);
+      rectW(3.85, 2.22, 5.25, 3.02, furnCol);
+      rectW(5.68, 0.11, 7.93, 0.71, furnCol);
+      rectW(7.33, 0.71, 7.93, 1.36, furnCol);
+      rectW(7.33, 1.36, 7.93, 1.96, isLight ? '#bfdbfe' : '#1d4ed8', '#2563eb'); // 600mm Dishwasher!
+      rectW(7.26, 1.98, 7.92, 2.63, furnCol);
+      rectW(6.68, 3.64, 7.88, 4.28, isLight ? '#ddd6fe' : '#5b21b6'); // Washer/Dryer + Robot Dock
+      rectW(5.93, 4.62, 7.88, 6.02, furnCol);
+      rectW(9.01, 4.56, 9.58, 6.62, furnCol); // Mom's East Wardrobe + TV
+      labelW(1.7, 1.8, 'Living'); labelW(4.64, 0.85, 'Thờ Tây'); labelW(4.55, 2.65, 'Ăn'); labelW(6.5, 1.6, 'Bếp+DW');
       labelW(8.8, 1.5, 'WC1'); labelW(7.5, 5.8, 'PN1'); labelW(4.6, 5.8, 'Stair'); labelW(0.6, 7.8, 'Sân Thực Địa');
     } else if (activeMapFloor === 'F2') {
-      // L-Balcony polygon
+      // Draw Thực Địa lot boundary (emerald) so balcony-inside-Thực-Địa is crystal clear on F2!
+      mctx.beginPath();
+      THUC_DIA.forEach((p, idx) => { const [px,py]=worldToMap(p[0],p[1]); idx===0 ? mctx.moveTo(px,py) : mctx.lineTo(px,py); });
+      mctx.closePath(); mctx.strokeStyle = '#10b981'; mctx.lineWidth = 1.4; mctx.stroke();
+      // L-Balcony
       mctx.beginPath();
       const lp = [[-0.11,2.10],[-0.71,2.10],[-1.66,5.71],[3.41,5.71],[3.41,4.51],[-0.11,4.51]];
       lp.forEach((p, idx) => { const [px,py]=worldToMap(p[0],p[1]); idx===0 ? mctx.moveTo(px,py) : mctx.lineTo(px,py); });
       mctx.closePath(); mctx.fillStyle = balcFill; mctx.fill(); mctx.strokeStyle = wallCol; mctx.lineWidth = 1; mctx.stroke();
-      // East Balcony
-      rectW(5.85, 4.51, 9.71, 5.71, balcFill, wallCol);
-      // Core F2 rooms + Stairs (straight A2 wall X=3.47 -> Enlarged Master Bedroom 22.1m²!)
-      rectW(0.0, 0.0, 9.6, 4.4, roomFill, wallCol);
-      rectW(3.45, 4.45, 5.82, 6.72, isLight ? '#fef3c7' : '#451a03', wallCol);
-      rectW(0.0, 0.0, 3.47, 4.40, null, wallCol);
-      rectW(7.68, 0.0, 9.6, 2.70, isLight ? '#f0f9ff' : '#172554', wallCol);
-      rectW(3.47, 3.28, 5.80, 4.40, isLight ? '#f8fafc' : '#0f172a', wallCol);
-      // Furniture hints (synced to straight A2 wall!)
-      rectW(0.24, 0.35, 0.99, 2.00, furnCol); // Desk
-      rectW(2.84, 1.08, 3.42, 2.56, isLight ? '#475569' : '#64748b'); // Studio Upright Piano
-      rectW(2.34, 1.43, 2.70, 2.21, furnCol); // Piano bench
-      rectW(5.15, 0.17, 6.95, 2.17, furnCol); // King bed
-      rectW(3.54, 0.14, 4.14, 2.85, furnCol); // Wardrobe
-      labelW(1.6, 2.5, 'Working'); labelW(5.9, 2.7, 'Master'); labelW(8.6, 1.5, 'WC');
-      labelW(1.1, 5.2, 'L-Balc'); labelW(7.8, 5.2, 'Balc'); labelW(4.6, 5.8, '↑Roof');
+      // NEW Cantilevered South Master Balcony (5.85..9.71 x 6.79..7.89 — inside Thực Địa!)
+      rectW(5.85, 6.72, 9.71, 7.89, isLight ? '#d1fae5' : '#065f46', '#059669');
+      // Draw Sổ Đỏ red dashed line on top so overhang past Sổ Đỏ is visually obvious!
+      mctx.save(); mctx.setLineDash([3, 3]); mctx.beginPath();
+      SO_DO.forEach((p, idx) => { const [px,py]=worldToMap(p[0],p[1]); idx===0 ? mctx.moveTo(px,py) : mctx.lineTo(px,py); });
+      mctx.closePath(); mctx.strokeStyle = '#ef4444'; mctx.lineWidth = 1.1; mctx.stroke(); mctx.restore();
+      rectW(0.0, 0.0, 3.47, 4.40, roomFill, wallCol); // P. Làm Việc
+      rectW(3.47, 0.0, 7.42, 2.70, isLight ? '#f5f3ff' : '#1e1b4b', wallCol); // Phòng Ngủ Phụ
+      rectW(3.47, 2.65, 5.80, 3.28, isLight ? '#f5f3ff' : '#1e1b4b', null);
+      rectW(5.80, 2.70, 9.60, 6.72, roomFill, wallCol); // Master Mới Mở Rộng
+      rectW(7.42, 0.0, 9.60, 2.70, isLight ? '#f0f9ff' : '#172554', wallCol); // Widened WC Master
+      rectW(3.47, 3.28, 5.80, 4.40, isLight ? '#ffe4e6' : '#3f1d2e', wallCol); // Sảnh T2 (3 Cửa)
+      rectW(3.45, 4.45, 5.82, 6.72, isLight ? '#fef3c7' : '#451a03', wallCol); // Stairs
+      // Furniture & Skylight + 1.68m Tub hints
+      rectW(0.24, 0.35, 0.99, 2.00, furnCol);
+      rectW(2.84, 1.08, 3.42, 2.56, isLight ? '#475569' : '#64748b');
+      rectW(5.36, 0.20, 7.34, 1.60, furnCol); // Bed Phòng Ngủ Phụ
+      rectW(4.45, 0.15, 5.65, 0.80, isLight ? '#bae6fd' : '#0369a1', '#7c3aed'); // Ô Kính Mái Bắc 650x1200 (Chờ Giếng Trời T3-4)
+      rectW(7.49, 0.14, 9.19, 0.92, isLight ? '#bae6fd' : '#1d4ed8', '#0284c7'); // Bồn tắm chuẩn 1,68m!
+      rectW(7.48, 4.15, 9.48, 5.95, furnCol); // Master King bed
+      labelW(1.6, 2.6, 'P.LV'); labelW(5.4, 2.25, 'P.Ngủ Phụ'); labelW(7.4, 5.2, 'Master'); labelW(8.5, 1.5, 'WC 1,68m');
+      labelW(1.1, 5.2, 'L-Balc'); labelW(7.8, 7.5, 'BC Thực Địa'); labelW(4.6, 3.9, 'Sảnh'); labelW(4.6, 5.8, '↑Roof');
     } else {
-      // Rooftop Solar PV Terrace
       rectW(0.0, 0.0, 9.6, 4.4, roomFill, wallCol);
-      rectW(0.16, 0.16, 7.12, 4.14, isLight ? '#dbeafe' : '#172554', '#3b82f6'); // Solar canopy footprint
-      rectW(3.45, 4.45, 5.82, 6.72, isLight ? '#fef3c7' : '#451a03', wallCol); // Tum Thang
-      rectW(7.50, 0.25, 9.05, 2.00, isLight ? '#e0f2fe' : '#0c4a6e', wallCol); // Water tank
-      labelW(1.7, 2.2, 'Tea Lounge'); labelW(5.1, 2.2, 'PV Canopy'); labelW(8.3, 1.2, '2000L'); labelW(4.6, 5.8, 'Tum');
+      rectW(5.85, 4.4, 9.6, 6.72, balcFill, wallCol); // +8.6 m² SE Rooftop
+      rectW(0.16, 0.16, 7.12, 4.14, isLight ? '#dbeafe' : '#172554', '#3b82f6');
+      rectW(4.45, 0.15, 5.65, 0.80, isLight ? '#e0f2fe' : '#312e81', '#7c3aed'); // North-wall Skylight curb
+      rectW(3.45, 4.45, 5.82, 6.72, isLight ? '#fef3c7' : '#451a03', wallCol);
+      rectW(7.50, 0.25, 9.05, 2.00, isLight ? '#e0f2fe' : '#0c4a6e', wallCol);
+      labelW(1.7, 2.2, 'Tea Lounge'); labelW(5.1, 2.2, 'PV+Kính Mái'); labelW(7.8, 5.6, '+8.6m²'); labelW(4.6, 5.8, 'Tum');
     }
 
     // Player live position dot & directional FOV cone (if on matching floor or stair)
@@ -3388,6 +3774,13 @@
     rebuildSlidingDoors(doorsOpen);
     dirty = true;
   });
+  const skyBlindEl = document.getElementById('skylightBlind');
+  skyBlindEl.checked = skylightBlindClosed;
+  skyBlindEl.addEventListener('change', () => {
+    skylightBlindClosed = skyBlindEl.checked;
+    rebuildSkylightBlind(skylightBlindClosed);
+    dirty = true;
+  });
 
   // Adjacent Neighbor Building Toggles (East / Back / South / West)
   function syncNeighborButtons() {
@@ -3551,7 +3944,7 @@
       gl.cullFace(gl.FRONT);
       gl.useProgram(shadowProg);
       gl.uniformMatrix4fv(gl.getUniformLocation(shadowProg, 'uLightVP'), false, lightVP);
-      for (const buf of [opaqueBuf, louverBuf, doorOpBuf, neighborOpBuf]) {
+      for (const buf of [opaqueBuf, louverBuf, doorOpBuf, skyBlindBuf, neighborOpBuf]) {
         if (!buf || !buf.count) continue;
         gl.bindVertexArray(buf.vao);
         gl.drawArrays(gl.TRIANGLES, 0, buf.count);
@@ -3628,7 +4021,7 @@
     gl.bindTexture(gl.TEXTURE_2D, shadowTex);
     gl.uniform1i(gl.getUniformLocation(mainProg, 'uShadowMap'), 0);
 
-    for (const buf of [opaqueBuf, louverBuf, doorOpBuf, neighborOpBuf]) {
+    for (const buf of [opaqueBuf, louverBuf, doorOpBuf, skyBlindBuf, neighborOpBuf]) {
       if (!buf || !buf.count) continue;
       gl.bindVertexArray(buf.vao);
       gl.drawArrays(gl.TRIANGLES, 0, buf.count);
@@ -3639,7 +4032,7 @@
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
     gl.depthMask(false);
-    for (const buf of [glassBuf, doorGlsBuf, neighborGlsBuf]) {
+    for (const buf of [glassBuf, doorGlsBuf, curtainGlsBuf, neighborGlsBuf]) {
       if (!buf || !buf.count) continue;
       gl.bindVertexArray(buf.vao);
       gl.drawArrays(gl.TRIANGLES, 0, buf.count);
